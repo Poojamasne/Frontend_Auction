@@ -69,6 +69,7 @@ interface Auction {
   statistics: Statistics;
   time_value?: string;
   time_status?: string;
+  created_by: number;
 }
 
 const ParticipantAuctionSession: React.FC = () => {
@@ -98,10 +99,6 @@ const ParticipantAuctionSession: React.FC = () => {
 
   const fetchAuctionData = useCallback(async () => {
     if (!id) return;
-    console.log(
-      "[ParticipantAuctionSession] Fetching auction data for ID:",
-      id
-    );
     try {
       const token =
         localStorage.getItem("authToken") || localStorage.getItem("token");
@@ -114,20 +111,13 @@ const ParticipantAuctionSession: React.FC = () => {
           },
         }
       );
-
-      console.log(
-        "[ParticipantAuctionSession] Fetch response status:",
-        response.status
-      );
       if (!response.ok) {
         setIsJoined(false);
         throw new Error(
           `Failed to fetch auction details. Status: ${response.status}`
         );
       }
-
       const data = await response.json();
-      console.log("[ParticipantAuctionSession] Auction data received:", data);
       if (data.success && data.auction) {
         setAuction(data.auction);
         setStatistics(data.statistics);
@@ -135,14 +125,10 @@ const ParticipantAuctionSession: React.FC = () => {
         const nextBid = calculateNextBid(data.auction);
         setBidAmount(nextBid);
         setError(null);
-        console.log(
-          "[ParticipantAuctionSession] Auction data set successfully"
-        );
       } else {
         throw new Error(data.message || "Invalid auction data received");
       }
     } catch (err: any) {
-      console.error("[ParticipantAuctionSession] Fetch failed:", err);
       setError(err.message);
       setAuction(null);
       if (err.message.includes("Status: 403")) {
@@ -156,18 +142,10 @@ const ParticipantAuctionSession: React.FC = () => {
 
   const joinAuction = useCallback(async () => {
     if (!id || !user) return false;
-    console.log(
-      "[ParticipantAuctionSession] Starting joinAuction for auction:",
-      id
-    );
     setLoading(true);
     try {
       const token =
         localStorage.getItem("authToken") || localStorage.getItem("token");
-      console.log(
-        "[ParticipantAuctionSession] Joining auction with token:",
-        token ? "Present" : "Missing"
-      );
       const response = await fetch(
         "https://auction-development.onrender.com/api/auction/join",
         {
@@ -184,28 +162,20 @@ const ParticipantAuctionSession: React.FC = () => {
         }
       );
       const result = await response.json();
-      console.log("[ParticipantAuctionSession] Join response:", result);
       if (
         response.ok &&
         (result.success || result.message?.includes("already joined"))
       ) {
         toast.success(result.message || "Successfully joined auction!");
         setIsJoined(true);
-        console.log(
-          "[ParticipantAuctionSession] Successfully joined, fetching auction data..."
-        );
         await fetchAuctionData();
         setLoading(false);
-        console.log(
-          "[ParticipantAuctionSession] Join process completed successfully"
-        );
         return true;
       }
       throw new Error(
         result.message || `Failed to join auction. Status: ${response.status}`
       );
     } catch (err: any) {
-      console.error("[ParticipantAuctionSession] Join failed:", err);
       setError(err.message);
       toast.error(err.message);
       setIsJoined(false);
@@ -215,38 +185,23 @@ const ParticipantAuctionSession: React.FC = () => {
   }, [id, user, fetchAuctionData]);
 
   useEffect(() => {
-    console.log(
-      "[ParticipantAuctionSession] useEffect triggered with id:",
-      id,
-      "user:",
-      user?.id
-    );
     if (id && user) {
       joinAuction();
     }
   }, [id, user, joinAuction]);
 
-  // Separate timeout effect
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (loading && !auction) {
-        console.error(
-          "[ParticipantAuctionSession] Loading timeout reached, forcing error state"
-        );
         setLoading(false);
         setError("Loading timeout - please try again");
       }
-    }, 30000); // 30 second timeout
-
+    }, 30000);
     return () => clearTimeout(timeout);
-  }, []); // Run only once on mount
+  }, []);
 
-  // Ensure loading is false when we have auction data
   useEffect(() => {
     if (auction && loading) {
-      console.log(
-        "[ParticipantAuctionSession] Auction data available, setting loading to false"
-      );
       setLoading(false);
     }
   }, [auction, loading]);
@@ -257,7 +212,6 @@ const ParticipantAuctionSession: React.FC = () => {
         fetchAuctionData();
       }
     }, 5000);
-
     return () => clearInterval(interval);
   }, [isJoined, fetchAuctionData]);
 
@@ -266,12 +220,10 @@ const ParticipantAuctionSession: React.FC = () => {
       setTimeLeft(0);
       return;
     }
-
     const timer = setInterval(() => {
       const endTime = new Date(`${auction.auction_date}T${auction.end_time}`);
       const now = new Date();
       const diff = endTime.getTime() - now.getTime();
-
       if (diff <= 0) {
         setTimeLeft(0);
         clearInterval(timer);
@@ -284,7 +236,6 @@ const ParticipantAuctionSession: React.FC = () => {
       }
       setTimeLeft(diff);
     }, 1000);
-
     return () => clearInterval(timer);
   }, [auction]);
 
@@ -300,26 +251,22 @@ const ParticipantAuctionSession: React.FC = () => {
 
   const handleSubmitBid = async () => {
     if (!auction || !user || !bidAmount) return;
-
     const bidValue = parseFloat(bidAmount);
     if (isNaN(bidValue) || bidValue <= 0) {
       toast.error("Please enter a valid bid amount.");
       return;
     }
-
     const lowestBid = auction.statistics.lowest_bid;
     if (lowestBid !== null && bidValue >= lowestBid) {
       toast.error("Your bid must be lower than the current lowest price.");
       return;
     }
-
     setIsSubmittingBid(true);
     try {
       const result = await newAuctionService.placeBid({
         auction_id: Number(auction.id),
         amount: Number(bidValue),
       });
-
       if (result?.success) {
         toast.success(result.message || "Bid submitted successfully!");
         fetchAuctionData();
@@ -329,7 +276,6 @@ const ParticipantAuctionSession: React.FC = () => {
         throw new Error(msg);
       }
     } catch (error: any) {
-      console.error("[ParticipantAuctionSession] Bid submit error:", error);
       const msg = error?.message || "Failed to submit bid.";
       if (/forbidden|not allowed|401|403/i.test(msg)) {
         toast.error("Not allowed to bid. Make sure you joined this auction.");
@@ -344,13 +290,11 @@ const ParticipantAuctionSession: React.FC = () => {
 
   const handlePreBid = async () => {
     if (!auction || !user || !bidAmount) return;
-
     const bidValue = parseFloat(bidAmount);
     if (isNaN(bidValue) || bidValue <= 0) {
       toast.error("Please enter a valid bid amount.");
       return;
     }
-
     const lowestBid = auction.statistics?.lowest_bid;
     if (
       lowestBid !== null &&
@@ -360,7 +304,6 @@ const ParticipantAuctionSession: React.FC = () => {
       toast.error("Your bid must be lower than the current lowest price.");
       return;
     }
-
     setIsSubmittingPreBid(true);
     try {
       const token =
@@ -380,9 +323,7 @@ const ParticipantAuctionSession: React.FC = () => {
           }),
         }
       );
-
       const result = await response.json();
-
       if (response.ok && result?.success) {
         toast.success(result.message || "Pre-bid submitted successfully!");
         fetchAuctionData();
@@ -392,7 +333,6 @@ const ParticipantAuctionSession: React.FC = () => {
         throw new Error(msg);
       }
     } catch (error: any) {
-      console.error("[ParticipantAuctionSession] Pre-bid submit error:", error);
       const msg = error?.message || "Failed to submit pre-bid.";
       if (/forbidden|not allowed|401|403/i.test(msg)) {
         toast.error(
@@ -407,15 +347,7 @@ const ParticipantAuctionSession: React.FC = () => {
     }
   };
 
-  console.log("[ParticipantAuctionSession] Render state:", {
-    loading,
-    error,
-    isJoined,
-    auction: !!auction,
-  });
-
   if (loading && !auction) {
-    console.log("[ParticipantAuctionSession] Rendering loading state");
     return (
       <div className="participant-auction-loading">
         <div className="loading-card">
@@ -427,7 +359,6 @@ const ParticipantAuctionSession: React.FC = () => {
   }
 
   if (error && !isJoined) {
-    console.log("[ParticipantAuctionSession] Rendering error state:", error);
     return (
       <div className="participant-auction-error">
         <div className="error-card">
@@ -444,7 +375,6 @@ const ParticipantAuctionSession: React.FC = () => {
   }
 
   if (!auction) {
-    console.log("[ParticipantAuctionSession] Rendering no auction state");
     return (
       <div className="participant-auction-error">
         <div className="error-card">
@@ -459,9 +389,27 @@ const ParticipantAuctionSession: React.FC = () => {
 
   const timeRemaining = formatTimeRemaining(timeLeft);
   const currentLowest = auction.statistics?.lowest_bid;
-  const rankedBids = [...(auction.bids || [])].sort(
-    (a, b) => parseFloat(a.amount) - parseFloat(b.amount)
-  );
+
+  /* ---------- PERMISSION: full ranking only for auctioneer ---------- */
+  const myId = Number(user?.id);
+  const isAuctioneer = myId === auction.created_by;
+
+  /* ---------- PARTICIPANT-VIEW: own bid + L-1 only ---------- */
+  const participantSafeRanking = isAuctioneer
+    ? bidRanking
+    : (() => {
+        // 1.  current L-1 (lowest)
+        const l1 = bidRanking.find(r => r.rank === 1);
+        // 2.  participant’s own best bid (lowest amount they placed)
+        const own = bidRanking
+          .filter(r => r.user_id === myId)
+          .sort((a, b) => parseFloat(a.amount) - parseFloat(b.amount))[0];
+        // 3.  de-duplicate (if participant is L-1)
+        const set = new Map();
+        if (l1) set.set(l1.user_id, l1);
+        if (own) set.set(own.user_id, own);
+        return Array.from(set.values()).sort((a, b) => a.rank - b.rank);
+      })();
 
   return (
     <div className="participant-auction-session">
@@ -493,10 +441,6 @@ const ParticipantAuctionSession: React.FC = () => {
             <span>Auction Details</span>
           </div>
           <div className="auction-details-grid">
-            {/* <div className="detail-row">
-              <span className="detail-label">Auction No:</span>
-              <span className="detail-value">{auction.auction_no}</span>
-            </div> */}
             <div className="detail-row description-row">
               <span className="detail-label">Description:</span>
               <span className="detail-value description-text">
@@ -506,9 +450,10 @@ const ParticipantAuctionSession: React.FC = () => {
             <div className="detail-row">
               <span className="detail-label">Date:</span>
               <span className="detail-value">
-                {new Date(
-                  auction.auction_date + "T00:00:00"
-                ).toLocaleDateString()}
+                {(() => {
+                  const [y, m, d] = auction.auction_date.split("-");
+                  return `${d}/${m}/${y.slice(-2)}`;
+                })()}
               </span>
             </div>
             <div className="detail-row">
@@ -527,21 +472,6 @@ const ParticipantAuctionSession: React.FC = () => {
                 ).toLocaleTimeString()}
               </span>
             </div>
-            {/* <div className="detail-row">
-              <span className="detail-label">Duration:</span>
-              <span className="detail-value">
-                {auction.duration ? `${auction.duration} min` : "—"}
-              </span>
-            </div> */}
-            {/* <div className="detail-row">
-              <span className="detail-label">Start Price:</span>
-              <span className="detail-value">
-                {auction.currency}{" "}
-                {auction.current_price
-                  ? parseFloat(auction.current_price).toLocaleString()
-                  : "—"}
-              </span>
-            </div> */}
             <div className="detail-row">
               <span className="detail-label">Current Lowest (L1):</span>
               <span className="detail-value">
@@ -662,19 +592,6 @@ const ParticipantAuctionSession: React.FC = () => {
                     </>
                   )}
                 </button>
-                {/* <button
-                  onClick={handleSubmitBid}
-                  disabled={isSubmittingBid || isSubmittingPreBid}
-                  className="submit-bid-btn"
-                >
-                  {isSubmittingBid ? (
-                    <div className="loading-spinner" />
-                  ) : (
-                    <>
-                      <Send className="w-4 h-4" /> Submit Bid
-                    </>
-                  )}
-                </button> */}
               </div>
             </div>
           </div>
@@ -695,11 +612,12 @@ const ParticipantAuctionSession: React.FC = () => {
         </div>
       )}
 
+      {/* ----------- RANKING CARD ----------- */}
       <div className="rankings-card">
         <div className="card-header">
           <h2 className="card-title">
             <Crown className="w-5 h-5" />
-            Live Bidding Rankings
+            {isAuctioneer ? "Live Bidding Rankings" : "Current Best Bid (L1)"}
           </h2>
           <p className="card-subtitle">
             Total Bids: {statistics?.total_bids || 0} • Active Participants:{" "}
@@ -708,13 +626,13 @@ const ParticipantAuctionSession: React.FC = () => {
         </div>
         <div className="card-content">
           <div className="rankings-list">
-            {bidRanking.length > 0 ? (
-              bidRanking.map((bid, index) => (
+            {participantSafeRanking.length > 0 ? (
+              participantSafeRanking.map((bid) => (
                 <div
                   key={bid.user_id}
                   className={`ranking-item ${
-                    bid.user_id === Number(user?.id) ? "current-user" : ""
-                  } ${index === 0 ? "winner" : ""}`}
+                    bid.user_id === myId ? "current-user" : ""
+                  } winner`}
                 >
                   <div className="ranking-left">
                     <div className="rank-section">
@@ -723,8 +641,8 @@ const ParticipantAuctionSession: React.FC = () => {
                     <div className="participant-info">
                       <div className="company-name">
                         <Building className="w-4 h-4" />
-                        {bid.company_name || bid.person_name || "Unknown User"}
-                        {bid.user_id === Number(user?.id) && (
+                        {bid.company_name || bid.person_name || "Unknown"}
+                        {bid.user_id === myId && (
                           <span className="user-badge">You</span>
                         )}
                       </div>
@@ -735,21 +653,13 @@ const ParticipantAuctionSession: React.FC = () => {
                     </div>
                   </div>
                   <div className="ranking-right">
-                    <div
-                      className={`offered-price ${index === 0 ? "lowest" : ""}`}
-                    >
+                    <div className="offered-price lowest">
                       {auction.currency}{" "}
                       {parseFloat(bid.amount).toLocaleString()}
                     </div>
                     <div className="bid-time">
                       <Clock className="w-3 h-3" />
-                      {/* {new Date(bid.last_bid_time).toLocaleTimeString()} */}
-
-                      {new Date(
-                        `${auction.auction_date}T${auction.end_time}`
-                      ).toLocaleDateString()}
-
-                      {/*  we fatching when create de auction date */}
+                      {new Date(bid.bid_time).toLocaleTimeString()}
                     </div>
                   </div>
                 </div>
