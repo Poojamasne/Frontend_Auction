@@ -1874,7 +1874,7 @@ const MyCreatedAuctionView: React.FC = () => {
               {auction.currency} {auction.decrementalValue.toLocaleString()}
               <span> (Minimum bid reduction amount)</span>
             </p>
-            <div style={{ marginTop: 8 }}>
+  {/*       <div style={{ marginTop: 8 }}>
               <button
                 className="btn btn-secondary"
                 onClick={() => {
@@ -1884,7 +1884,7 @@ const MyCreatedAuctionView: React.FC = () => {
               >
                 <Edit className="w-4 h-4" /> Edit Decrement
               </button>
-            </div>
+            </div> */}
           </div>
         )}
       </div>
