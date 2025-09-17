@@ -2056,7 +2056,7 @@ const MyCreatedAuctionView: React.FC = () => {
                   </div>
                   {(!preBid.status || preBid.status === "pending") && (
                     <div className="prebid-action-buttons">
-                      <button
+{/*                       <button
                         type="button"
                         onClick={() => handlePreBidAction(preBid.id, "approve")}
                         className="btn btn-primary btn-sm"
@@ -2064,7 +2064,7 @@ const MyCreatedAuctionView: React.FC = () => {
                       >
                         <CheckCircle className="w-4 h-4" />
                         Approve
-                      </button>
+                      </button> */}
                       <button
                         type="button"
                         onClick={() => handlePreBidAction(preBid.id, "reject")}
