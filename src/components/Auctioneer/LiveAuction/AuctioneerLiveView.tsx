@@ -21,9 +21,13 @@ import {
   StopCircle,
   Contact,
   MapPin,
+  Edit,
 } from "lucide-react";
 import { useAuth } from "../../../contexts/AuthContext";
 import "./AuctioneerLiveView.css";
+// Import the API utility for updating decrement value
+// import { updateAuctionDecrement } from "../../../services/apiDecrementValue";
+import apiDencrimentValue from "../../../services/apiDencrimentValue";
 
 // Define interfaces for the API response structure
 interface AuctionCreator {
@@ -102,6 +106,12 @@ const AuctioneerLiveView: React.FC = () => {
   const [isExtendingTime, setIsExtendingTime] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [newDecrementValue, setNewDecrementValue] = useState<number | string>(
+      ""
+    );
+  const [updatingDecrement, setUpdatingDecrement] = useState(false);
+  const [isEditDecrementOpen, setIsEditDecrementOpen] = useState(false);
 
   const fetchAuctionData = async () => {
     if (!id) return;
@@ -415,8 +425,87 @@ const AuctioneerLiveView: React.FC = () => {
                 {parseFloat(auction.decremental_value).toLocaleString()}
               </span>
             </div>
+
+            <div style={{ marginTop: 8 }}>
+              <button
+                className="btn btn-secondary"
+                onClick={() => {
+                  setNewDecrementValue(auction.decremental_value || 0);
+                  setIsEditDecrementOpen(true);
+                }}
+              >
+                <Edit className="w-4 h-4" /> Edit Decrement
+              </button>
+            </div>
+
           </div>
         </div>
+
+        {isEditDecrementOpen && (
+                <div className="prebuild-modal-overlay" role="dialog" aria-modal="true">
+                  <div className="prebuild-modal">
+                    <h3 className="prebuild-modal-title">Edit Decrement Value</h3>
+                    <div style={{ marginTop: 8 }}>
+                      <label className="modal-label">
+                        Value ({auction?.currency || "₹"})
+                      </label>
+                      <input
+                        type="number"
+                        className="prebuild-input"
+                        value={String(newDecrementValue)}
+                        onChange={(e) => setNewDecrementValue(e.target.value)}
+                        disabled={updatingDecrement}
+                      />
+                    </div>
+                    <div className="prebuild-modal-actions">
+                      <button
+                        className="btn btn-secondary"
+                        onClick={() => setIsEditDecrementOpen(false)}
+                        disabled={updatingDecrement}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        className="btn btn-primary"
+                        onClick={async () => {
+                          // validation
+                          const num = Number(newDecrementValue);
+                          if (Number.isNaN(num) || num <= 0) {
+                            toast.error("Please enter a valid positive number");
+                            return;
+                          }
+                          setUpdatingDecrement(true);
+                          try {
+                            const resp = await apiDencrimentValue.updateAuctionDecrement(
+                              id || "",
+                              num
+                            );
+                            if (resp && resp.success) {
+                              toast.success("Decrement value updated");
+                              // refresh auction details
+                              await fetchAuctionData();
+                              setIsEditDecrementOpen(false);
+                            } else {
+                              toast.error(
+                                resp?.message || "Failed to update decrement"
+                              );
+                            }
+                          } catch (err: any) {
+                            console.error("Update decrement error", err);
+                            toast.error(err?.message || "Failed to update decrement");
+                          } finally {
+                            setUpdatingDecrement(false);
+                          }
+                        }}
+                        disabled={updatingDecrement}
+                      >
+                        {updatingDecrement ? "Updating..." : "Save"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
 
         <div className="alv-countdown-card">
           <div className="alv-countdown-header">
