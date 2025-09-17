@@ -507,6 +507,7 @@ function Registration() {
             </div>
 
             <div className="ap-reg-field ap-reg-field--full">
+<<<<<<< HEAD
               <label htmlFor="companyName" className="ap-reg-label">
                 Company Name <span className="ap-reg-required">*</span>
               </label>
@@ -528,6 +529,49 @@ function Registration() {
               <small className="ap-reg-hint">It is mandatory field</small>
             </div>
 
+=======
+  <label htmlFor="companyName" className="ap-reg-label">
+    Company Name <span className="ap-reg-required">*</span>
+  </label>
+  <input
+    id="companyName"
+    type="text"
+    name="companyName"
+    className="ap-reg-input"
+    placeholder="Enter your Company Name"
+    value={form.companyName}
+    onChange={handleChange}
+    autoComplete="organization"
+    required
+    pattern="[a-zA-Z0-9\s\-\.\,\&\'\(\)]{2,100}"
+    title="Enter a valid company name (2-100 characters)"
+    minLength={2}
+    maxLength={100}
+  />
+  <small className="ap-reg-hint">It is mandatory field</small>
+</div>
+
+
+  <div className="ap-reg-field ap-reg-field--full">
+  <label htmlFor="companyProductService" className="ap-reg-label">
+    Company Product/Service
+  </label>
+  <input
+    id="companyProductService"
+    type="text"
+    name="companyProductService"
+    className="ap-reg-input"
+    placeholder="e.g., Construction Materials, IT Services, Manufacturing"
+    value={form.companyProductService}
+    onChange={handleChange}
+    autoComplete="off"
+    pattern="[a-zA-Z0-9\s\-\.\,\&\'\(\)]{0,200}"
+    title="Describe your company's products or services"
+    maxLength={200}
+  />
+    <small className="ap-reg-hint">What does your company sell or provide?</small>
+      </div>
+>>>>>>> 1388d6481fab10554c7c4d365a4b9da6c07fe4c4
 
             <div className="ap-reg-field ap-reg-field--full">
               <label htmlFor="companyProductService" className="ap-reg-label">
