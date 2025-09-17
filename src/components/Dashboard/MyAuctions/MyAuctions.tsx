@@ -8,6 +8,7 @@ import {
   Eye,
   Play,
   Filter,
+  RefreshCw ,
   Search,
   Plus,
   Gavel,
@@ -1091,8 +1092,9 @@ const MyAuctions: React.FC = () => {
               <option value="completed">Completed</option>
             </select>
             <button className="ap-myauctions-filter-btn" onClick={() => fetchAuctions()} disabled={isFetching}>
-              <Filter className="w-4 h-4" />
-              {isFetching ? 'Refreshing...' : 'Refresh'}
+              {/* <Filter className="w-4 h-4" /> */}
+              <RefreshCw  className="w-4 h-4" />
+              {isFetching ? 'Refreshing' : 'Refresh'}
             </button>
             {/* Debug button - remove in production */}
             {/* {process.env.NODE_ENV === 'development' && (

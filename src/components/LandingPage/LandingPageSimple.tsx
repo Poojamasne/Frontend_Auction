@@ -56,7 +56,9 @@ const LandingPage: React.FC = () => {
       description:
         "Set up detailed auctions with participant management, document uploads, and automated notifications.",
       image:
-        "https://images.unsplash.com/photo-1503602642458-232111445657?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3&s=5d6f6a6c6a2b2f3d7e8a9b0c1d2e3f4a",
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRIncjqnfNidsdHlpY0cRH7BI5qjV9AbaLgaQ&s",
+      // image:
+      //   "https://images.unsplash.com/photo-1503602642458-232111445657?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3&s=5d6f6a6c6a2b2f3d7e8a9b0c1d2e3f4a",
       gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
     },
     {
@@ -64,7 +66,9 @@ const LandingPage: React.FC = () => {
       description:
         "Live countdown timers, instant bid updates, and automatic auction extensions for fair competition.",
       image:
-        "https://images.unsplash.com/photo-1496307042754-b4aa456c4a2d?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3&s=7c9b7a3a6a9e4f8b2c3d1e5f6a7b8c9d",
+        "https://media.istockphoto.com/id/1194209555/vector/auction-online-vector-concept-for-web-banner-website-page.jpg?s=612x612&w=0&k=20&c=iKRTYOYmA1a4yE0Gy4a3Cx3W8qTgUdZvDWAOygT1IkY=",
+      // image:
+      //   "https://images.unsplash.com/photo-1496307042754-b4aa456c4a2d?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3&s=7c9b7a3a6a9e4f8b2c3d1e5f6a7b8c9d",
       gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
     },
     {
@@ -87,8 +91,10 @@ const LandingPage: React.FC = () => {
       title: "Advanced Analytics",
       description:
         "Detailed reports, bid summaries, and performance analytics for better decision making.",
+      // image:
+      //   "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3&s=9e8d7c6b5a4f3e2d1c0b9a8f7e6d5c4b",
       image:
-        "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3&s=9e8d7c6b5a4f3e2d1c0b9a8f7e6d5c4b",
+        "https://cdn.corporatefinanceinstitute.com/assets/auction.jpeg",
       gradient: "linear-gradient(135deg, #a8edea 0%, #f54c82ff 100%)",
     },
   ];
@@ -213,7 +219,7 @@ const LandingPage: React.FC = () => {
             <div className="nav-logo-icon">
               <Gavel className="w-6 h-6" />
             </div>
-            <span className="nav-logo-text">Quickauction</span>
+            <span className="nav-logo-text">Quick Auction</span>
           </div>
 
           <ul className="nav-menu">

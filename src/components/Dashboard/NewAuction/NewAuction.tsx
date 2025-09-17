@@ -442,7 +442,7 @@ const NewAuction: React.FC = () => {
                     className={`form-input ${
                       errors.title ? "border-red-500" : ""
                     }`}
-                    placeholder="Enter Auction Title (e.g., Steel Pipes and Fittings Procurement)"
+                    placeholder="Enter Auction Title (e.g., Steel Pipes)"
                     {...register("title", {
                       required: "Auction title is required",
                       minLength: {
@@ -727,7 +727,10 @@ const NewAuction: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => removeFile(index)}
-                          className="file-remove-btn"
+                          // className="file-remove-btn"
+                          className="text-red-600 hover:text-red-800 p-1"
+                          // className="file-remove-btn"
+                          
                         >
                           <Trash2 className="file-icon" />
                         </button>
@@ -761,7 +764,7 @@ const NewAuction: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <input
                     type="tel"
-                    placeholder="+91 9876543210"
+                    placeholder="Enter Phone number"
                     value={newParticipantPhone}
                     onChange={(e) => setNewParticipantPhone(e.target.value)}
                     className="form-input text-center"
@@ -823,9 +826,11 @@ const NewAuction: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => remove(index)}
+                          // className="text-red-600 hover:text-red-800 p-1"
                           className="text-red-600 hover:text-red-800 p-1"
                         >
                           <Trash2 className="w-4 h-4" />
+                          
                         </button>
                       </div>
 
@@ -876,7 +881,7 @@ const NewAuction: React.FC = () => {
                                 }
                               )}
                             />
-                            {field.contactNumber && (
+                            {/* {field.contactNumber && (
                               <button
                                 type="button"
                                 className="btn btn-primary whitespace-nowrap flex-shrink-0 px-3 py-2 text-base"
@@ -894,7 +899,7 @@ const NewAuction: React.FC = () => {
                                   </span>
                                 </span>
                               </button>
-                            )}
+                            )} */}
                           </div>
                           {errors.participants?.[index]?.contactNumber && (
                             <div className="form-error">
