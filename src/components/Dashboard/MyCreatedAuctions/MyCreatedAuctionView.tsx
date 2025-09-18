@@ -1558,10 +1558,31 @@ const MyCreatedAuctionView: React.FC = () => {
     }
   };
 
+  // const handleDownloadDocument = (doc: { name: string; url: string }) => {
+  //   toast.success(`Downloading ${doc.name}`);
+  //   console.log(`Download: ${doc.name} from ${doc.url}`);
+  // };
+  
   const handleDownloadDocument = (doc: { name: string; url: string }) => {
-    toast.success(`Downloading ${doc.name}`);
-    console.log(`Download: ${doc.name} from ${doc.url}`);
-  };
+  if (!doc.url) {
+    toast.error("Download link is missing");
+    return;
+  }
+
+  // Create a temporary anchor element
+  const link = document.createElement("a");
+  link.href = doc.url;
+  link.download = doc.name || "download"; // Force download with filename
+  link.target = "_blank"; // Fallback for cross-origin
+  link.rel = "noopener noreferrer";
+
+  // Append to body (required for Firefox), click, then remove
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  toast.success(`Downloading ${doc.name}...`);
+};
 
   const handleEditAuction = () => {
     if (auction?.status === "upcoming") {
