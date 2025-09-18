@@ -909,87 +909,188 @@ const MyAuctions: React.FC = () => {
   };
 
   // Generate and download a simple auction report (mirrors internal implementation)
-  const downloadAuctionReport = (auction: BaseAuction) => {
-    try {
-      const participants: AuctionParticipant[] = (AuctionService.getAuctionParticipants
-        ? AuctionService.getAuctionParticipants(auction.id)
-        : (auction.participants || []).map(p => ({
-          userId: String(p),
-          companyName: auction.auctioneerCompany || '—',
-          bidAmount: 0,
-          personName: '—',
-          phoneNumber: '—',
-          mailId: '—',
-          companyAddress: auction.auctioneerAddress || '—',
-          lastBidTime: new Date().toISOString()
-        }))
-      ) as any;
-      const winnerBid = participants && participants.length
-        ? participants.reduce((lowest, cur) => cur.bidAmount < lowest.bidAmount ? cur : lowest)
-        : null;
+  const downloadAuctionReport = async (auction: BaseAuction) => {
+  try {
+    /* 1.  fetch complete auction object */
+    const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+    const res = await fetch(`${API_BASE_URL}/auction/${auction.backendId || auction.id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error('Could not fetch auction detail');
+    const json = await res.json();
+    const full = json.auction;
+    if (!full) throw new Error('Empty auction detail');
 
-      const reportHtml = `<!DOCTYPE html><html><head><meta charset=\"utf-8\" /><title>Auction Report - ${auction.auctionNo}</title>
-      <style>body{font-family:Arial,Helvetica,sans-serif;margin:24px;color:#333;}h1{margin:0;font-size:22px;color:#4f46e5}h2{font-size:16px;margin:24px 0 8px;color:#4f46e5}table{border-collapse:collapse;width:100%;margin-top:8px}th,td{border:1px solid #ddd;padding:6px 8px;font-size:12px;text-align:left}th{background:#f3f4f6} .badge{color:#0d9488;font-weight:600} .section{border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin-top:16px} .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;font-size:13px} .label{font-weight:600;color:#555}</style></head><body>
-      <h1>${auction.title}</h1>
-      <div>Report Generated: ${new Date().toLocaleString()}</div>
-      <div class='section'>
-        <h2>Auction Details</h2>
-        <div class='grid'>
-          <div><span class='label'>Auction No:</span> ${auction.auctionNo}</div>
-          <div><span class='label'>Status:</span> <span class='badge'>${getDerivedStatus(auction, Date.now()).toUpperCase()}</span></div>
-          <div><span class='label'>Date:</span> ${auction.auctionDate}</div>
-          <div><span class='label'>Time:</span> ${auction.auctionStartTime} - ${auction.auctionEndTime || '—'}</div>
-          <div><span class='label'>Duration:</span> ${auction.duration || 0} min</div>
-          <div><span class='label'>Currency:</span> ${auction.currency}</div>
-          <div><span class='label'>Starting Price:</span> ₹${(auction.startingPrice || 0).toLocaleString()}</div>
-          <div><span class='label'>Reserve Price:</span> ₹${(auction.reservePrice || 0).toLocaleString()}</div>
-        </div>
-        <div style='margin-top:8px'><span class='label'>Description:</span> ${auction.auctionDetails || '—'}</div>
-      </div>
-      <div class='section'>
-        <h2>Auctioneer</h2>
-        <div class='grid'>
-          <div><span class='label'>Company:</span> ${auction.auctioneerCompany || '—'}</div>
-          <div><span class='label'>Phone:</span> ${auction.auctioneerPhone || '—'}</div>
-          <div style='grid-column:1/-1'><span class='label'>Address:</span> ${auction.auctioneerAddress || '—'}</div>
-        </div>
-      </div>
-      ${winnerBid ? `<div class='section'><h2>Winning Bid</h2><div class='grid'>
-        <div><span class='label'>Company:</span> ${winnerBid.companyName}</div>
-        <div><span class='label'>Amount:</span> ₹${winnerBid.bidAmount.toLocaleString()}</div>
-        <div><span class='label'>Contact:</span> ${winnerBid.personName}</div>
-        <div><span class='label'>Phone:</span> ${winnerBid.phoneNumber}</div>
-        <div style='grid-column:1/-1'><span class='label'>Address:</span> ${winnerBid.companyAddress}</div>
-      </div></div>` : ''}
-      <div class='section'>
-        <h2>Participants (${participants.length})</h2>
-        ${participants.length ? `<table><thead><tr><th>#</th><th>Company</th><th>Person</th><th>Bid (₹)</th><th>Phone</th><th>Bid Time</th></tr></thead><tbody>${participants
-          .sort((a, b) => a.bidAmount - b.bidAmount)
-          .map((p, i) => `<tr><td>${i + 1}</td><td>${p.companyName}</td><td>${p.personName}</td><td>${p.bidAmount.toLocaleString()}</td><td>${p.phoneNumber}</td><td>${new Date(p.lastBidTime).toLocaleString()}</td></tr>`).join('')}</tbody></table>` : '<div>No participants.</div>'}
-      </div>
-      <div style='margin-top:32px;font-size:11px;text-align:center;color:#666'>Generated by Auction Platform</div>
-      </body></html>`;
+    /* 2.  participants */
+    const participants = full.participants.map((p: any) => ({
+      userId: p.user_id,
+      companyName: p.company_name || '—',
+      personName: p.person_name || '—',
+      phoneNumber: p.phone_number,
+      mailId: p.email || '—',          // ← will show once backend adds it
+      companyAddress: '—',
+      bidAmount: 0,
+      lastBidTime: '',
+      status: p.status,
+      invitedAt: p.invited_at,
+      joinedAt: p.joined_at,
+    }));
 
-      const w = window.open('', '_blank');
-      if (w) {
-        w.document.write(reportHtml);
-        w.document.close();
-        w.onload = () => setTimeout(() => { w.print(); w.close(); }, 400);
-      } else {
-        const blob = new Blob([reportHtml], { type: 'text/html' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Auction_Report_${auction.auctionNo}.html`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }
-    } catch (e) {
-      console.error('Failed to generate report', e);
+    /* 3.  winner */
+    const winnerBid = full.winner_info
+      ? participants.find((x: any) => x.userId === full.winner_info.user_id)
+      : null;
+
+    /* 4.  documents */
+    const docRows =
+      full.documents?.map(
+        (d: any) =>
+          `<tr>
+             <td>${d.file_name}</td>
+             <td><a href="${d.file_url}" target="_blank" rel="noreferrer">Download</a></td>
+             <td>${d.file_type}</td>
+             <td>${new Date(d.uploaded_at).toLocaleString()}</td>
+           </tr>`
+      ).join('') || '<tr><td colspan="4">No documents</td></tr>';
+
+    /* 5.  HTML report */
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Auction Report – ${full.auction_no}</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;margin:24px;color:#333}
+    h1{margin:0 0 8px;font-size:24px;color:#4f46e5}
+    h2{font-size:18px;margin:24px 0 8px;color:#4f46e5}
+    .section{border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin-top:16px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;font-size:14px}
+    .label{font-weight:600;color:#555}
+    table{border-collapse:collapse;width:100%;margin-top:8px}
+    th,td{border:1px solid #ddd;padding:6px 8px;font-size:12px;text-align:left}
+    th{background:#f3f4f6}
+    .badge{color:#0d9488;font-weight:600}
+  </style>
+</head>
+<body>
+  <h1>${full.title}</h1>
+  <div>Generated: ${new Date().toLocaleString()}</div>
+
+  <div class="section">
+    <h2>Auction Details</h2>
+    <div class="grid">
+      <div><span class="label">Auction No:</span> ${full.auction_no}</div>
+      <div><span class="label">Status:</span> <span class="badge">${full.status.toUpperCase()}</span></div>
+      <div><span class="label">Date:</span> ${full.auction_date}</div>
+      <div><span class="label">Time:</span> ${full.formatted_start_time} – ${full.formatted_end_time || '—'}</div>
+      <div><span class="label">Duration:</span> ${full.duration} min</div>
+      <div><span class="label">Currency:</span> ${full.currency}</div>
+      <div><span class="label">Starting / Current Price:</span> ${full.currency} ${Number(full.current_price).toLocaleString()}</div>
+      <div><span class="label">Reserve Price:</span> ${full.currency} ${Number(full.reserve_price || 0).toLocaleString()}</div>
+      <div><span class="label">Decremental Value:</span> ${full.currency} ${Number(full.decremental_value).toLocaleString()}</div>
+      <div><span class="label">Pre-bid Allowed:</span> ${full.pre_bid_allowed ? 'Yes' : 'No'}</div>
+      <div><span class="label">Open to All:</span> ${full.open_to_all ? 'Yes' : 'No'}</div>
+      <div><span class="label">Total Bids:</span> ${full.statistics?.total_bids || 0}</div>
+      <div><span class="label">Total Participants:</span> ${full.statistics?.total_participants || 0}</div>
+      <div><span class="label">Active Participants:</span> ${full.statistics?.active_participants || 0}</div>
+      <div><span class="label">Highest Bid:</span> ${full.currency} ${Number(full.statistics?.highest_bid || 0).toLocaleString()}</div>
+      <div><span class="label">Lowest Bid:</span> ${full.currency} ${Number(full.statistics?.lowest_bid || 0).toLocaleString()}</div>
+    </div>
+    <div style="margin-top:8px"><span class="label">Description:</span> ${full.description || '—'}</div>
+  </div>
+
+  <div class="section">
+    <h2>Auctioneer</h2>
+    <div class="grid">
+      <div><span class="label">Company:</span> ${full.creator_info?.company_name || '—'}</div>
+      <div><span class="label">Contact Person:</span> ${full.creator_info?.person_name || '—'}</div>
+      <div><span class="label">Email:</span> ${full.creator_info?.email || full.auctioneer_email || '—'}</div>
+      <div><span class="label">Phone:</span> ${full.creator_info?.phone || '—'}</div>
+    </div>
+  </div>
+
+  ${
+    winnerBid
+      ? `<div class="section">
+           <h2>Winning Bid</h2>
+           <div class="grid">
+             <div><span class="label">Company:</span> ${winnerBid.companyName}</div>
+             <div><span class="label">Amount:</span> ${full.currency} ${winnerBid.bidAmount.toLocaleString()}</div>
+             <div><span class="label">Contact:</span> ${winnerBid.personName}</div>
+             <div><span class="label">Phone:</span> ${winnerBid.phoneNumber}</div>
+           </div>
+         </div>`
+      : ''
+  }
+
+  <div class="section">
+    <h2>Participants (${participants.length})</h2>
+    ${
+      participants.length
+        ? `<table>
+             <thead><tr>
+               <th>#</th><th>Company</th><th>Person</th><th>Phone</th><th>Status</th><th>Invited At</th><th>Joined At</th>
+             </tr></thead>
+             <tbody>
+               ${participants
+                 .map(
+                   (p: any, i: number) =>
+                     `<tr>
+                        <td>${i + 1}</td>
+                        <td>${p.companyName}</td>
+                        <td>${p.personName}</td>
+                        <td>${p.phoneNumber}</td>
+                        <td>${p.status}</td>
+                        <td>${new Date(p.invitedAt).toLocaleString()}</td>
+                        <td>${p.joinedAt ? new Date(p.joinedAt).toLocaleString() : '—'}</td>
+                      </tr>`
+                 )
+                 .join('')}
+             </tbody>
+           </table>`
+        : '<div>No participants.</div>'
     }
-  };
+  </div>
+
+  <div class="section">
+    <h2>Documents (${full.documents?.length || 0})</h2>
+    <table>
+      <thead><tr><th>File Name</th><th>Download</th><th>Type</th><th>Uploaded At</th></tr></thead>
+      <tbody>${docRows}</tbody>
+    </table>
+  </div>
+
+  <div style="margin-top:32px;font-size:11px;text-align:center;color:#666">
+    Generated by Auction Platform
+  </div>
+</body>
+</html>`;
+
+    /* 6.  open / print */
+    const w = window.open('', '_blank');
+    if (w) {
+      w.document.write(html);
+      w.document.close();
+      w.onload = () => setTimeout(() => {
+        w.print();
+        w.close();
+      }, 400);
+    } else {
+      const blob = new Blob([html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Auction_Report_${full.auction_no}.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  } catch (e) {
+    console.error('Failed to generate report', e);
+    alert('Could not create report. Please try again.');
+  }
+};
 
   // Add debug button for testing (remove in production)
   // const debugParticipantData = () => {
