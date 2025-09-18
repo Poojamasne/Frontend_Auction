@@ -259,6 +259,7 @@
 }
 
 @media (min-width: 1024px) {
+  
   .ap-dashboard-home-content {
     grid-template-columns: 1.2fr 0.8fr;
   }
@@ -409,6 +410,12 @@
 }
 
 @media (max-width: 640px) {
+  
+   .ap-dashboard-home-title {
+ 
+  font-size: 1.5rem;
+ 
+}
   .ap-dashboard-home-activity-item {
     flex-direction: row !important;
     /* force row layout */
@@ -582,6 +589,8 @@
 }
 
 @media (min-width: 768px) {
+
+
   .ap-dashboard-home-actions-grid {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -741,6 +750,7 @@
 }
 
 @media (max-width: 480px) {
+  
   .ap-dashboard-home-section-header {
     padding: 1rem;
   }

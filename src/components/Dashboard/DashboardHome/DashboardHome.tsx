@@ -188,7 +188,7 @@ const DashboardHome: React.FC = () => {
         value: totalBids.toString(),
         change: `across ${totalParticipated} auctions`,
         icon: TrendingUp,
-        color: 'bg-purple-500',
+        color: 'bg-purple-500', 
       },
 
     ];
@@ -337,6 +337,7 @@ const DashboardHome: React.FC = () => {
               >
                 View all
               </Link>
+              
             </div>
             <div className="ap-dashboard-home-section-body">
               <div className="ap-dashboard-home-auction-list">

@@ -886,10 +886,13 @@
 }
 
 .auction-modal-content-wrapper .modal-content {
-  display: grid;
+  display: flex;
+  flex-direction: column;
+
+  background-color: black;
   grid-template-columns: 1fr 1fr;
   gap: 2rem;
-  max-width: none;
+  max-width: 68vw;
 }
 
 /* Force modal content to stay in grid even on small screens */
@@ -1293,6 +1296,7 @@
   .manage-auctions-actions {
     justify-content: center;
   }
+
 }
 
 @media (max-width: 480px) {
@@ -1473,6 +1477,12 @@ select:focus {
 /* Mobile Stacked Layout for Auctions Table (<=640px) */
 /* -------------------------------------------------- */
 @media (max-width: 640px) {
+
+  .auction-modal-box .modal-content{
+    width: 90vw;
+  }
+
+
   .auctions-table.responsive-table {
     min-width: 0;
     border-spacing: 0;
@@ -1915,13 +1925,15 @@ select:focus {
   .auction-modal-content-wrapper {
     padding: 0.9rem 0.95rem 1.1rem;
     background: linear-gradient(160deg, rgba(30, 41, 59, 0.55), rgba(17, 24, 39, 0.5));
+    width: 100vw;
   }
 
   .auction-modal-box .modal-content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.85rem;
+    width: 90vw;
+    max-width: 90vw;
     padding: 0;
+    background: transparent;
+    box-shadow: none;
   }
 
   /* Sections */

@@ -19,6 +19,7 @@ import {
 
 import "./ManageUser.css";
 import userService, { NormalizedUserRecord } from '../../../services/userService';
+import toast from 'react-hot-toast';
 
 const getStatusBadgeClass = (status: string) => {
   switch (status) {
@@ -99,6 +100,7 @@ const ManageUsers: React.FC = () => {
     const matchesRole = filterRole === 'all' || user.role === filterRole;
     return matchesRole;
   });
+  
   const handleExportUsers = () => {
     if (!users.length) {
       alert("No users to export");
@@ -143,6 +145,8 @@ const ManageUsers: React.FC = () => {
   };
 
   // Inside the ManageUsers component in ManageUser.tsx
+
+
 
   const handleApproveUser = async (userId: string) => {
     try {

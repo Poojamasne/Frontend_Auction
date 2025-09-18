@@ -161,7 +161,7 @@ const NewAuction: React.FC = () => {
 
     if (dedupedNew.length === 0) {
       toast("No new files added (duplicates skipped)", {
-        icon: "ℹ️",
+        icon: "ℹ️ No new files added (duplicates skipped",
       });
     } else {
       setUploadedFiles((prev) => [...prev, ...dedupedNew]);
@@ -403,8 +403,8 @@ const NewAuction: React.FC = () => {
             <h1 className="text-2xl font-bold text-text-primary flex items-center gap-2">
               Create New Auction
             </h1>
-            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-accent text-white text-sm font-medium shadow-sm">
-              <Users className="w-4 h-4" />
+            <span className="inline-flex  items-center gap-1 px-3 py-1 rounded-full bg-accent text-white text-sm font-medium shadow-sm">
+              <Users className="w-4 h-4 mr-2" />
               Auctioneer
             </span>
           </div>
@@ -727,8 +727,8 @@ const NewAuction: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => removeFile(index)}
-                          // className="file-remove-btn"
-                          className="text-red-600 hover:text-red-800 p-1"
+                          className="file-remove-btn"
+                          // className="text-red-600 hover:text-red-800 p-1"
                           // className="file-remove-btn"
                           
                         >

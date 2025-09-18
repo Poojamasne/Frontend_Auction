@@ -125,13 +125,17 @@
 
 .close-button {
   background: none;
-  border: none;
+  border: 1px solid black;
   cursor: pointer;
-  color: #666;
+  color: red;
   padding: 4px;
   transition: color 0.18s;
+  
 }
-.close-button:hover { color: #321; }
+.close-button:hover { 
+  color: red;
+   /* background-color: red;  */
+  }
 
 .modal-body {
   margin: 0;

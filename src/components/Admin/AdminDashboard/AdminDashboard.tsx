@@ -132,7 +132,7 @@ const AdminDashboard: React.FC = () => {
         <div className="admin-sidebar-footer">
           <div className="admin-user-card">
             <div className="admin-user-info">
-              <Shield className="admin-user-icon" />
+              {/* <Shield className="admin-user-icon" /> hide */} 
               {/*     <span className="admin-user-role">Administrator</span>*/}
             </div>
             <div className="admin-user-name">{user?.name || 'Admin User'}</div>

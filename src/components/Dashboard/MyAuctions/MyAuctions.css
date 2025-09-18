@@ -477,6 +477,37 @@
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.05); }
 }
+ 
+/* Add to your CSS file */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);  
+}
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.ap-myauctions-filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.ap-myauctions-filter-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ap-myauctions-filter-btn:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
 
 /* Card Info */
 .ap-myauctions-card-info {
