@@ -1,3 +1,7 @@
+
+
+
+
 import React, { useState, useEffect, useRef } from 'react';
 import './MyAuctions.css';
 import { Link, useNavigate } from 'react-router-dom';
@@ -127,6 +131,14 @@ const MyAuctions: React.FC = () => {
   
 
   const firstLoadRef = useRef(true);
+  const handleManualRefresh = async () => {
+  setIsFetching(true);
+  try {
+    await fetchAuctions();
+  } finally {
+    setIsFetching(false);
+  }
+};
   
   // Debounce search to avoid spamming network
   useEffect(() => {
@@ -963,7 +975,7 @@ const getDerivedStatus = (auction: BaseAuction, nowMs: number): BaseAuction['sta
 
     /* 5.  HTML report */
     const html = `<!DOCTYPE html>
-<html>
+<html>handleManualRefresh
 <head>
   <meta charset="utf-8"/>
   <title>Auction Report – ${full.auction_no}</title>
@@ -1218,6 +1230,7 @@ const getDerivedStatus = (auction: BaseAuction, nowMs: number): BaseAuction['sta
   disabled={isFetching}
   title={isFetching ? 'Refreshing data...' : 'Click to refresh'}
 >
+  
   <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
   <span className="ml-1">
     {isFetching ? 'Refreshing...' : 'Refresh'}
