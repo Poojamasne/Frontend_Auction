@@ -173,27 +173,27 @@ const AdminHome: React.FC = () => {
         subTextColor: 'text-green-600',
         icon: TrendingUp,
       },
-      {
-        title: 'Total Participants',
-        value: String(dashboardStats.totalParticipants || 0),
-        subText: 'Active bidders',
-        subTextColor: 'text-blue-600',
-        icon: Users,
-      },
-      {
-        title: 'Pending Users',
-        value: String(dashboardStats.pendingApprovals || 0),
-        subText: 'Awaiting approval',
-        subTextColor: 'text-orange-600',
-        icon: Users,
-      },
-      {
-        title: 'Pending Auctions',
-        value: String(dashboardStats.pendingAuctions || 0),
-        subText: 'Need review',
-        subTextColor: 'text-orange-600',
-        icon: AlertTriangle,
-      },
+      // {
+      //   title: 'Total Participants',
+      //   value: String(dashboardStats.totalParticipants || 0),
+      //   subText: 'Active bidders',
+      //   subTextColor: 'text-blue-600',
+      //   icon: Users,
+      // },
+      // {
+      //   title: 'Pending Users',
+      //   value: String(dashboardStats.pendingApprovals || 0),
+      //   subText: 'Awaiting approval',
+      //   subTextColor: 'text-orange-600',
+      //   icon: Users,
+      // },
+      // {
+      //   title: 'Pending Auctions',
+      //   value: String(dashboardStats.pendingAuctions || 0),
+      //   subText: 'Need review',
+      //   subTextColor: 'text-orange-600',
+      //   icon: AlertTriangle,
+      // },
     ],
     [dashboardStats]
   );
