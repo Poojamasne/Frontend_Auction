@@ -761,19 +761,32 @@ const MyAuctions: React.FC = () => {
   //   if (nowMs >= start && nowMs < end) return 'live';
   //   return 'completed';
   // };
+//   const getDerivedStatus = (auction: BaseAuction, nowMs: number): BaseAuction['status'] => {
+//   const start = getAuctionStart(auction).getTime();
+//   const end = getAuctionEnd(auction).getTime();
+  
+//   // If backend says it's live and we're within reasonable bounds, trust it
+//   if (auction.status === 'live' && nowMs >= start && nowMs < end + 60000) { // 1 minute grace period
+//     return 'live';
+//   }
+  
+//   // Otherwise use time-based calculation
+//   if (nowMs < start - 60000) return 'upcoming'; // 1 minute before start
+//   if (nowMs >= start && nowMs < end) return 'live';
+//   return 'completed';
+// };
+
   const getDerivedStatus = (auction: BaseAuction, nowMs: number): BaseAuction['status'] => {
+  // 1. If backend already closed the auction, believe it.
+  if (auction.status === 'completed') return 'completed';
+
+  // 2. Otherwise calculate dynamically.
   const start = getAuctionStart(auction).getTime();
-  const end = getAuctionEnd(auction).getTime();
-  
-  // If backend says it's live and we're within reasonable bounds, trust it
-  if (auction.status === 'live' && nowMs >= start && nowMs < end + 60000) { // 1 minute grace period
-    return 'live';
-  }
-  
-  // Otherwise use time-based calculation
-  if (nowMs < start - 60000) return 'upcoming'; // 1 minute before start
-  if (nowMs >= start && nowMs < end) return 'live';
-  return 'completed';
+  const end   = getAuctionEnd(auction).getTime();
+
+  if (nowMs < start) return 'upcoming';
+  if (nowMs >= end)  return 'completed';
+  return 'live';
 };
 
   // Timer for countdowns and status monitoring
