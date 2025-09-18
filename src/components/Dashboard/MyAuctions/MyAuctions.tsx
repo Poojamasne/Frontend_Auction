@@ -776,7 +776,7 @@ const MyAuctions: React.FC = () => {
 //   return 'completed';
 // };
 
-  const getDerivedStatus = (auction: BaseAuction, nowMs: number): BaseAuction['status'] => {
+const getDerivedStatus = (auction: BaseAuction, nowMs: number): BaseAuction['status'] => {
   // 1. If backend already closed the auction, believe it.
   if (auction.status === 'completed') return 'completed';
 
@@ -1433,24 +1433,3 @@ const MyAuctions: React.FC = () => {
 };
 
 export default MyAuctions;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
