@@ -2139,7 +2139,7 @@ const MyCreatedAuctionView: React.FC = () => {
         {backendParticipants.length > 0 ? (
           <>
             {/* Participants Summary */}
-            <div className="participants-summary">
+{/*             <div className="participants-summary">
               <div className="summary-stat">
                 <span className="stat-label">Total Invited</span>
                 <span className="stat-value">{backendParticipants.length}</span>
@@ -2154,13 +2154,13 @@ const MyCreatedAuctionView: React.FC = () => {
                   }
                 </span>
               </div>
-              {/* <div className="summary-stat">
+              <div className="summary-stat">
                 <span className="stat-label">Pending</span>
                 <span className="stat-value stat-warning">
                   {backendParticipants.filter((p: any) => p.status === 'invited' || !p.status).length}
                 </span>
-              </div> */}
-            </div>
+              </div>
+            </div> */}
 
             <div className="participants-list">
               {backendParticipants.map((participant: any, index: number) => (
