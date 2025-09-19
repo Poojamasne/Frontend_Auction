@@ -3,7 +3,10 @@
   display: flex !important;
 }
 
-
+.quick-actions-grid{
+  display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
 /* AdminHome Styles */
 
 .space-y-6 {
@@ -223,6 +226,7 @@
 }
 
 @media (max-width: 640px) {
+
 
   /* Two columns on small phones for better density */
   .stat-cards {
