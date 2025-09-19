@@ -1668,7 +1668,7 @@ const MyCreatedAuctionView: React.FC = () => {
       </div>
 
       {/* Auctioneer Management Actions */}
-      <div className="auction-details-card">
+{/*       <div className="auction-details-card">
         <h2 className="card-title">
           <Settings className="w-5 h-5" />
           Auction Management
@@ -1721,7 +1721,7 @@ const MyCreatedAuctionView: React.FC = () => {
             </button>
           )}
         </div>
-      </div>
+      </div> */}
 
       {/* Company Details */}
       <div className="auction-details-card">
@@ -2116,14 +2116,14 @@ const MyCreatedAuctionView: React.FC = () => {
           <h2 className="card-title">
             <Users className="w-5 h-5" />
             Registered Participants
-            <span className="participants-count">
+{/*             <span className="participants-count">
               ({backendParticipants.length} total,{" "}
               {
                 backendParticipants.filter((p: any) => p.status === "joined")
                   .length
               }{" "}
               active)
-            </span>
+            </span> */}
           </h2>
           <button
             type="button"
@@ -2304,12 +2304,12 @@ const MyCreatedAuctionView: React.FC = () => {
             <ArrowLeft className="w-4 h-4" />
             Back to My Auctions
           </button>
-          {auction.status === "live" && (
+{/*           {auction.status === "live" && (
             <button onClick={handleStartAuction} className="btn btn-primary">
               <Play className="w-4 h-4" />
               Manage Live Auction
             </button>
-          )}
+          )} */}
         </div>
       </div>
     </div>
