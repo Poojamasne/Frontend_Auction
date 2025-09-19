@@ -1,3 +1,7 @@
+
+
+
+
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "./ParticipantAuctionView.css";
@@ -26,11 +30,59 @@ import {
 import { useAuth } from "../../../contexts/AuthContext";
 import { API_BASE_URL } from "../../../services/apiConfig";
 import toast from "react-hot-toast";
-import { format } from 'date-fns';
+import { format, parse, isValid } from 'date-fns';
 import AuctionService from "../../../services/auctionService";
 import apiAuctionService from "../../../services/apiAuctionService";
 import newAuctionService from "../../../services/newAuctionService";
 import { BaseAuction, AuctionParticipant } from "../../../types/auction";
+
+// Utility to format time string (HH:mm or HH:mm:ss) to readable format
+const formatTime = (timeStr: string | undefined) => {
+  if (!timeStr) return "N/A";
+  
+  // Handle different time formats
+  try {
+    // Try parsing as HH:mm:ss
+    let parsed = parse(timeStr, "HH:mm:ss", new Date());
+    if (!isValid(parsed)) {
+      // Try parsing as HH:mm
+      parsed = parse(timeStr, "HH:mm", new Date());
+    }
+    if (!isValid(parsed)) {
+      // Try extracting time from ISO string or full datetime
+      const timeMatch = timeStr.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+      if (timeMatch) {
+        const [, hours, minutes] = timeMatch;
+        parsed = parse(`${hours}:${minutes}`, "HH:mm", new Date());
+      }
+    }
+    
+    if (isValid(parsed)) {
+      return format(parsed, "hh:mm a");
+    }
+  } catch (error) {
+    console.warn("[formatTime] Error parsing time:", timeStr, error);
+  }
+  
+  // Fallback: return original string or clean it up
+  return timeStr.replace(/:\d{2}$/, ''); // Remove seconds if present
+};
+
+// Utility to format duration properly
+const formatDuration = (duration: number | undefined) => {
+  if (!duration || duration === 0) return "N/A";
+  
+  // If duration is in seconds, convert to minutes
+  const minutes = duration > 1440 ? Math.floor(duration / 60) : duration;
+  
+  if (minutes < 60) {
+    return `${minutes} minutes`;
+  } else {
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours} hours`;
+  }
+};
 
 const ParticipantAuctionView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -57,6 +109,7 @@ const ParticipantAuctionView: React.FC = () => {
   const [liveBidInput, setLiveBidInput] = useState("");
   const [liveBidError, setLiveBidError] = useState<string | null>(null);
   const [liveBidLoading, setLiveBidLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const isMountedRef = useRef(true);
 
@@ -81,39 +134,8 @@ const ParticipantAuctionView: React.FC = () => {
     }
   }, [auction?.id, user?.id]);
 
-  useEffect(() => {
-    if (!auction || !id) return;
-
-    // Set up live updates for real-time data
-    const liveUpdateInterval = setInterval(() => {
-      if (auction.status === "live" || auction.status === "upcoming") {
-        console.log("[ParticipantAuctionView] Running live data update...");
-        loadAuctionDetails();
-      }
-    }, 10000); // Update every 10 seconds
-
-    // Set up status monitoring for live duration updates
-    const statusMonitor = setInterval(() => {
-      if (auction && auction.status === "upcoming") {
-        const now = new Date();
-        const startTime = new Date(
-          `${auction.auctionDate}T${auction.auctionStartTime}:00`
-        );
-
-        if (now >= startTime) {
-          console.log(
-            "[ParticipantAuctionView] Auction start time reached, refreshing for live status"
-          );
-          loadAuctionDetails();
-        }
-      }
-    }, 5000);
-
-    return () => {
-      clearInterval(liveUpdateInterval);
-      clearInterval(statusMonitor);
-    };
-  }, [id, auction?.status]);
+  // Removed automatic refresh intervals to prevent constant page refreshing
+  // Manual refresh is available via the refresh button in the UI
 
   useEffect(() => {
     // Check if current user is already a participant
@@ -182,12 +204,17 @@ const ParticipantAuctionView: React.FC = () => {
     }
   };
 
-  const loadAuctionDetails = async () => {
-    if (!id) {
+  const loadAuctionDetails = async (isManualRefresh = false) => {
+    if (!id || !isMountedRef.current) {
       navigate("/dashboard/auctions");
       return;
     }
-    setLoading(true);
+    
+    if (isManualRefresh) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
     try {
       let auctionData: BaseAuction | null = null;
 
@@ -198,7 +225,12 @@ const ParticipantAuctionView: React.FC = () => {
           localStorage.getItem("token") ||
           localStorage.getItem("accessToken");
 
-        const response = await fetch(`${API_BASE_URL}/${id}`, {
+        if (!token) {
+          throw new Error("No authentication token found");
+        }
+
+        // Try multiple API endpoints for auction details
+        let response = await fetch(`${API_BASE_URL}/auctions/${id}`, {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -206,39 +238,59 @@ const ParticipantAuctionView: React.FC = () => {
           },
         });
 
+        // If first endpoint fails, try alternative endpoint
+        if (!response.ok) {
+          response = await fetch(`${API_BASE_URL}/${id}`, {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          });
+        }
+
         if (response.ok) {
           const result = await response.json();
           if (result.success && result.auction) {
             const rawAuction = result.auction;
+            console.log("[ParticipantAuctionView] Raw auction data from API:", rawAuction);
+            console.log("[ParticipantAuctionView] Available user/auctioneer data:", {
+              user: result.user,
+              auctioneer: result.auctioneer,
+              creator: result.creator
+            });
 
-            // Map the new API response to BaseAuction format
+            // Map the new API response to BaseAuction format with robust handling
             auctionData = {
               id: rawAuction.id?.toString() || id,
               backendId: rawAuction.id?.toString(),
-              title: rawAuction.title || "",
-              auctionNo: rawAuction.auction_no || "",
-              auctionDate: rawAuction.auction_date || "",
-              auctionStartTime:
-                rawAuction.formatted_start_time || rawAuction.start_time || "",
-              auctionEndTime:
-                rawAuction.formatted_end_time || rawAuction.end_time || "",
-              duration: rawAuction.duration || 0,
+              title: rawAuction.title || rawAuction.auction_title || "Untitled Auction",
+              auctionNo: rawAuction.auction_no || rawAuction.auction_number || `AUC-${rawAuction.id || id}`,
+              auctionDate: rawAuction.auction_date || rawAuction.date || "",
+              auctionStartTime: rawAuction.formatted_start_time || 
+                                rawAuction.start_time || 
+                                rawAuction.auction_start_time || 
+                                rawAuction.startTime || "", 
+              auctionEndTime: rawAuction.formatted_end_time || 
+                              rawAuction.end_time || 
+                              rawAuction.auction_end_time || 
+                              rawAuction.endTime || "",
+              duration: parseInt(rawAuction.duration) || parseInt(rawAuction.auction_duration) || 0,
               currency: (rawAuction.currency as "INR" | "USD") || "INR",
-              auctionDetails: rawAuction.description || "",
-              openToAllCompanies: true,
-              preBidOfferAllowed: rawAuction.pre_bid_allowed === 1,
-              decrementalValue: parseFloat(rawAuction.decremental_value) || 0,
-              startingPrice: parseFloat(rawAuction.current_price) || 0,
-              reservePrice: undefined,
-              status: rawAuction.status as "upcoming" | "live" | "completed",
-              participants:
-                rawAuction.participants?.map(
-                  (p: any) => p.phone_number || p.user_id?.toString()
-                ) || [],
-              documents: rawAuction.documents || [],
-              createdBy: rawAuction.created_by?.toString() || "",
-              createdAt: rawAuction.created_at || "",
-              updatedAt: rawAuction.updated_at || "",
+              auctionDetails: rawAuction.description || rawAuction.auction_description || rawAuction.details || "No description available",
+              openToAllCompanies: rawAuction.open_to_all === 1 || rawAuction.openToAllCompanies !== false,
+              preBidOfferAllowed: rawAuction.pre_bid_allowed === 1 || rawAuction.pre_bid_allowed === true,
+              decrementalValue: parseFloat(rawAuction.decremental_value || rawAuction.decremental || rawAuction.decrement_value) || 0,
+              startingPrice: parseFloat(rawAuction.current_price || rawAuction.starting_price || rawAuction.start_price) || 0,
+              reservePrice: rawAuction.reserve_price ? parseFloat(rawAuction.reserve_price) : undefined,
+              status: (rawAuction.status as "upcoming" | "live" | "completed") || "upcoming",
+              participants: Array.isArray(rawAuction.participants) 
+                ? rawAuction.participants.map((p: any) => p.phone_number || p.user_id?.toString() || p.phoneNumber || p.userId?.toString())
+                : [],
+              documents: Array.isArray(rawAuction.documents) ? rawAuction.documents : [],
+              createdBy: rawAuction.created_by?.toString() || rawAuction.createdBy?.toString() || "",
+              createdAt: rawAuction.created_at || rawAuction.createdAt || "",
+              updatedAt: rawAuction.updated_at || rawAuction.updatedAt || "",
             } as BaseAuction;
 
             // Store raw backend data for additional fields
@@ -250,29 +302,88 @@ const ParticipantAuctionView: React.FC = () => {
               bids: rawAuction.bids || [],
             };
 
-            // Store auctioneer company details
+            // Enhanced auctioneer details mapping with multiple fallbacks
+            const auctioneerInfo = result.user || result.auctioneer || result.creator || {};
+            
+            // First check for the correct backend fields: creator_company and creator_name
             auctionData.auctioneerCompany =
-              rawAuction.auctioneer_company_name || rawAuction.company_name;
+              rawAuction.creator_company || 
+              auctioneerInfo.creator_company ||
+              rawAuction.auctioneer_company_name || 
+              rawAuction.company_name || 
+              auctioneerInfo.company_name ||
+              auctioneerInfo.companyName ||
+              null; // Use null instead of placeholder text
+              
             auctionData.auctioneerPhone =
-              rawAuction.auctioneer_phone || rawAuction.phone_number;
+              rawAuction.auctioneer_phone || 
+              rawAuction.phone_number || 
+              auctioneerInfo.phone_number ||
+              auctioneerInfo.phoneNumber ||
+              auctioneerInfo.phone ||
+              null;
+              
             auctionData.auctioneerAddress =
-              rawAuction.auctioneer_address || rawAuction.company_address;
+              rawAuction.auctioneer_address || 
+              rawAuction.company_address || 
+              auctioneerInfo.company_address ||
+              auctioneerInfo.address ||
+              null;
+              
             (auctionData as any).auctioneerEmail =
-              rawAuction.auctioneer_email || rawAuction.email;
+              rawAuction.auctioneer_email || 
+              rawAuction.email || 
+              auctioneerInfo.email ||
+              auctioneerInfo.emailAddress ||
+              null;
+              
             (auctionData as any).auctioneerPerson =
-              result.user?.person_name || rawAuction.person_name;
+              rawAuction.creator_name ||
+              auctioneerInfo.creator_name ||
+              result.user?.person_name || 
+              rawAuction.person_name ||
+              auctioneerInfo.person_name ||
+              auctioneerInfo.personName ||
+              auctioneerInfo.name ||
+              auctioneerInfo.full_name ||
+              null;
 
-            if (result.user) {
+            console.log("[ParticipantAuctionView] Raw backend fields:", {
+              creator_company: rawAuction.creator_company,
+              creator_name: rawAuction.creator_name,
+              company_name: rawAuction.company_name,
+              person_name: rawAuction.person_name,
+              userInfo: auctioneerInfo
+            });
+            
+            console.log("[ParticipantAuctionView] Auctioneer details mapped:", {
+              company: auctionData.auctioneerCompany,
+              person: (auctionData as any).auctioneerPerson,
+              email: (auctionData as any).auctioneerEmail,
+              phone: auctionData.auctioneerPhone,
+              address: auctionData.auctioneerAddress
+            });
+
+            // Store comprehensive user details for auctioneer information
+            if (result.user || result.auctioneer || result.creator) {
+              const userInfo = result.user || result.auctioneer || result.creator || {};
               setUserDetails({
-                company_name:
-                  rawAuction.auctioneer_company_name ||
-                  result.user.company_name,
-                person_name: result.user.person_name,
-                email: rawAuction.auctioneer_email || result.user.email,
-                phone_number:
-                  rawAuction.auctioneer_phone || result.user.phone_number,
-                company_address:
-                  rawAuction.auctioneer_address || result.user.company_address,
+                company_name: auctionData.auctioneerCompany,
+                person_name: (auctionData as any).auctioneerPerson,
+                email: (auctionData as any).auctioneerEmail,
+                phone_number: auctionData.auctioneerPhone,
+                company_address: auctionData.auctioneerAddress,
+                // Additional fields that might be useful
+                user_id: userInfo.id || userInfo.user_id || rawAuction.created_by,
+                designation: userInfo.designation || "Auctioneer",
+                role: userInfo.role || "Auction Creator"
+              });
+              
+              console.log("[ParticipantAuctionView] User details set:", {
+                company_name: auctionData.auctioneerCompany,
+                person_name: (auctionData as any).auctioneerPerson,
+                email: (auctionData as any).auctioneerEmail,
+                phone_number: auctionData.auctioneerPhone
               });
             }
 
@@ -329,22 +440,90 @@ const ParticipantAuctionView: React.FC = () => {
       }
 
       if (!auctionData) {
-        toast.error("Auction not found");
+        console.error("[ParticipantAuctionView] No auction data found for ID:", id);
+        toast.error("Auction not found or access denied");
         navigate("/dashboard/auctions");
         return;
       }
 
-      setAuction(auctionData);
-      const participantData = AuctionService.getParticipantsByAuction(id);
-      setParticipants(participantData);
-      const auctioneerData = AuctionService.getUserById(auctionData.createdBy);
-      setAuctioneer(auctioneerData);
+        // Only update state if component is still mounted
+        if (isMountedRef.current) {
+          setAuction(auctionData);        // Load participants data
+        try {
+          const participantData = AuctionService.getParticipantsByAuction(id);
+          setParticipants(participantData);
+        } catch (participantError) {
+          console.warn("[ParticipantAuctionView] Failed to load participants:", participantError);
+          setParticipants([]);
+        }
+
+        // Load auctioneer data if available - try multiple sources
+        if (auctionData.createdBy) {
+          try {
+            // First try local service
+            let auctioneerData = AuctionService.getUserById(auctionData.createdBy);
+            
+            // If no data from local service, try fetching from API
+            if (!auctioneerData || !(auctioneerData as any).name) {
+              try {
+                const token = localStorage.getItem("authToken") || 
+                            localStorage.getItem("token") || 
+                            localStorage.getItem("accessToken");
+                            
+                if (token) {
+                  const userResponse = await fetch(`${API_BASE_URL}/users/${auctionData.createdBy}`, {
+                    method: "GET",
+                    headers: {
+                      Authorization: `Bearer ${token}`,
+                      "Content-Type": "application/json",
+                    },
+                  });
+                  
+                  if (userResponse.ok) {
+                    const userResult = await userResponse.json();
+                    if (userResult.success && userResult.user) {
+                      auctioneerData = {
+                        id: userResult.user.id,
+                        email: userResult.user.email,
+                        phoneNumber: userResult.user.phone_number || (userResult.user as any).phoneNumber,
+                        companyName: userResult.user.company_name || (userResult.user as any).companyName,
+                        companyAddress: userResult.user.company_address || (userResult.user as any).companyAddress
+                      } as any;
+                      
+                      // Add name property
+                      (auctioneerData as any).name = (userResult.user as any).person_name || 
+                                                     (userResult.user as any).name || 
+                                                     "Unknown User";
+                      
+                      console.log("[ParticipantAuctionView] Fetched auctioneer from API:", auctioneerData);
+                    }
+                  }
+                }
+              } catch (apiError) {
+                console.warn("[ParticipantAuctionView] Failed to fetch auctioneer from API:", apiError);
+              }
+            }
+            
+            setAuctioneer(auctioneerData);
+          } catch (auctioneerError) {
+            console.warn("[ParticipantAuctionView] Failed to load auctioneer:", auctioneerError);
+            setAuctioneer(null);
+          }
+        }
+      }
     } catch (error) {
-      console.error("Error loading auction details:", error);
-      toast.error("Failed to load auction details");
-      navigate("/dashboard/auctions");
+      console.error("[ParticipantAuctionView] Error loading auction details:", error);
+      if (isMountedRef.current) {
+        toast.error("Failed to load auction details. Please try refreshing the page.");
+        // Don't navigate away on error, let user try again
+        setLoading(false);
+      }
+      return;
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) {
+        setLoading(false);
+        setRefreshing(false);
+      }
     }
   };
 
@@ -456,8 +635,7 @@ const ParticipantAuctionView: React.FC = () => {
       }
 
       setIsParticipant(true);
-      loadAuctionDetails();
-      toast.success("Successfully joined the auction!");
+      toast.success("Successfully joined the auction! Click refresh to see updated data.");
     } catch (error) {
       console.error("Error joining auction:", error);
       toast.error("Failed to join auction");
@@ -613,8 +791,7 @@ const ParticipantAuctionView: React.FC = () => {
       setShowPreBuildModal(false);
       setPreBuildInput("");
 
-      // Refresh auction data and user's pre-bid
-      loadAuctionDetails();
+      // Refresh user's pre-bid data
       loadUserPreBid();
     } catch (error) {
       console.error("Error submitting pre-bid:", error);
@@ -738,8 +915,7 @@ const ParticipantAuctionView: React.FC = () => {
             setShowLiveBidModal(false);
             setLiveBidInput("");
 
-            // Refresh auction data
-            loadAuctionDetails();
+            // Bid placed successfully - user can manually refresh to see updates
           } else {
             setLiveBidError(result.message || "Failed to place bid");
           }
@@ -797,21 +973,42 @@ const ParticipantAuctionView: React.FC = () => {
           <h1 className="auction-title">{auction.title}</h1>
           <p className="auction-subtitle">#{auction.auctionNo}</p>
         </div>
-        <div
-          className={`auction-status-badge ${
-            auction.status === "upcoming"
-              ? "status-upcoming"
-              : auction.status === "live"
-              ? "status-live"
-              : "status-completed"
-          }`}
-        >
-          {auction.status === "upcoming" && <Clock className="w-4 h-4" />}
-          {auction.status === "live" && <Play className="w-4 h-4" />}
-          {auction.status === "completed" && (
-            <CheckCircle className="w-4 h-4" />
-          )}
-          {auction.status.charAt(0).toUpperCase() + auction.status.slice(1)}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <button
+            onClick={() => {
+              console.log("[ParticipantAuctionView] Manual refresh triggered");
+              loadAuctionDetails(true);
+            }}
+            className="btn btn-secondary"
+            disabled={refreshing}
+            style={{ 
+              padding: '0.5rem',
+              minWidth: 'auto',
+              background: 'rgba(255, 255, 255, 0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              opacity: refreshing ? 0.6 : 1,
+              cursor: refreshing ? 'not-allowed' : 'pointer'
+            }}
+            title="Refresh auction data"
+          >
+            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+          </button>
+          <div
+            className={`auction-status-badge ${
+              auction.status === "upcoming"
+                ? "status-upcoming"
+                : auction.status === "live"
+                ? "status-live"
+                : "status-completed"
+            }`}
+          >
+            {auction.status === "upcoming" && <Clock className="w-4 h-4" />}
+            {auction.status === "live" && <Play className="w-4 h-4" />}
+            {auction.status === "completed" && (
+              <CheckCircle className="w-4 h-4" />
+            )}
+            {auction.status.charAt(0).toUpperCase() + auction.status.slice(1)}
+          </div>
         </div>
       </div>
 
@@ -822,27 +1019,39 @@ const ParticipantAuctionView: React.FC = () => {
           Auction Details
         </h2>
         <div className="auction-info-grid">
+
           <div className="info-item">
             <span className="info-label">Date</span>
             <div className="info-value">
               <Calendar className="w-4 h-4" />
-              {format(new Date(auction.auctionDate), "dd MMM yyyy")}
+              {auction.auctionDate ? format(new Date(auction.auctionDate), "dd MMM yyyy") : "Date not specified"}
             </div>
           </div>
+
           <div className="info-item">
-            <span className="info-label">Time</span>
+            <span className="info-label">Start Time</span>
             <div className="info-value">
               <Clock className="w-4 h-4" />
-              {auction.auctionStartTime} - {auction.auctionEndTime}
+              {formatTime(auction.auctionStartTime)}  
             </div>
           </div>
+
+             <div className="info-item">
+            <span className="info-label">End Time</span>
+            <div className="info-value">
+              <Clock className="w-4 h-4" />
+               {formatTime(auction.auctionEndTime)}
+            </div>
+          </div>
+
           <div className="info-item">
             <span className="info-label">Duration</span>
             <div className="info-value">
               <Timer className="w-4 h-4" />
-              {auction.duration} minutes
+              {formatDuration(auction.duration)}
             </div>
           </div>
+
           <div className="info-item">
             <span className="info-label">Starting Price</span>
             <div className="info-value">
@@ -850,6 +1059,7 @@ const ParticipantAuctionView: React.FC = () => {
               {formatCurrency(auction.startingPrice, auction.currency)}
             </div>
           </div>
+
           <div className="info-item">
             <span className="info-label">Decremental Value</span>
             <div className="info-value">
@@ -857,13 +1067,13 @@ const ParticipantAuctionView: React.FC = () => {
               {formatCurrency(auction.decrementalValue, auction.currency)}
             </div>
           </div>
-          <div className="info-item">
+          {/* <div className="info-item">
             <span className="info-label">Participants</span>
             <div className="info-value">
               <Users className="w-4 h-4" />
               {auction.participants.length} registered
             </div>
-          </div>
+          </div> */}
         </div>
         <div className="auction-description">
           <h4>Description</h4>
@@ -938,45 +1148,106 @@ const ParticipantAuctionView: React.FC = () => {
       <div className="auction-details-card">
         <h2 className="card-title">
           <Building className="w-5 h-5" />
-          Auctioneer Details
+          Auction Creator Details
         </h2>
-        <div className="auction-info-grid">
-          <div className="info-item">
-            <span className="info-label">Company</span>
-            <div className="info-value">
-              <Building className="w-4 h-4" />
-              {auction.auctioneerCompany || "Not specified"}
+        {(() => {
+          // Check if we have any real creator data (not null or empty)
+          const creatorCompany = auction.auctioneerCompany;
+          const creatorName = (auction as any).auctioneerPerson;
+          const creatorEmail = (auction as any).auctioneerEmail;
+          const creatorPhone = auction.auctioneerPhone;
+          const creatorAddress = auction.auctioneerAddress;
+
+          console.log("[ParticipantAuctionView] Creator data for display:", {
+            creatorCompany,
+            creatorName,
+            creatorEmail,
+            creatorPhone,
+            creatorAddress
+          });
+
+          // Check if we have meaningful data
+          const hasAnyData = creatorCompany || creatorName || creatorEmail || creatorPhone || creatorAddress;
+
+          if (!hasAnyData) {
+            return (
+              <div style={{ 
+                padding: '1rem', 
+                textAlign: 'center', 
+                color: 'rgba(255, 255, 255, 0.7)',
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                borderRadius: '8px',
+                border: '1px solid rgba(255, 255, 255, 0.1)'
+              }}>
+                <User className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                <p>Creator information is not available for this auction.</p>
+                <p style={{ fontSize: '0.9rem', marginTop: '0.5rem' }}>
+                  This may be due to privacy settings or data access restrictions.
+                </p>
+              </div>
+            );
+          }
+
+          return (
+            <div className="auction-info-grid">
+              {creatorCompany && (
+                <div className="info-item">
+                  <span className="info-label">Company</span>
+                  <div className="info-value">
+                    <Building className="w-4 h-4" />
+                    <span>{creatorCompany}</span>
+                  </div>
+                </div>
+              )}
+              {creatorName && (
+                <div className="info-item">
+                  <span className="info-label">Contact Person</span>
+                  <div className="info-value">
+                    <User className="w-4 h-4" />
+                    <span>{creatorName}</span>
+                  </div>
+                </div>
+              )}
+              {creatorEmail && (
+                <div className="info-item">
+                  <span className="info-label">Email</span>
+                  <div className="info-value">
+                    <Mail className="w-4 h-4" />
+                    <span>{creatorEmail}</span>
+                  </div>
+                </div>
+              )}
+              {creatorPhone && (
+                <div className="info-item">
+                  <span className="info-label">Phone</span>
+                  <div className="info-value">
+                    <Phone className="w-4 h-4" />
+                    <span>{creatorPhone}</span>
+                  </div>
+                </div>
+              )}
+              {creatorAddress && (
+                <div className="info-item">
+                  <span className="info-label">Address</span>
+                  <div className="info-value">
+                    <MapPin className="w-4 h-4" />
+                    <span>{creatorAddress}</span>
+                  </div>
+                </div>
+              )}
+              {/* Show additional info if we have auctioneer data from service */}
+              {auctioneer && auctioneer.name && (
+                <div className="info-item">
+                  <span className="info-label">Created By</span>
+                  <div className="info-value">
+                    <User className="w-4 h-4" />
+                    {auctioneer.name} ({auctioneer.companyName || 'N/A'})
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
-          <div className="info-item">
-            <span className="info-label">Contact Person</span>
-            <div className="info-value">
-              <User className="w-4 h-4" />
-              {(auction as any).auctioneerPerson || "Not specified"}
-            </div>
-          </div>
-          <div className="info-item">
-            <span className="info-label">Email</span>
-            <div className="info-value">
-              <Mail className="w-4 h-4" />
-              {(auction as any).auctioneerEmail || "Not specified"}
-            </div>
-          </div>
-          <div className="info-item">
-            <span className="info-label">Phone</span>
-            <div className="info-value">
-              <Phone className="w-4 h-4" />
-              {auction.auctioneerPhone || "Not specified"}
-            </div>
-          </div>
-          <div className="info-item">
-            <span className="info-label">Address</span>
-            <div className="info-value">
-              <MapPin className="w-4 h-4" />
-              {auction.auctioneerAddress || "Not specified"}
-            </div>
-          </div>
-        </div>
+          );
+        })()}
       </div>
 
       {/* Documents Card */}
@@ -1547,3 +1818,6 @@ const ParticipantAuctionView: React.FC = () => {
 };
 
 export default ParticipantAuctionView;
+
+
+

@@ -3,7 +3,8 @@ import { BarChart, TrendingUp, IndianRupee, Users, Gavel, Calendar, Download, Fi
 import './AdminReports.css';
 
 type ReportType = 'overview' | 'auctions' | 'users' | 'revenue' | 'categories';
-import adminReportService, { AdminOverviewReport, AdminAuctionPerformanceItem, AdminUserActivityItem } from '../../../services/adminReportService';
+import adminReportService, { AdminOverviewReport, AdminAuctionPerformanceItem, AdminUserActivityItem , MonthlyTrendItem } from '../../../services/adminReportService';
+
 
 interface ReportData {
   period: string;
@@ -47,9 +48,24 @@ interface UserReport {
   status: string;
 }
 
+
+
+
+
+
 const AdminReports: React.FC = () => {
   const [selectedReport, setSelectedReport] = useState<ReportType>('overview');
+  // Map UI options to API filter values
   const [dateRange, setDateRange] = useState<'today' | 'week' | 'month' | 'quarter' | 'year'>('month');
+  const dateRangeToApiFilter = (range: typeof dateRange): 'today' | 'this_week' | 'this_month' | 'this_year' => {
+    switch (range) {
+      case 'today': return 'today';
+      case 'week': return 'this_week';
+      case 'month': return 'this_month';
+      case 'year': return 'this_year';
+      default: return 'this_month'; // treat 'quarter' as 'this_month' for now
+    }
+  };
   const [exportFormat, setExportFormat] = useState<'pdf' | 'excel' | 'csv'>('pdf');
   const [overview, setOverview] = useState<AdminOverviewReport | null>(null);
   const [auctionPerformance, setAuctionPerformance] = useState<AdminAuctionPerformanceItem[]>([]);
@@ -58,6 +74,8 @@ const AdminReports: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [userActivity, setUserActivity] = useState<AdminUserActivityItem[]>([]);
   const [userPeriod, setUserPeriod] = useState<'today' | 'this_week' | 'this_month' | 'this_year'>('this_month');
+  const [monthlyTrends, setMonthlyTrends] = useState<MonthlyTrendItem[]>([]);
+
 
   // Mock data - In real app, this would come from API
   const overviewData: ReportData = {
@@ -73,21 +91,57 @@ const AdminReports: React.FC = () => {
     participationRate: 78.5
   };
 
+  // const fetchOverview = useCallback(async () => {
+  //   try { setError(null); setLoading(true); const data = await adminReportService.getOverview(); setOverview(data); }
+  //   catch (e: any) { setError(e.message || 'Failed to load overview'); }
+  //   finally { setLoading(false); }
+  // }, []);
+
   const fetchOverview = useCallback(async () => {
-    try { setError(null); setLoading(true); const data = await adminReportService.getOverview(); setOverview(data); }
-    catch (e: any) { setError(e.message || 'Failed to load overview'); }
-    finally { setLoading(false); }
+    try {
+      setError(null);
+      setLoading(true);
+      const data = await adminReportService.getOverview();
+      setOverview(data);
+
+      // If trends included in overview, use them
+      if (data.monthlyTrends && data.monthlyTrends.length > 0) {
+        setMonthlyTrends(data.monthlyTrends);
+      } else {
+        // Else fetch from dedicated endpoint
+        const trends = await adminReportService.getMonthlyTrends();
+        setMonthlyTrends(trends);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to load overview');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   const fetchAuctionPerformance = useCallback(async (filter: 'today' | 'this_week' | 'this_month' | 'this_year') => {
-    try { setError(null); setLoading(true); const list = await adminReportService.getAuctionPerformance(filter); setAuctionPerformance(list); }
-    catch (e: any) { setError(e.message || 'Failed to load auction performance'); }
-    finally { setLoading(false); }
+    try {
+      setError(null);
+      setLoading(true);
+      const list = await adminReportService.getAuctionPerformance(filter);
+      setAuctionPerformance(list);
+    } catch (e: any) {
+      setError(e.message || 'Failed to load auction performance');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { if (selectedReport === 'overview') fetchOverview(); }, [selectedReport, fetchOverview]);
-  useEffect(() => { if (selectedReport === 'auctions') fetchAuctionPerformance(performanceFilter); }, [selectedReport, performanceFilter, fetchAuctionPerformance]);
+  // Fetch auction performance when report is auctions or dateRange changes
+  useEffect(() => {
+    if (selectedReport === 'auctions') {
+      fetchAuctionPerformance(dateRangeToApiFilter(dateRange));
+    }
+  }, [selectedReport, dateRange, fetchAuctionPerformance]);
   useEffect(() => { if (selectedReport === 'users') { (async () => { try { setError(null); setLoading(true); const list = await adminReportService.getUserActivity(userPeriod); setUserActivity(list); } catch (e: any) { setError(e.message || 'Failed to load user activity'); } finally { setLoading(false); } })(); } }, [selectedReport, userPeriod]);
+  useEffect(() => { fetchOverview(); }, [fetchOverview]);
+
 
   const auctionReports: AuctionReport[] = [
 
@@ -97,6 +151,8 @@ const AdminReports: React.FC = () => {
 
   ];
 
+  
+
   const categoryData = [
     { category: 'Machinery', auctions: 15, revenue: 4500000, percentage: 36 },
     { category: 'Electronics', auctions: 12, revenue: 3200000, percentage: 26 },
@@ -105,14 +161,7 @@ const AdminReports: React.FC = () => {
     { category: 'Other', auctions: 3, revenue: 750000, percentage: 6 }
   ];
 
-  const monthlyData = [
-    { month: 'Aug', auctions: 35, revenue: 8500000 },
-    { month: 'Sep', auctions: 42, revenue: 10200000 },
-    { month: 'Oct', auctions: 38, revenue: 9800000 },
-    { month: 'Nov', auctions: 45, revenue: 11500000 },
-    { month: 'Dec', auctions: 41, revenue: 10800000 },
-    { month: 'Jan', auctions: 45, revenue: 12450000 }
-  ];
+  // Removed duplicate monthlyTrends declaration to avoid redeclaration error.
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -126,6 +175,16 @@ const AdminReports: React.FC = () => {
     console.log(`Exporting ${selectedReport} report as ${exportFormat} for ${dateRange}`);
     // In real app, this would generate and download the report
   };
+
+  
+
+  // mapping select value -> API filter
+const periodToApiFilter: Record<string, 'today' | 'this_week' | 'this_month' | 'this_year'> = {
+  today: 'today',
+  week: 'this_week',
+  month: 'this_month',
+  year: 'this_year'
+};
 
   return (
     <div className="space-y-6">
@@ -258,12 +317,12 @@ const AdminReports: React.FC = () => {
                 <h2 className="admin-card-title">Monthly Trends</h2>
               </div>
               <div className="admin-card-body">
-                {monthlyData.map((month, index) => (
+                {monthlyTrends.map((month, index) => (
                   <div key={index} className="trend-item">
                     <div className="trend-header">
-                      <span className="text-heading">{month.month} 2024</span>
+                      <span className="text-heading">{month.month}</span>
                       <div className="text-metric">
-                        <div>{month.auctions} Auctions</div>
+                        {/* <div>{month.auctions} Auctions</div> */}
                         <div className="text-value">{formatCurrency(month.revenue)}</div>
                       </div>
                     </div>
@@ -287,13 +346,14 @@ const AdminReports: React.FC = () => {
           <div className="admin-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
             <h2 className="admin-card-title">Auction Performance Report</h2>
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-              <select className="control-select" value={performanceFilter} onChange={e => setPerformanceFilter(e.target.value as any)}>
+              <select className="control-select" value={dateRange} onChange={e => setDateRange(e.target.value as any)}>
                 <option value="today">Today</option>
-                <option value="this_week">This Week</option>
-                <option value="this_month">This Month</option>
-                <option value="this_year">This Year</option>
+                <option value="week">This Week</option>
+                <option value="month">This Month</option>
+                <option value="quarter">This Quarter</option>
+                <option value="year">This Year</option>
               </select>
-              <button className="control-button" onClick={() => fetchAuctionPerformance(performanceFilter)}>Refresh</button>
+              <button className="control-button" onClick={() => fetchAuctionPerformance(dateRangeToApiFilter(dateRange))}>Refresh</button>
             </div>
           </div>
           <div className="admin-card-body">
@@ -531,3 +591,5 @@ const AdminReports: React.FC = () => {
 };
 
 export default AdminReports;
+
+

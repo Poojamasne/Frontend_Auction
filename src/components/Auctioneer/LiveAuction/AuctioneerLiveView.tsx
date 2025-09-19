@@ -351,7 +351,7 @@ const AuctioneerLiveView: React.FC = () => {
           <h3>Auction Controls</h3>
         </div>
         <div className="alv-control-actions">
-          <button
+          {/* <button
             onClick={handlePauseAuction}
             className="alv-control-btn alv-pause-btn"
             disabled={auction.status !== "live"}
@@ -362,7 +362,7 @@ const AuctioneerLiveView: React.FC = () => {
               <Pause className="w-4 h-4" />
             )}
             {isPaused ? "Resume Auction" : "Pause Auction"}
-          </button>
+          </button> */}
           <button
             onClick={handleExtendTime}
             className="alv-control-btn alv-extend-btn"

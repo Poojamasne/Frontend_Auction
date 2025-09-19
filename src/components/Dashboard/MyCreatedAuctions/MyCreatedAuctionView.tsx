@@ -1077,14 +1077,7 @@ const MyCreatedAuctionView: React.FC = () => {
           <h2 className="card-title">
             <Users className="w-5 h-5" />
             Registered Participants
-            <span className="participants-count">
-              ({backendParticipants.length} total,{" "}
-              {
-                backendParticipants.filter((p: any) => p.status === "joined")
-                  .length
-              }{" "}
-              active)
-            </span>
+            
           </h2>
           <button
             type="button"
@@ -1100,7 +1093,7 @@ const MyCreatedAuctionView: React.FC = () => {
         {backendParticipants.length > 0 ? (
           <>
             {/* Participants Summary */}
-            <div className="participants-summary">
+            {/* <div className="participants-summary">
               <div className="summary-stat">
                 <span className="stat-label">Total Invited</span>
                 <span className="stat-value">{backendParticipants.length}</span>
@@ -1115,13 +1108,13 @@ const MyCreatedAuctionView: React.FC = () => {
                   }
                 </span>
               </div>
-              {/* <div className="summary-stat">
+              <div className="summary-stat">
                 <span className="stat-label">Pending</span>
                 <span className="stat-value stat-warning">
                   {backendParticipants.filter((p: any) => p.status === 'invited' || !p.status).length}
                 </span>
-              </div> */}
-            </div>
+              </div>
+            </div> */}
 
             <div className="participants-list">
               {backendParticipants.map((participant: any, index: number) => (
@@ -1265,17 +1258,17 @@ const MyCreatedAuctionView: React.FC = () => {
             <ArrowLeft className="w-4 h-4" />
             Back to My Auctions
           </button>
-          {auction.status === "live" && (
+          {/* {auction.status === "live" && (
             <button onClick={handleStartAuction} className="btn btn-primary">
               <Play className="w-4 h-4" />
               Manage Live Auction
             </button>
-          )}
+          )} */}
         </div>
       </div>
     </div>
   );
-};
+};  
 
 export default MyCreatedAuctionView;
 
