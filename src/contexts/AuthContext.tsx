@@ -20,11 +20,13 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  token: string | null;
   login: (phoneNumber: string) => Promise<void>;
   verifyOTP: (otp: string) => Promise<void>;
   logout: () => void;
   updateProfile: (data: Partial<User>) => Promise<void>;
   forgotPassword: (phoneNumber: string) => Promise<void>;
+  refreshToken: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -35,37 +37,39 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Minimal first-pass: load stored user quickly so UI can render.
+    // Load stored user and token
     const storedUserRaw = localStorage.getItem('auctionUser');
+    const storedToken = localStorage.getItem('authToken');
+    
     let parsedUser: User | null = null;
     if (storedUserRaw) {
       try { parsedUser = JSON.parse(storedUserRaw); } catch { /* ignore */ }
     }
+    
     if (parsedUser) setUser(parsedUser);
+    if (storedToken) setToken(storedToken);
+    
     setLoading(false); // Let UI paint.
 
-  // Removed dev admin token auto-inject. Use manual token input in Admin Dashboard instead.
-
-    // Defer heavy initialization to next tick (auctions sample data etc.).
+    // Defer heavy initialization to next tick
     queueMicrotask(() => {
       if (parsedUser) {
         try {
           const AuctionService = require('../services/auctionService').default;
           AuctionService.setCurrentUser(parsedUser);
-          // Run initialization asynchronously to avoid blocking.
           setTimeout(() => {
             try { AuctionService.initializeData(); } catch (e) { console.warn('Auction data init failed', e); }
           }, 0);
         } catch (e) { console.warn('Auction service init error', e); }
       }
 
-      // Background profile refresh (won't block initial paint)
-      const token = localStorage.getItem('authToken');
-      if (token) {
-        profileService.getProfile(token)
+      // Background profile refresh if we have a token
+      if (storedToken) {
+        profileService.getProfile(storedToken)
           .then(res => {
             if (!res?.user) return;
             const backendUser: any = res.user;
@@ -91,6 +95,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     });
   }, []);
+
+  const refreshToken = async (): Promise<void> => {
+    try {
+      // Implement token refresh logic here if your API supports it
+      // For now, we'll just keep the existing token
+      const storedToken = localStorage.getItem('authToken');
+      if (storedToken) {
+        setToken(storedToken);
+      }
+    } catch (error) {
+      console.error('Token refresh failed:', error);
+      logout();
+    }
+  };
 
   const login = async (phoneNumber: string): Promise<void> => {
     setLoading(true);
@@ -236,6 +254,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         
         // Store auth token if provided
         if (response.token) {
+          setToken(response.token);
           localStorage.setItem('authToken', response.token);
         }
 
@@ -254,6 +273,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = (): void => {
     setUser(null);
+    setToken(null);
     profileService.clearCache();
     localStorage.removeItem('auctionUser');
     localStorage.removeItem('pendingPhoneNumber');
@@ -355,11 +375,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const value: AuthContextType = {
     user,
     loading,
+    token,
     login,
     verifyOTP,
     logout,
     updateProfile,
     forgotPassword,
+    refreshToken,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
