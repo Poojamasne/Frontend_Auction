@@ -1,20 +1,25 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
+import { useAuth } from './AuthContext';
 
 interface Notification {
-  id: string;
-  type: 'sms' | 'email' | 'push';
+  id: number;
+  type: string;
+  auction_id: number;
+  auction_title: string;
   message: string;
-  timestamp: Date;
-  read: boolean;
+  is_read: boolean;
+  created_at: string;
 }
 
 interface NotificationContextType {
   notifications: Notification[];
-  addNotification: (type: 'sms' | 'email' | 'push', message: string) => void;
-  markAsRead: (id: string) => void;
+  addNotification: (type: string, message: string, auction_id?: number, auction_title?: string) => void;
+  markAsRead: (id: number) => void;
   clearNotifications: () => void;
   unreadCount: number;
+  fetchNotifications: () => Promise<void>;
+  loading: boolean;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -25,14 +30,52 @@ interface NotificationProviderProps {
 
 export const NotificationProvider: React.FC<NotificationProviderProps> = ({ children }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(false);
+  const { token } = useAuth();
 
-  const addNotification = (type: 'sms' | 'email' | 'push', message: string): void => {
+  const fetchNotifications = async (): Promise<void> => {
+    if (!token) return;
+    
+    try {
+      setLoading(true);
+      const response = await fetch('https://auction-development.onrender.com/api/notifications/my-notification', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setNotifications(data.notifications || []);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch notifications:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (token) {
+      fetchNotifications();
+      // Set up polling for notifications every 30 seconds
+      const interval = setInterval(fetchNotifications, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [token]);
+
+  const addNotification = (type: string, message: string, auction_id?: number, auction_title?: string): void => {
     const newNotification: Notification = {
-      id: Date.now().toString(),
+      id: Date.now(),
       type,
+      auction_id: auction_id || 0,
+      auction_title: auction_title || '',
       message,
-      timestamp: new Date(),
-      read: false,
+      is_read: false,
+      created_at: new Date().toISOString(),
     };
 
     setNotifications(prev => [newNotification, ...prev]);
@@ -45,19 +88,35 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     }
   };
 
-  const markAsRead = (id: string): void => {
-    setNotifications(prev =>
-      prev.map(notification =>
-        notification.id === id ? { ...notification, read: true } : notification
-      )
-    );
+  const markAsRead = async (id: number): Promise<void> => {
+    try {
+      if (token) {
+        // Call API to mark as read
+        await fetch(`https://auction-development.onrender.com/api/notifications/mark-read/${id}`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+      }
+      
+      // Update local state
+      setNotifications(prev =>
+        prev.map(notification =>
+          notification.id === id ? { ...notification, is_read: true } : notification
+        )
+      );
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+    }
   };
 
   const clearNotifications = (): void => {
     setNotifications([]);
   };
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter(n => !n.is_read).length;
 
   const value: NotificationContextType = {
     notifications,
@@ -65,6 +124,8 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     markAsRead,
     clearNotifications,
     unreadCount,
+    fetchNotifications,
+    loading,
   };
 
   return (
