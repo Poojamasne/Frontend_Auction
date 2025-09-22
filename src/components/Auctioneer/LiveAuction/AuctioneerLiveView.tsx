@@ -150,6 +150,9 @@ const AuctioneerLiveView: React.FC = () => {
     }
   };
 
+  
+
+
   useEffect(() => {
     fetchAuctionData();
     // Set up polling to refresh data every 15 seconds
@@ -237,6 +240,8 @@ const AuctioneerLiveView: React.FC = () => {
       setIsEndingAuction(false);
     }
   };
+
+
 
   const handleExtendTime = async () => {
     if (!id) return;
@@ -643,6 +648,7 @@ const AuctioneerLiveView: React.FC = () => {
                       </div>
                     )}
                   </div>
+                  
                 </div>
               ))
             ) : (
