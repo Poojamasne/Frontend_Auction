@@ -491,7 +491,7 @@ const periodToApiFilter: Record<string, 'today' | 'this_week' | 'this_month' | '
         </div>
       )}
 
-      {/* Revenue Report we comment this code of Revenue button navigation */}.
+      {/* Revenue Report we comment this code of Revenue button navigation */}
       {/* {selectedReport === 'revenue' && (
         <div className="reports-section">
           <div className="reports-grid">
@@ -545,7 +545,7 @@ const periodToApiFilter: Record<string, 'today' | 'this_week' | 'this_month' | '
         </div>
       )} */}
 
-      {/* Categories Report 
+      {/* Categories Report */}
       {selectedReport === 'categories' && (
         <div className="reports-section">
           <div className="admin-card">
