@@ -46,7 +46,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           <div className="ap-sidebar-logo-badge">
             <Gavel className="ap-sidebar-logo-icon" />
           </div>
-          <span className="ap-sidebar-brand-title" id="setsidebar">Quick Auction</span>
+          <span className="ap-sidebar-brand-title" id="setsidebar">
+            Quick Auction
+          </span>
         </div>
         {/* Close Button */}
         <button
@@ -59,28 +61,30 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             style={{ color: 'red', cursor: 'pointer' }}
           />
         </button>
-
       </div>
 
       {/* Navigation Menu */}
       <nav className="ap-sidebar-nav">
         {navigation.map((item) => {
           const Icon = item.icon;
-          const isActive = location.pathname === item.href ||
-            (item.href !== '/dashboard' && location.pathname.startsWith(item.href));
+          const isActive =
+            location.pathname === item.href ||
+            (item.href !== '/dashboard' &&
+              location.pathname.startsWith(item.href));
 
           return (
             <Link
               key={item.name}
               to={item.href}
-              className={`ap-sidebar-nav-link ${isActive ? 'ap-sidebar-nav-link-active' : ''}`}
+              className={`ap-sidebar-nav-link ${
+                isActive ? 'ap-sidebar-nav-link-active' : ''
+              }`}
               onClick={() => {
-                if (window.innerWidth < 1024) {  // only close on smaller screens
+                if (window.innerWidth < 1024) {
                   onClose();
                 }
               }}
             >
-
               <Icon className="ap-sidebar-nav-icon" />
               <span className="ap-sidebar-nav-text">{item.name}</span>
             </Link>
@@ -99,27 +103,29 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             {user?.companyName || 'No Company'}
           </div>
           <div className="ap-sidebar-user-phone">
-            {user?.phoneNumber}
+            {user?.phoneNumber?.startsWith('+91')
+              ? user.phoneNumber.replace('+91', '+91\u00A0')
+              : user?.phoneNumber}
           </div>
-          {/* <div className="ap-sidebar-user-role">
-            {user?.role === 'admin' ? 'Administrator' :
-              user?.role === 'auctioneer' ? 'Auctioneer' :
-                user?.role === 'participant' ? 'Participant' : 'User'}
-          </div> */}
 
+          {/* coloured role badge */}
           <div className="ap-sidebar-user-role">
-            {user?.role === 'admin' ? 'Administrator' :
-              user?.role === 'auctioneer' ? 'Auctioneer' :
-                user?.role === 'participant'  ? 'User' : "User"}
+            {user?.role === 'admin' ? (
+              <span className="ap-role-badge ap-role-admin">
+                System Administrator
+              </span>
+            ) : user?.role === 'auctioneer' ? (
+              <span className="ap-role-badge ap-role-auctioneer">
+                Auctioneer
+              </span>
+            ) : (
+              <span className="ap-role-badge ap-role-participant">User</span>
+            )}
           </div>
-
         </div>
 
         {/* Logout Button */}
-        <button
-          onClick={handleLogout}
-          className="ap-sidebar-logout-btn"
-        >
+        <button onClick={handleLogout} className="ap-sidebar-logout-btn">
           <LogOut className="ap-sidebar-logout-icon" />
           <span className="ap-sidebar-logout-text">Sign out</span>
         </button>
