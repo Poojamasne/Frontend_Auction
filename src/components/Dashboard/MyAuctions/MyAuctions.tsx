@@ -1224,7 +1224,10 @@ const getDerivedStatus = (auction: BaseAuction, nowMs: number): BaseAuction['sta
               <option value="live">Live</option>
               <option value="completed">Completed</option>
             </select>
+
             <button 
+                
+
   className={`ap-myauctions-filter-btn ${isFetching ? 'opacity-75' : ''}`}
   onClick={handleManualRefresh} 
   disabled={isFetching}

@@ -1,9 +1,14 @@
+
+
+
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Registration.css";
 import authService from "../../services/authService";
 import toast from "react-hot-toast";
 import TermsModal from "../Common/TermsModal";
+
 
 interface RegistrationFormState {
   phone: string;
@@ -30,6 +35,12 @@ function Registration() {
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
 
+
+
+  // ✅ Move useState here (inside component)
+  
+
+
   const [form, setForm] = useState<RegistrationFormState>({
     phone: "",
     email: "",
@@ -39,6 +50,7 @@ function Registration() {
     companyProductService: "",
     otp: "",
   });
+
 
   const [submitting, setSubmitting] = useState(false);
 
@@ -107,6 +119,7 @@ function Registration() {
       newErrors.name = "Name must be at least 2 characters";
     }
 
+
     // Company Product/Service validation
     if (!form.companyProductService.trim()) {
       newErrors.companyProductService = "Company product/service is required";
@@ -115,6 +128,8 @@ function Registration() {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
+  
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -196,6 +211,7 @@ function Registration() {
               )}
             </div>
 
+
             <div className="ap-reg-field">
               <label htmlFor="email" className="ap-reg-label">Email</label>
               <input
@@ -218,6 +234,7 @@ function Registration() {
                 <small className="ap-reg-hint">Only .com, .in, or .org domains allowed</small>
               )}
             </div>
+
 
             <div className="ap-reg-field">
               <label htmlFor="name" className="ap-reg-label">Person Name</label>
@@ -242,12 +259,14 @@ function Registration() {
               )}
             </div>
 
+
             <div className="ap-reg-field ap-reg-field--full">
               <label htmlFor="companyName" className="ap-reg-label">
                 Company Name <span className="ap-reg-required">*</span>
               </label>
               <input
                 id="companyName"
+                
                 type="text"
                 name="companyName"
                 className={`ap-reg-input ${errors.companyName ? 'error' : ''}`}
@@ -324,6 +343,7 @@ function Registration() {
 
           </div>
 
+
           <div className="ap-reg-actions">
             <button
               type="submit"
@@ -333,6 +353,7 @@ function Registration() {
               {submitting ? "Registering" : "Register"}
             </button>
 
+
             <button
               type="button"
               className="ap-reg-btn ap-reg-btn--secondary"
@@ -341,6 +362,7 @@ function Registration() {
               Back to Login
             </button>
           </div>
+
 
           <p className="ap-reg-disclaimer">
             By continuing you agree to our{" "}
@@ -358,3 +380,6 @@ function Registration() {
 }
 
 export default Registration;
+
+
+
