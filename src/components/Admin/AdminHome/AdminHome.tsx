@@ -263,10 +263,11 @@ const AdminHome: React.FC = () => {
       <div className="space-y-6">
         {/* Header */}
         <div className="admin-header">
-          <h1 className="text-3xl font-bold text-primary">Admin Dashboard</h1>
           <div className="system-status">
             <Activity className="w-4 h-4 mt-2 mr-2" />
           </div>
+          <h1 className="text-3xl font-bold text-primary">Admin Dashboard</h1>
+          
         </div>
 
         {/* Statistics Cards */}
@@ -390,7 +391,13 @@ const AdminHome: React.FC = () => {
             <h2 className="text-xl font-semibold">Quick Actions</h2>
           </div>
           <div className="card-body">
-            <div className="grid grid-cols-3 md:grid-cols-3 gap-4">
+            {/* <div className="grid grid-cols-3 md:grid-cols-3 gap-4"> */}
+              {/* <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"> */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 md:grid-cols-3 gap-4" id='quick-actions-grid'>
+                
+
+
+
               {/* Approve Pending Users */}
               <button
                 className="btn btn-primary"

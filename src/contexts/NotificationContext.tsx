@@ -1,4 +1,7 @@
+
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import notificationService, { NotificationItem } from '../services/notificationService';
+
 import { Toaster } from 'react-hot-toast';
 import { useAuth } from './AuthContext';
 
@@ -17,6 +20,7 @@ interface NotificationContextType {
   addNotification: (type: string, message: string, auction_id?: number, auction_title?: string) => void;
   markAsRead: (id: number) => void;
   clearNotifications: () => void;
+  
   unreadCount: number;
   fetchNotifications: () => Promise<void>;
   loading: boolean;
@@ -30,33 +34,14 @@ interface NotificationProviderProps {
 
 export const NotificationProvider: React.FC<NotificationProviderProps> = ({ children }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
+
   const [loading, setLoading] = useState(false);
   const { token } = useAuth();
 
-  const fetchNotifications = async (): Promise<void> => {
-    if (!token) return;
-    
-    try {
-      setLoading(true);
-      const response = await fetch('https://auction-development.onrender.com/api/notifications/my-notification', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+  const [hasInitiallyFetched, setHasInitiallyFetched] = useState(false);
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          setNotifications(data.notifications || []);
-        }
-      }
-    } catch (error) {
-      console.error('Failed to fetch notifications:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+
+  
 
   useEffect(() => {
     if (token) {
@@ -114,6 +99,28 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
 
   const clearNotifications = (): void => {
     setNotifications([]);
+    setHasInitiallyFetched(false); // Allow fetching again after clearing
+  };
+
+  const fetchNotifications = async (): Promise<void> => {
+    try {
+      if (hasInitiallyFetched) return;
+      const apiNotifications: NotificationItem[] = await notificationService.getMyNotifications();
+      // Map API notifications to local Notification type
+      const mapped: Notification[] = apiNotifications.map((n) => ({
+        id: n.id || n._id || n.notificationId || Math.random().toString(36).slice(2),
+        type: (n.type as string) || 'push',
+        auction_id: n.auction_id || 0,
+        auction_title: n.auction_title || '',
+        message: n.message || n.title || '',
+        is_read: typeof n.is_read === 'boolean' ? n.is_read : !!n.read,
+        created_at: n.createdAt ? new Date(n.createdAt).toISOString() : new Date().toISOString(),
+      }));
+      setNotifications(mapped);
+      setHasInitiallyFetched(true);
+    } catch (error) {
+      console.error('Failed to fetch notifications:', error);
+    }
   };
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
@@ -123,8 +130,8 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     addNotification,
     markAsRead,
     clearNotifications,
-    unreadCount,
     fetchNotifications,
+    unreadCount,
     loading,
   };
 

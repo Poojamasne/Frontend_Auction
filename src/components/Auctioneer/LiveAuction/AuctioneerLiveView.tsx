@@ -150,6 +150,9 @@ const AuctioneerLiveView: React.FC = () => {
     }
   };
 
+  
+
+
   useEffect(() => {
     fetchAuctionData();
     // Set up polling to refresh data every 15 seconds
@@ -238,7 +241,6 @@ const AuctioneerLiveView: React.FC = () => {
     }
   };
 
-  
   const handleExtendTime = async () => {
     if (!id) return;
 
@@ -393,7 +395,11 @@ const AuctioneerLiveView: React.FC = () => {
           <h3>Auction Controls</h3>
         </div>
         <div className="alv-control-actions">
+
 {/*           <button
+
+          {/* <button
+
             onClick={handlePauseAuction}
             className="alv-control-btn alv-pause-btn"
             disabled={auction.status !== "live"}
@@ -685,6 +691,7 @@ const AuctioneerLiveView: React.FC = () => {
                       </div>
                     )}
                   </div>
+
                   <div>
                     {/* Reject button for rejecting user from Bid */}
                     <button
@@ -694,6 +701,7 @@ const AuctioneerLiveView: React.FC = () => {
                       Reject
                     </button> 
                   </div>
+
                 </div>
               ))
             ) : (

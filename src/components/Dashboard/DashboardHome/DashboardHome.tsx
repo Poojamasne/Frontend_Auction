@@ -130,6 +130,25 @@ const DashboardHome: React.FC = () => {
     return () => { cancelled = true; };
   }, [user]);
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   // Calculate dynamic stats
   const getStats = () => {
     if (useRemote && remoteStats) {
@@ -188,7 +207,7 @@ const DashboardHome: React.FC = () => {
         value: totalBids.toString(),
         change: `across ${totalParticipated} auctions`,
         icon: TrendingUp,
-        color: 'bg-purple-500',
+        color: 'bg-purple-500', 
       },
 
     ];
@@ -337,6 +356,7 @@ const DashboardHome: React.FC = () => {
               >
                 View all
               </Link>
+              
             </div>
             <div className="ap-dashboard-home-section-body">
               <div className="ap-dashboard-home-auction-list">
@@ -353,10 +373,14 @@ const DashboardHome: React.FC = () => {
                           <span>👥 {a.participant_count} participants</span>
                         </div>
                       </div>
-                      <Link to={`/dashboard/auction/${a.id}`} className="ap-dashboard-home-auction-btn">
+                      <Link to={`/dashboard/my-auction/${a.id}`} className="ap-dashboard-home-auction-btn">
                         <Eye className="w-4 h-4" />
                         View
                       </Link>
+
+                      {/*  my changes and make sure is not in live changes make it change */}
+                      
+                      
                     </div>
                   ))
                 ) : (
@@ -384,6 +408,8 @@ const DashboardHome: React.FC = () => {
                     </div>
                   ))
                 )}
+
+                
               </div>
               {upcomingAuctions.length === 0 && (
                 <div className="ap-dashboard-home-empty">
@@ -505,3 +531,31 @@ const DashboardHome: React.FC = () => {
 };
 
 export default DashboardHome;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

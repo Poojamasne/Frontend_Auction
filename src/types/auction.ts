@@ -19,9 +19,13 @@ export interface BaseAuction {
   startingPrice?: number;
   reservePrice?: number;
   userId?: string; // For backward compatibility with existing code
+  creator_company?: string;
   auctioneerCompany?: string;
   auctioneerAddress?: string;
   auctioneerPhone?: string;
+  auctioneerEmail?: string;
+  auctioneerPerson?: string;
+  auctioneerName?: string;
   status: "upcoming" | "live" | "completed";
   participants: string[]; // Array of participant IDs
   documents: AuctionDocument[];

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './LoginPage.css';
-import { Phone, ArrowRight, Gavel } from 'lucide-react';
+import { Phone, ArrowRight, Gavel, icons } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import { LogIn } from "lucide-react"; // or User, KeyRound, etc.
@@ -99,7 +99,7 @@ const LoginPage: React.FC = () => {
                     type="tel"
                     id="phoneNumber"
                     className="ap-login-input"
-                    placeholder='1234567890'
+                    placeholder='Enter Number'
                     value={phoneNumber}
                     onChange={handlePhoneChange}
                     inputMode="numeric"

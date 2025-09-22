@@ -1,7 +1,3 @@
-
-
-
-
 import React, { useState, useEffect, useRef } from 'react';
 import './MyAuctions.css';
 import { Link, useNavigate } from 'react-router-dom';
@@ -132,7 +128,11 @@ const MyAuctions: React.FC = () => {
 
   const firstLoadRef = useRef(true);
   const handleManualRefresh = async () => {
+
   setIsFetching(true);
+
+//   setIsFetching(true);
+
   try {
     await fetchAuctions();
   } finally {
@@ -500,6 +500,7 @@ const MyAuctions: React.FC = () => {
   try {
     let data: BaseAuction[] = [];
 
+
     if (activeTab === 'auctioneer') {
       console.log(`[MyAuctions] 🏗️ FETCHING CREATED AUCTIONS - Only auctions created by user ${user?.phoneNumber}`);
       
@@ -552,6 +553,7 @@ const MyAuctions: React.FC = () => {
         userEmail: user?.email,
         userCompany: user?.companyName
       });
+
 
       // Strategy 1: Try direct my-auctions endpoint first (most reliable)
       try {
@@ -727,7 +729,7 @@ const MyAuctions: React.FC = () => {
     setApiError(err?.message || 'Failed to load auctions');
     setAuctions([]);
   }
-};
+}
 
   // Derive start Date object for an auction
   const getAuctionStart = (auction: BaseAuction) => {
@@ -1228,6 +1230,8 @@ const getDerivedStatus = (auction: BaseAuction, nowMs: number): BaseAuction['sta
             <button 
                 
 
+
+
   className={`ap-myauctions-filter-btn ${isFetching ? 'opacity-75' : ''}`}
   onClick={handleManualRefresh} 
   disabled={isFetching}
@@ -1463,4 +1467,4 @@ const getDerivedStatus = (auction: BaseAuction, nowMs: number): BaseAuction['sta
   );
 };
 
-export default MyAuctions;
+export default MyAuctions

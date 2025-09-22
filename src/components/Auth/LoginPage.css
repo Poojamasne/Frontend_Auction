@@ -229,7 +229,7 @@
   font-size: 12px;
   margin-top: 4px;
   padding-left: 4px;
-  font-style: italic;
+  /* font-style: italic; */
 }
 
 .ap-login-btn {

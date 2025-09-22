@@ -354,6 +354,7 @@ body .admin-dashboard {
 
 /* Header */
 .admin-header {
+  display: flex;
   background: rgba(30, 41, 59, 0.8);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(148, 163, 184, 0.2);
@@ -553,7 +554,7 @@ body .admin-dashboard {
 }
 
 .btn svg {
-  margin-right: 0.5rem;
+  
   width: 16px;
   height: 16px;
 }

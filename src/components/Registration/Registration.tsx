@@ -1,13 +1,12 @@
-
-
-
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Registration.css";
 import authService from "../../services/authService";
 import toast from "react-hot-toast";
 import TermsModal from "../Common/TermsModal";
+
+
+
 
 
 interface RegistrationFormState {
@@ -37,8 +36,10 @@ function Registration() {
 
 
 
+
   // ✅ Move useState here (inside component)
   
+
 
 
   const [form, setForm] = useState<RegistrationFormState>({
@@ -120,6 +121,12 @@ function Registration() {
     }
 
 
+
+
+  
+
+
+
     // Company Product/Service validation
     if (!form.companyProductService.trim()) {
       newErrors.companyProductService = "Company product/service is required";
@@ -129,7 +136,6 @@ function Registration() {
     return Object.keys(newErrors).length === 0;
   };
 
-  
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -212,6 +218,8 @@ function Registration() {
             </div>
 
 
+
+
             <div className="ap-reg-field">
               <label htmlFor="email" className="ap-reg-label">Email</label>
               <input
@@ -234,6 +242,8 @@ function Registration() {
                 <small className="ap-reg-hint">Only .com, .in, or .org domains allowed</small>
               )}
             </div>
+
+
 
 
             <div className="ap-reg-field">
@@ -266,7 +276,7 @@ function Registration() {
               </label>
               <input
                 id="companyName"
-                
+
                 type="text"
                 name="companyName"
                 className={`ap-reg-input ${errors.companyName ? 'error' : ''}`}
@@ -289,6 +299,7 @@ function Registration() {
                 <small className="ap-reg-hint">It is mandatory field</small>
               )}
             </div>
+
 
             <div className="ap-reg-field ap-reg-field--full">
               <label htmlFor="companyProductService" className="ap-reg-label">
@@ -318,6 +329,37 @@ function Registration() {
             </div>
 
             <div className="ap-reg-field ap-reg-field--full">
+
+
+            <div className="ap-reg-field ap-reg-field--full">
+              <label htmlFor="companyProductService" className="ap-reg-label">
+                Company Product/Service<span className="ap-reg-required">*</span>
+              </label>
+              <input
+                id="companyProductService"
+                type="text"
+                name="companyProductService"
+                className={`ap-reg-input ${errors.companyProductService ? 'error' : ''}`}
+                placeholder="e.g., Construction Materials, IT Services, Manufacturing"
+                value={form.companyProductService}
+                onChange={handleChange}
+                autoComplete="off"
+                pattern="[a-zA-Z0-9\s\-\.\,\&\'KATEX_INLINE_OPENKATEX_INLINE_CLOSE]{0,200}"
+                title="Describe your company's products or services"
+                maxLength={200}
+              />
+              {errors.companyProductService && (
+                <span className="ap-reg-error" style={{ color: 'red', fontSize: '12px' }}>
+                  {errors.companyProductService}
+                </span>
+              )}
+              {!errors.companyProductService && (
+                <small className="ap-reg-hint">What does your company sell or provide?</small>
+              )}
+            </div>
+
+            <div className="ap-reg-field ap-reg-field--full">
+
               <label htmlFor="companyAddress" className="ap-reg-label">
                 Company Address
               </label>
@@ -344,6 +386,8 @@ function Registration() {
           </div>
 
 
+
+
           <div className="ap-reg-actions">
             <button
               type="submit"
@@ -354,6 +398,8 @@ function Registration() {
             </button>
 
 
+
+
             <button
               type="button"
               className="ap-reg-btn ap-reg-btn--secondary"
@@ -362,6 +408,8 @@ function Registration() {
               Back to Login
             </button>
           </div>
+
+
 
 
           <p className="ap-reg-disclaimer">
