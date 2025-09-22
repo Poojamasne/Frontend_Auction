@@ -322,9 +322,9 @@ const periodToApiFilter: Record<string, 'today' | 'this_week' | 'this_month' | '
                     <div className="trend-header">
                       <span className="text-heading">{month.month}</span>
                       <div className="text-metric">
-                        {/* <div>{month.auctions} Auctions</div> */}
-                        <div className="text-value">{formatCurrency(month.revenue)}</div>
-                      </div>
+  {/* <div>{month.auctions} Auctions</div> */}
+  <div className="text-value">{formatCurrency(month.revenue)}</div>
+</div>
                     </div>
                     <div className="progress-bar">
                       <div
