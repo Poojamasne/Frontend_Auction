@@ -238,6 +238,7 @@ const AuctioneerLiveView: React.FC = () => {
     }
   };
 
+  
   const handleExtendTime = async () => {
     if (!id) return;
 
@@ -276,6 +277,46 @@ const AuctioneerLiveView: React.FC = () => {
     }
   };
 
+  // Add reject participant function with the correct API endpoint
+  const handleRejectParticipant = async (userId: number) => {
+    if (!id || !window.confirm("Are you sure you want to reject this participant?")) {
+      return;
+    }
+
+    try {
+      const token =
+        localStorage.getItem("authToken") || localStorage.getItem("token");
+      
+      // Use the correct API endpoint for rejecting a participant
+      const response = await fetch(
+        `https://auction-development.onrender.com/api/auction/prebid/${id}/reject`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({ user_id: userId }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        toast.success(
+          result.message || "Participant has been rejected successfully."
+        );
+        fetchAuctionData(); // Refresh data to update the participant list
+      } else {
+        throw new Error(result.message || "Failed to reject participant.");
+      }
+    } catch (err: any) {
+      toast.error(err.message);
+      console.error("Failed to reject participant:", err);
+    }
+  };
+
   if (loading && !auction) {
     return (
       <div className="alv-loading">
@@ -302,6 +343,7 @@ const AuctioneerLiveView: React.FC = () => {
     );
   }
 
+  
   if (!auction) {
     return (
       <div className="alv-error">
@@ -642,6 +684,15 @@ const AuctioneerLiveView: React.FC = () => {
                         <span>Active</span>
                       </div>
                     )}
+                  </div>
+                  <div>
+                    {/* Reject button for rejecting user from Bid */}
+                    <button
+                      className="btn btn-danger"
+                      onClick={() => handleRejectParticipant(bid.user_id)}
+                    >
+                      Reject
+                    </button> 
                   </div>
                 </div>
               ))
