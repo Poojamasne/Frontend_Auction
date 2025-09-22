@@ -328,9 +328,9 @@ const periodToApiFilter: Record<string, 'today' | 'this_week' | 'this_month' | '
                     </div>
                     <div className="progress-bar">
                       <div
-                        className="progress-fill"
-                        style={{ width: `${(month.revenue / 12450000) * 100}%` }}
-                      />
+  className="progress-fill"
+  style={{ width: `${(month.revenue / 12450000) * 100}%` }}
+>&nbsp;</div>
                     </div>
                   </div>
                 ))}
