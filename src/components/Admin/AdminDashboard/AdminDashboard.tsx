@@ -129,28 +129,35 @@ const AdminDashboard: React.FC = () => {
           })}
         </nav>
 
-        <div className="admin-sidebar-footer">
-          <div className="admin-user-card">
-            <div className="admin-user-info">
-              {/* <Shield className="admin-user-icon" /> hide */} 
-              {/*     <span className="admin-user-role">Administrator</span>*/}
-            </div>
-            <div className="admin-user-name">{user?.name || 'Admin User'}</div>
-            <div className="admin-user-phone">{user?.phoneNumber || ''}</div>
-          </div>
+        {/* ─── Sidebar Footer (patched) ─── */}
+<div className="admin-sidebar-footer">
+  <div className="admin-user-card">
+    <div className="admin-user-info">
+      <Shield className="admin-user-icon" />
+      {/*  coloured role badge  */}
+      <span className="ap-role-badge ap-role-admin">System Administrator</span>
+    </div>
+    <div className="admin-user-name">{user?.name || 'Admin User'}</div>
+    {/*  phone with space after +91  */}
+    <div className="admin-user-phone">
+      {user?.phoneNumber?.startsWith('+91')
+        ? user.phoneNumber.replace('+91', '+91\u00A0')
+        : user?.phoneNumber}
+    </div>
+  </div>
 
-          <div className="admin-switch-panel">
-            <Link to="/dashboard" className="admin-switch-link" onClick={() => setIsSidebarOpen(false)}>
-              <User className="admin-icon" />
-              Switch to User Panel
-            </Link>
-          </div>
+  <div className="admin-switch-panel">
+    <Link to="/dashboard" className="admin-switch-link" onClick={() => setIsSidebarOpen(false)}>
+      <User className="admin-icon" />
+      Switch to User Panel
+    </Link>
+  </div>
 
-          <button onClick={handleLogout} className="admin-logout-btn" type="button">
-            <LogOut className="admin-logout-icon" />
-            Sign out
-          </button>
-        </div>
+  <button onClick={handleLogout} className="admin-logout-btn" type="button">
+    <LogOut className="admin-logout-icon" />
+    Sign out
+  </button>
+</div>
       </aside>
 
       {/* Main content */}
