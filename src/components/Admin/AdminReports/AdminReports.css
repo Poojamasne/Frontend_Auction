@@ -1390,3 +1390,13 @@
     min-width: 100%;
   }
 }
+
+/* ---------------- validation helpers ---------------- */
+.text-red-500 { color: #ef4444 !important; }
+.border-red-500 { border-color: #ef4444 !important; }
+.error-msg {
+  font-size: 0.75rem;
+  color: #f87171;
+  margin-top: 0.25rem;
+  display: block;
+}
