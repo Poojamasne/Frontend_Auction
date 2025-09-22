@@ -679,15 +679,3 @@ const ParticipantAuctionSession: React.FC = () => {
 };
 
 export default ParticipantAuctionSession;
-<<<<<<< HEAD
-=======
-
-
-
-
-
-
-
-
-  
->>>>>>> origin/sachin
