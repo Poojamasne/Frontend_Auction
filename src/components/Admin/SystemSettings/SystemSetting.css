@@ -36,3 +36,97 @@
         /* Reduce padding for small screens */
     }
 }
+
+/* Enhanced General Settings form responsiveness */
+.admin-card-body .input {
+    width: 100%;
+    min-height: 2.75rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.95rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease-in-out;
+}
+
+.admin-card-body label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+/* Validation error styling */
+.validation-error {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1);
+}
+
+.validation-message {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-top: 0.25rem;
+}
+
+/* Mobile adjustments */
+@media (max-width: 640px) {
+    .admin-card-body .grid {
+        grid-template-columns: 1fr !important;
+        gap: 1.25rem;
+    }
+
+    .admin-card-body .col-span-1,
+    .admin-card-body .md\\:col-span-2,
+    .admin-card-body .lg\\:col-span-3 {
+        grid-column: span 1 !important;
+    }
+
+    .admin-card {
+        padding: 1rem;
+        margin: 0.5rem;
+    }
+
+    /* Better touch targets for mobile */
+    .admin-card-body .input,
+    .admin-card-body select,
+    .admin-card-body textarea {
+        min-height: 3rem;
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+
+    /* Action buttons stack properly */
+    .action-buttons {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .action-buttons button {
+        width: 100%;
+    }
+}
+
+/* Tablet adjustments */
+@media (min-width: 641px) and (max-width: 1024px) {
+    .admin-card-body .grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+    }
+
+    .admin-card-body .lg\\:col-span-3 {
+        grid-column: span 2 !important;
+    }
+}
+
+/* Focus states for accessibility */
+.admin-card-body .input:focus,
+.admin-card-body select:focus,
+.admin-card-body textarea:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: #3b82f6;
+}
+
+/* Required field indicator */
+.required-field::after {
+    content: " *";
+    color: #ef4444;
+}
