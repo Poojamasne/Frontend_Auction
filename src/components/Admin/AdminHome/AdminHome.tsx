@@ -260,162 +260,150 @@ const AdminHome: React.FC = () => {
   }
 
   return (
-    <LoadingGate ready={!loading}>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="admin-header">
-          <div className="system-status">
-            <Activity className="w-4 h-4 mt-2 mr-2" />
-          </div>
-          <h1 className="text-3xl font-bold text-primary">Admin Dashboard</h1>
-          
+  <LoadingGate ready={!loading}>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="admin-header">
+        <div className="system-status">
+          <Activity className="w-4 h-4 mt-2 mr-2" />
         </div>
+        <h1 className="text-3xl font-bold text-primary">Admin Dashboard</h1>
+      </div>
 
-        {/* Statistics Cards */}
-        <div className="grid stat-cards grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2">
-          {statCards.map((stat, index) => {
-            const Icon = stat.icon;
-            return (
-              <div key={index} className="card">
-                <div className="card-body">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-text-secondary">{stat.title}</p>
-                      <p className="text-2xl font-bold text-primary">{stat.value}</p>
-                      <p className={`text-sm ${stat.subTextColor}`}>{stat.subText}</p>
-                    </div>
-                    <Icon className="w-8 h-8 text-primary" />
+      {/* Statistics Cards */}
+      <div className="grid stat-cards grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2">
+        {statCards.map((stat, index) => {
+          const Icon = stat.icon;
+          return (
+            <div key={index} className="card">
+              <div className="card-body">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-text-secondary">{stat.title}</p>
+                    <p className="text-2xl font-bold text-primary">{stat.value}</p>
+                    <p className={`text-sm ${stat.subTextColor}`}>{stat.subText}</p>
                   </div>
+                  <Icon className="w-8 h-8 text-primary" />
                 </div>
               </div>
-            );
-          })}
-        </div>
+            </div>
+          );
+        })}
+      </div>
 
-        {/* Auction Status Overview */}
-        <div className="grid stat-cards grid-cols-1 lg:grid-cols-3 gap-6">
-          {auctionStatusCards.map((stat, index) => {
-            const Icon = stat.icon;
-            return (
-              <div key={index} className="card">
-                <div className="card-body">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-text-secondary">{stat.title}</p>
-                      <p className={`text-3xl font-bold ${stat.subTextColor}`}>{stat.value}</p>
-                    </div>
-                    <Icon className={`w-8 h-8 ${stat.subTextColor}`} />
+      {/* Auction Status Overview */}
+      <div className="grid stat-cards grid-cols-1 lg:grid-cols-3 gap-6">
+        {auctionStatusCards.map((stat, index) => {
+          const Icon = stat.icon;
+          return (
+            <div key={index} className="card">
+              <div className="card-body">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-text-secondary">{stat.title}</p>
+                    <p className={`text-3xl font-bold ${stat.subTextColor}`}>{stat.value}</p>
                   </div>
+                  <Icon className={`w-8 h-8 ${stat.subTextColor}`} />
                 </div>
               </div>
-            );
-          })}
-        </div>
+            </div>
+          );
+        })}
+      </div>
 
-        {/* Recent Activities & Upcoming Auctions */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Recent Activities */}
-          <div className="card">
-            <div className="card-header">
-              <h2 className="recent-activities-title">
-                <Activity className="w-5 h-5 mr-2" />
-                Recent Activities
-              </h2>
-            </div>
-            <div className="card-body">
-              <div className="space-y-4">
-                {recentActivities.map((activity) => {
-                  const { Icon, color } = getActivityIconAndColor(activity.type);
-                  return (
-                    <div key={activity.id} className="recent-activity-row">
-                      <Icon className={`w-4 h-4 activity-icon ${color}`} />
-                      <div className="activity-text">
-                        <p className="text-sm text-text-primary">{activity.message}</p>
-                        <p className="text-xs text-text-secondary mt-1">{activity.time}</p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+      {/* Recent Activities & Upcoming Auctions */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Activities */}
+        <div className="card">
+          <div className="card-header">
+            <h2 className="recent-activities-title">
+              <Activity className="w-5 h-5 mr-2" />
+              Recent Activities
+            </h2>
           </div>
-
-          {/* Upcoming Auctions */}
-          <div className="card">
-            <div className="card-header">
-              <h2 className="text-xl font-semibold upcoming-heading">
-                <Clock className="w-5 h-5" />
-                <span className="upcoming-heading-text">Upcoming Auctions</span>
-              </h2>
-            </div>
-            <div className="card-body">
-              <div className="space-y-4">
-                {upcomingAuctions.length > 0 ? (
-                  upcomingAuctions.map((auction) => (
-                    <div key={auction.id} className="border rounded-lg p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-semibold text-primary">{auction.title}</h3>
-                        <div className="text-right">
-                          <span className="text-sm text-text-secondary">
-                            {auction.participants} participants
-                          </span>
-                          {auction.auctionNo && (
-                            <div className="text-xs text-blue-400 mt-1">{auction.auctionNo}</div>
-                          )}
-                        </div>
-                      </div>
-                      <p className="text-sm text-text-secondary mb-1">
-                        Company: {auction.company}
-                      </p>
-                      <p className="text-sm text-text-secondary mb-1">
-                        Start Time: {auction.startTime}
-                      </p>
-                      <p className="text-sm font-medium text-primary">
-                        Decremental Value: ₹{auction.decrementalValue?.toLocaleString() || '0'}
-                      </p>
+          <div className="card-body">
+            <div className="space-y-4">
+              {recentActivities.map((activity) => {
+                const { Icon, color } = getActivityIconAndColor(activity.type);
+                return (
+                  <div key={activity.id} className="recent-activity-row">
+                    <Icon className={`w-4 h-4 activity-icon ${color}`} />
+                    <div className="activity-text">
+                      <p className="text-sm text-text-primary">{activity.message}</p>
+                      <p className="text-xs text-text-secondary mt-1">{activity.time}</p>
                     </div>
-                  ))
-                ) : (
-                  <div className="text-center text-text-secondary py-8">
-                    <Clock className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                    <p>No upcoming auctions found</p>
                   </div>
-                )}
-              </div>
+                );
+              })}
             </div>
           </div>
         </div>
 
-        {/* Quick Actions */}
-        {/* Quick Actions */}
-<div className="card">
-  <div className="card-header">
-    <h2 className="text-xl font-semibold">Quick Actions</h2>
-  </div>
-  <div className="card-body">
-    <div className="grid grid-cols-3 md:grid-cols-3 gap-4">
-      {/* Approve Pending Users */}
-      <button className="btn btn-primary" onClick={() => navigate('/admin/users')}>
-        <Users className="w-4 h-4 mr-2" />
-        Manage Users
-      </button>
+        {/* Upcoming Auctions */}
+        <div className="card">
+          <div className="card-header">
+            <h2 className="text-xl font-semibold upcoming-heading">
+              <Clock className="w-5 h-5" />
+              <span className="upcoming-heading-text">Upcoming Auctions</span>
+            </h2>
+          </div>
+          <div className="card-body">
+            <div className="space-y-4">
+              {upcomingAuctions.length > 0 ? (
+                upcomingAuctions.map((auction) => (
+                  <div key={auction.id} className="border rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="font-semibold text-primary">{auction.title}</h3>
+                      <div className="text-right">
+                        <span className="text-sm text-text-secondary">{auction.participants} participants</span>
+                        {auction.auctionNo && (
+                          <div className="text-xs text-blue-400 mt-1">{auction.auctionNo}</div>
+                        )}
+                      </div>
+                    </div>
+                    <p className="text-sm text-text-secondary mb-1">Company: {auction.company}</p>
+                    <p className="text-sm text-text-secondary mb-1">Start Time: {auction.startTime}</p>
+                    <p className="text-sm font-medium text-primary">
+                      Decremental Value: ₹{auction.decrementalValue?.toLocaleString() || '0'}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center text-text-secondary py-8">
+                  <Clock className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>No upcoming auctions found</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
 
-      {/* Review Auction Requests */}
-      <button className="btn btn-primary" onClick={() => navigate('/admin/auctions')}>
-        <Gavel className="w-4 h-4 mr-2" />
-        Review Auction Requests
-      </button>
-
-      {/* Generate Reports */}
-      <button className="btn btn-outline" onClick={() => navigate('/admin/reports')}>
-        <BarChart3 className="w-4 h-4 mr-2" />
-        Reports
-      </button>
+      {/* Quick Actions */}
+      <div className="card">
+        <div className="card-header">
+          <h2 className="text-xl font-semibold">Quick Actions</h2>
+        </div>
+        <div className="card-body">
+          <div className="grid grid-cols-3 md:grid-cols-3 gap-4">
+            <button className="btn btn-primary" onClick={() => navigate('/admin/users')}>
+              <Users className="w-4 h-4 mr-2" />
+              Manage Users
+            </button>
+            <button className="btn btn-primary" onClick={() => navigate('/admin/auctions')}>
+              <Gavel className="w-4 h-4 mr-2" />
+              Review Auction Requests
+            </button>
+            <button className="btn btn-outline" onClick={() => navigate('/admin/reports')}>
+              <BarChart3 className="w-4 h-4 mr-2" />
+              Reports
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
-    </LoadingGate>
-  );
+  </LoadingGate>
+);
 };
 
 export default AdminHome;
