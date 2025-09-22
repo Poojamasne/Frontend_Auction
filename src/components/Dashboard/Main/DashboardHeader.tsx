@@ -1,8 +1,7 @@
-<<<<<<< HEAD
+
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Menu, Bell, User, X } from 'lucide-react';
-=======
 // import React from 'react';
 // import { useLocation } from 'react-router-dom';
 // import { Menu, Bell, User } from 'lucide-react';
@@ -90,11 +89,10 @@ import { Menu, Bell, User, X } from 'lucide-react';
 
 
 
-
 import React, { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Menu, Bell, User, X, Clock } from 'lucide-react';
->>>>>>> origin/sachin
+
 import { useAuth } from '../../../contexts/AuthContext';
 import { useNotifications } from '../../../contexts/NotificationContext';
 
@@ -105,7 +103,7 @@ interface DashboardHeaderProps {
 
 const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuClick, isSidebarOpen }) => {
   const { user } = useAuth();
-<<<<<<< HEAD
+
   const { notifications, unreadCount, markAsRead, fetchNotifications } = useNotifications();
   const location = useLocation();
   const [showNotifications, setShowNotifications] = useState(false);
@@ -127,7 +125,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuClick, isSideba
     const date = new Date(dateString);
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
   };
-=======
+  
   const { notifications, unreadCount, markAsRead, clearNotifications, fetchNotifications } = useNotifications();
   const location = useLocation();
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -145,7 +143,6 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuClick, isSideba
 
     loadInitialNotifications();
   }, [fetchNotifications]);
->>>>>>> origin/sachin
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard' },
@@ -240,18 +237,17 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuClick, isSideba
 
         <div className="ap-dashboard-header-actions">
           {/* Notifications */}
-<<<<<<< HEAD
+
           <div className="ap-notifications">
             <button 
               className="ap-dashboard-notification-btn"
               onClick={handleNotificationClick}
               aria-label="Notifications"
-=======
+
           <div className="ap-dashboard-notification-container" ref={notificationRef}>
             <button 
               className={`ap-dashboard-notification-btn ${isNotificationOpen ? 'active' : ''}`}
               onClick={handleNotificationClick}
->>>>>>> origin/sachin
             >
               <Bell className="ap-dashboard-notification-icon" />
               {unreadCount > 0 && (
@@ -261,7 +257,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuClick, isSideba
               )}
             </button>
 
-<<<<<<< HEAD
+
             {showNotifications && (
               <div className="ap-notifications-dropdown">
                 <div className="ap-notifications-header">
@@ -291,7 +287,6 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuClick, isSideba
                           </span>
                         </div>
                         {!notification.is_read && (
-=======
             {/* Notification Dropdown */}
             {isNotificationOpen && (
               <div className="ap-notification-dropdown">
@@ -343,7 +338,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuClick, isSideba
                           </div>
                         </div>
                         {!notification.read && (
->>>>>>> origin/sachin
+
                           <div className="ap-notification-dot"></div>
                         )}
                       </div>
