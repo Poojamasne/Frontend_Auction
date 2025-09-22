@@ -875,7 +875,7 @@ const getDerivedStatus = (auction: BaseAuction, nowMs: number): BaseAuction['sta
       console.log('[MyAuctions] Status change detected, refreshing auction data');
       fetchAuctions();
     }
-  }, 5000); // FIXED: Check every 5 seconds instead of every second to reduce load
+  }, 1000); // FIXED: Check every 5 seconds instead of every second to reduce load
   
   return () => clearInterval(id);
 }, [auctions]);
