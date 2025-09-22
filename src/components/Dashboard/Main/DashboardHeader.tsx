@@ -1,94 +1,3 @@
-
-// import React, { useState, useEffect } from 'react';
-// import { useLocation } from 'react-router-dom';
-// import { Menu, Bell, User, X } from 'lucide-react';
-// import React from 'react';
-// import { useLocation } from 'react-router-dom';
-// import { Menu, Bell, User } from 'lucide-react';
-// import { useAuth } from '../../../contexts/AuthContext';
-// import { useNotifications } from '../../../contexts/NotificationContext';
-
-// interface DashboardHeaderProps {
-//   onMenuClick: () => void;
-//   isSidebarOpen: boolean;
-// }
-
-// const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuClick, isSidebarOpen }) => {
-//   const { user } = useAuth();
-//   const { unreadCount } = useNotifications();
-//   const location = useLocation();
-
-//   const navigation = [
-//     { name: 'Dashboard', href: '/dashboard' },
-//     { name: 'My Auctions', href: '/dashboard/auctions' },
-//     { name: 'New Auction', href: '/dashboard/new-auction' },
-//     { name: 'Reports', href: '/dashboard/reports' },
-//     { name: 'My Profile', href: '/dashboard/profile' },
-//   ];
-
-//   const getCurrentPageName = () => {
-//     const currentNav = navigation.find(nav =>
-//       location.pathname === nav.href ||
-//       (nav.href !== '/dashboard' && location.pathname.startsWith(nav.href))
-//     );
-//     return currentNav?.name || 'Dashboard';
-//   };
-
-//   return (
-//     <header className="ap-dashboard-header">
-//       <div className="ap-dashboard-header-content">
-//         <button
-//           onClick={onMenuClick}
-//           className="ap-dashboard-menu-btn"
-//           aria-label="Open sidebar"
-//           aria-controls="dashboard-sidebar"
-//           aria-expanded={isSidebarOpen}
-//         >
-//           <Menu className="ap-dashboard-menu-icon" />
-//         </button>
-
-//         <div className="ap-dashboard-header-title">
-//           <h1 className="ap-dashboard-page-title">
-//             {getCurrentPageName()}
-//           </h1>
-//         </div>
-
-//         <div className="ap-dashboard-header-actions">
-//           {/* Notifications */}
-//           <button className="ap-dashboard-notification-btn">
-//             <Bell className="ap-dashboard-notification-icon" />
-//             {unreadCount > 0 && (
-//               <span className="ap-dashboard-notification-badge">
-//                 {unreadCount > 9 ? '9+' : unreadCount}
-//               </span>
-//             )}
-//           </button>
-
-//           {/* User menu - for larger screens */}
-//           <div className="ap-dashboard-user-menu">
-//             <div className="ap-dashboard-user-info">
-//               <div className="ap-dashboard-user-name">
-//                 {user?.name || 'User'}
-//               </div>
-//               {/*<div className="ap-dashboard-user-role">
-//                 {user?.role === 'admin' ? 'Administrator' : 'User'}
-//               </div>*/}
-//             </div>
-//             <div className="ap-dashboard-user-avatar">
-//               <User className="ap-dashboard-user-icon" />
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     </header>
-//   );
-// };
-
-// export default DashboardHeader;
-
-
-
-
 import React, { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Menu, Bell, User, X, Clock } from 'lucide-react';
@@ -101,31 +10,20 @@ interface DashboardHeaderProps {
   isSidebarOpen: boolean;
 }
 
+// Notification type matches NotificationContext
+type Notification = {
+  id: string | number;
+  message: string;
+  type?: string;
+  is_read: boolean;
+  created_at: string;
+  [key: string]: any;
+};
+
 const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuClick, isSidebarOpen }) => {
   const { user } = useAuth();
 
-  const { notifications, unreadCount, markAsRead, fetchNotifications } = useNotifications();
-  const location = useLocation();
-  const [showNotifications, setShowNotifications] = useState(false);
-
-  useEffect(() => {
-    // Fetch notifications when component mounts
-    fetchNotifications();
-  }, [fetchNotifications]);
-
-  const handleNotificationClick = () => {
-    setShowNotifications(!showNotifications);
-  };
-
-  const handleNotificationItemClick = (id: number) => {
-    markAsRead(id);
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
-  };
-  
+  // Remove duplicate destructuring and keep only the one with all needed properties
   const { notifications, unreadCount, markAsRead, clearNotifications, fetchNotifications } = useNotifications();
   const location = useLocation();
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -143,6 +41,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuClick, isSideba
 
     loadInitialNotifications();
   }, [fetchNotifications]);
+
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard' },
@@ -191,8 +90,8 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuClick, isSideba
     }
   };
 
-  const handleMarkAsRead = (id: string) => {
-    markAsRead(id);
+  const handleMarkAsRead = (id: string | number) => {
+    markAsRead(Number(id));
   };
 
   const handleClearNotifications = () => {
@@ -200,9 +99,10 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuClick, isSideba
     setIsNotificationOpen(false); // Close the dropdown after clearing
   };
 
-  const formatTime = (timestamp: Date) => {
+  const formatTime = (created_at: string) => {
+    const dateObj = new Date(created_at);
     const now = new Date();
-    const diff = now.getTime() - timestamp.getTime();
+    const diff = now.getTime() - dateObj.getTime();
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor(diff / (1000 * 60));
 
@@ -237,17 +137,12 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuClick, isSideba
 
         <div className="ap-dashboard-header-actions">
           {/* Notifications */}
-
-          <div className="ap-notifications">
-            <button 
-              className="ap-dashboard-notification-btn"
-              onClick={handleNotificationClick}
-              aria-label="Notifications"
-
           <div className="ap-dashboard-notification-container" ref={notificationRef}>
-            <button 
+            <button
               className={`ap-dashboard-notification-btn ${isNotificationOpen ? 'active' : ''}`}
               onClick={handleNotificationClick}
+              aria-label="Notifications"
+              aria-expanded={isNotificationOpen}
             >
               <Bell className="ap-dashboard-notification-icon" />
               {unreadCount > 0 && (
@@ -256,37 +151,6 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuClick, isSideba
                 </span>
               )}
             </button>
-
-
-            {showNotifications && (
-              <div className="ap-notifications-dropdown">
-                <div className="ap-notifications-header">
-                  <h3>Notifications</h3>
-                  <button 
-                    className="ap-close-dropdown"
-                    onClick={() => setShowNotifications(false)}
-                    aria-label="Close notifications"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-                <div className="ap-notifications-list">
-                  {notifications.length === 0 ? (
-                    <div className="ap-no-notifications">No notifications</div>
-                  ) : (
-                    notifications.map(notification => (
-                      <div 
-                        key={notification.id} 
-                        className={`ap-notification-item ${notification.is_read ? '' : 'ap-notification-unread'}`}
-                        onClick={() => handleNotificationItemClick(notification.id)}
-                      >
-                        <div className="ap-notification-content">
-                          <p className="ap-notification-message">{notification.message}</p>
-                          <span className="ap-notification-time">
-                            {formatDate(notification.created_at)}
-                          </span>
-                        </div>
-                        {!notification.is_read && (
             {/* Notification Dropdown */}
             {isNotificationOpen && (
               <div className="ap-notification-dropdown">
@@ -300,7 +164,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuClick, isSideba
                     )}
                   </div>
                   {notifications.length > 0 && (
-                    <button 
+                    <button
                       onClick={handleClearNotifications}
                       className="ap-notification-clear-btn"
                       title="Clear all notifications"
@@ -309,7 +173,6 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuClick, isSideba
                     </button>
                   )}
                 </div>
-                
                 <div className="ap-notification-list">
                   {notifications.length === 0 ? (
                     <div className="ap-notification-empty">
@@ -318,9 +181,9 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuClick, isSideba
                     </div>
                   ) : (
                     notifications.map((notification) => (
-                      <div 
-                        key={notification.id} 
-                        className={`ap-notification-item ${!notification.read ? 'unread' : ''}`}
+                      <div
+                        key={notification.id}
+                        className={`ap-notification-item ${!notification.is_read ? 'unread' : ''}`}
                         onClick={() => handleMarkAsRead(notification.id)}
                       >
                         <div className="ap-notification-content">
@@ -329,16 +192,15 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuClick, isSideba
                           </div>
                           <div className="ap-notification-meta">
                             <span className="ap-notification-type">
-                              {notification.type.toUpperCase()}
+                              {notification.type?.toUpperCase?.() ?? ''}
                             </span>
                             <span className="ap-notification-time">
                               <Clock size={12} />
-                              {formatTime(notification.timestamp)}
+                              {formatTime(notification.created_at)}
                             </span>
                           </div>
                         </div>
-                        {!notification.read && (
-
+                        {!notification.is_read && (
                           <div className="ap-notification-dot"></div>
                         )}
                       </div>
@@ -348,7 +210,6 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuClick, isSideba
               </div>
             )}
           </div>
-
           {/* User menu - for larger screens */}
           <div className="ap-dashboard-user-menu">
             <div className="ap-dashboard-user-info">
