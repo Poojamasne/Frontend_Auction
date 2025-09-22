@@ -5,10 +5,7 @@ import authService from "../../services/authService";
 import toast from "react-hot-toast";
 import TermsModal from "../Common/TermsModal";
 
-
-
-
-
+/* ---------- TYPES ---------- */
 interface RegistrationFormState {
   phone: string;
   email: string;
@@ -28,19 +25,12 @@ interface FormErrors {
   companyProductService?: string;
 }
 
-function Registration() {
+/* ---------- COMPONENT ---------- */
+export default function Registration() {
   const navigate = useNavigate();
 
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
-  const [errors, setErrors] = useState<FormErrors>({});
-
-
-
-
-  // ✅ Move useState here (inside component)
-  
-
-
+  const [submitting, setSubmitting] = useState(false);
 
   const [form, setForm] = useState<RegistrationFormState>({
     phone: "",
@@ -52,105 +42,76 @@ function Registration() {
     otp: "",
   });
 
+  const [errors, setErrors] = useState<FormErrors>({});
 
-  const [submitting, setSubmitting] = useState(false);
-
-  const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.(com|in|org)$/i;
-    return emailRegex.test(email);
-  };
+  /* ---------- HELPERS ---------- */
+  const validateEmail = (email: string): boolean =>
+    /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.(com|in|org)$/i.test(email);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    let filteredValue = value;
+    let filtered = value;
 
-    // Clear error for this field when user starts typing
-    setErrors(prev => ({ ...prev, [name]: undefined }));
+    setErrors((prev) => ({ ...prev, [name]: undefined }));
 
     switch (name) {
-      case 'phone':
-        filteredValue = value.replace(/\D/g, '').slice(0, 10);
+      case "phone":
+        filtered = value.replace(/\D/g, "").slice(0, 10);
         break;
-      case 'name':
-      case 'companyName':
-        filteredValue = value.replace(/[^a-zA-Z\s\-\.\,\&\'KATEX_INLINE_OPENKATEX_INLINE_CLOSE]/g, '');
+      case "name":
+      case "companyName":
+        filtered = value.replace(/[^a-zA-Z\s\-.,&']/g, "");
         break;
-      case 'email':
-        filteredValue = value.replace(/[^a-zA-Z0-9@\.\-\_]/g, '');
+      case "email":
+        filtered = value.replace(/[^a-zA-Z0-9@.\-_]/g, "");
         break;
-      case 'companyAddress':
-        filteredValue = value.replace(/[^a-zA-Z0-9\s\-\.\,\#\/KATEX_INLINE_OPENKATEX_INLINE_CLOSE]/g, '');
+      case "companyAddress":
+        filtered = value.replace(/[^a-zA-Z0-9\s\-.,#/]/g, "");
         break;
-      case 'companyProductService':
-        filteredValue = value.replace(/[^a-zA-Z0-9\s\-\.\,\&\'KATEX_INLINE_OPENKATEX_INLINE_CLOSE]/g, '');
+      case "companyProductService":
+        filtered = value.replace(/[^a-zA-Z0-9\s\-.,&']/g, "");
         break;
       default:
-        filteredValue = value;
+        filtered = value;
     }
 
-    setForm((prev) => ({ ...prev, [name]: filteredValue }));
+    setForm((prev) => ({ ...prev, [name]: filtered }));
   };
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
-    // Phone validation
-    if (!form.phone.trim()) {
-      newErrors.phone = "Phone number is required";
-    } else if (form.phone.length !== 10) {
-      newErrors.phone = "Phone number must be exactly 10 digits";
-    } else if (!/^[6-9]\d{9}$/.test(form.phone)) {
-      newErrors.phone = "Phone number must start with 6-9";
-    }
+    if (!form.phone.trim()) newErrors.phone = "Phone number is required";
+    else if (form.phone.length !== 10) newErrors.phone = "Exactly 10 digits";
+    else if (!/^[6-9]\d{9}$/.test(form.phone))
+      newErrors.phone = "Must start with 6-9";
 
-    // Email validation
-    if (form.email && !validateEmail(form.email)) {
-      newErrors.email = "Email must end with .com, .in, or .org";
-    }
+    if (form.email && !validateEmail(form.email))
+      newErrors.email = "Must end with .com, .in or .org";
 
-    // Company name validation
-    if (!form.companyName.trim()) {
-      newErrors.companyName = "Company name is required";
-    } else if (form.companyName.trim().length < 2) {
-      newErrors.companyName = "Company name must be at least 2 characters";
-    }
+    if (!form.companyName.trim()) newErrors.companyName = "Required";
+    else if (form.companyName.trim().length < 2)
+      newErrors.companyName = "≥ 2 characters";
 
-    // Name validation
-    if (form.name && form.name.trim().length < 2) {
-      newErrors.name = "Name must be at least 2 characters";
-    }
+    if (form.name && form.name.trim().length < 2)
+      newErrors.name = "≥ 2 characters";
 
-
-
-
-  
-
-
-
-    // Company Product/Service validation
-    if (!form.companyProductService.trim()) {
-      newErrors.companyProductService = "Company product/service is required";
-    }
+    if (!form.companyProductService.trim())
+      newErrors.companyProductService = "Required";
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return !Object.keys(newErrors).length;
   };
 
-
+  /* ---------- SUBMIT ---------- */
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     setSubmitting(true);
-
     try {
-      let formattedPhone = '+91' + form.phone.trim();
-
-      const response = await authService.register({
-        phone_number: formattedPhone,
+      const res = await authService.register({
+        phone_number: `+91${form.phone.trim()}`,
         email: form.email || undefined,
         person_name: form.name || undefined,
         company_name: form.companyName.trim(),
@@ -158,27 +119,22 @@ function Registration() {
         company_product_service: form.companyProductService || undefined,
       });
 
-      if (response.success) {
-        if (response.user) {
-          localStorage.setItem('auctionUser', JSON.stringify(response.user));
-        }
-        if (response.token) {
-          localStorage.setItem('authToken', response.token);
-        }
-
-        toast.success(response.message || "Registration completed successfully! Please login to continue.");
-        navigate('/login');
+      if (res.success) {
+        if (res.user) localStorage.setItem("auctionUser", JSON.stringify(res.user));
+        if (res.token) localStorage.setItem("authToken", res.token);
+        toast.success(res.message || "Registered! Please log in.");
+        navigate("/login");
       } else {
-        throw new Error(response.message || "Registration failed");
+        throw new Error(res.message || "Registration failed");
       }
-    } catch (error) {
-      console.error('Registration error:', error);
-      toast.error(error instanceof Error ? error.message : "Registration failed. Please try again.");
+    } catch (err: any) {
+      toast.error(err?.message || "Registration failed. Try again.");
     } finally {
       setSubmitting(false);
     }
   };
 
+  /* ---------- RENDER ---------- */
   return (
     <div className="ap-reg-wrapper">
       <div className="ap-reg-card">
@@ -189,6 +145,7 @@ function Registration() {
 
         <form className="ap-reg-form" onSubmit={handleSave} noValidate>
           <div className="ap-reg-grid">
+            {/* Phone */}
             <div className="ap-reg-field">
               <label htmlFor="phone" className="ap-reg-label">
                 Phone Number <span className="ap-reg-required">*</span>
@@ -200,166 +157,135 @@ function Registration() {
                 required
                 inputMode="numeric"
                 pattern="\d{10}"
-                className={`ap-reg-input ${errors.phone ? 'error' : ''}`}
-                placeholder='Enter your phone number'
+                maxLength={10}
+                className={`ap-reg-input ${errors.phone ? "error" : ""}`}
+                placeholder="Enter your phone number"
                 value={form.phone}
                 onChange={handleChange}
-                maxLength={10}
                 title="Enter exactly 10 digits"
               />
               {errors.phone && (
-                <span className="ap-reg-error" style={{ color: 'red', fontSize: '12px' }}>
-                  {errors.phone}
-                </span>
+                <span className="ap-reg-error">{errors.phone}</span>
               )}
               {!errors.phone && (
-                <small className="ap-reg-hint">Enter exactly 10 digits (no spaces or symbols)</small>
+                <small className="ap-reg-hint">
+                  Enter exactly 10 digits (no spaces or symbols)
+                </small>
               )}
             </div>
 
-
-
-
+            {/* Email */}
             <div className="ap-reg-field">
-              <label htmlFor="email" className="ap-reg-label">Email</label>
+              <label htmlFor="email" className="ap-reg-label">
+                Email
+              </label>
               <input
                 id="email"
                 type="email"
                 name="email"
-                className={`ap-reg-input ${errors.email ? 'error' : ''}`}
+                autoComplete="email"
+                className={`ap-reg-input ${errors.email ? "error" : ""}`}
                 placeholder="Enter your email (optional)"
                 value={form.email}
                 onChange={handleChange}
-                autoComplete="email"
                 title="Email must end with .com, .in, or .org"
               />
               {errors.email && (
-                <span className="ap-reg-error" style={{ color: 'red', fontSize: '12px' }}>
-                  {errors.email}
-                </span>
+                <span className="ap-reg-error">{errors.email}</span>
               )}
               {!errors.email && form.email && (
-                <small className="ap-reg-hint">Only .com, .in, or .org domains allowed</small>
+                <small className="ap-reg-hint">
+                  Only .com, .in, or .org domains allowed
+                </small>
               )}
             </div>
 
-
-
-
+            {/* Name */}
             <div className="ap-reg-field">
-              <label htmlFor="name" className="ap-reg-label">Person Name</label>
+              <label htmlFor="name" className="ap-reg-label">
+                Person Name
+              </label>
               <input
                 id="name"
                 type="text"
                 name="name"
-                className={`ap-reg-input ${errors.name ? 'error' : ''}`}
+                autoComplete="name"
+                minLength={2}
+                maxLength={50}
+                pattern="[a-zA-Z\s\-.]{2,50}"
+                className={`ap-reg-input ${errors.name ? "error" : ""}`}
                 placeholder="Enter your Full Name"
                 value={form.name}
                 onChange={handleChange}
-                autoComplete="name"
-                pattern="[a-zA-Z\s\-\.]{2,50}"
-                title="Enter a valid name (letters, spaces, hyphens, dots only)"
-                minLength={2}
-                maxLength={50}
+                title="Letters, spaces, hyphens, dots only"
               />
               {errors.name && (
-                <span className="ap-reg-error" style={{ color: 'red', fontSize: '12px' }}>
-                  {errors.name}
-                </span>
+                <span className="ap-reg-error">{errors.name}</span>
               )}
             </div>
 
-
+            {/* Company Name */}
             <div className="ap-reg-field ap-reg-field--full">
               <label htmlFor="companyName" className="ap-reg-label">
                 Company Name <span className="ap-reg-required">*</span>
               </label>
               <input
                 id="companyName"
-
                 type="text"
                 name="companyName"
-                className={`ap-reg-input ${errors.companyName ? 'error' : ''}`}
+                required
+                autoComplete="organization"
+                minLength={2}
+                maxLength={100}
+                pattern="[a-zA-Z0-9\s\-.,&']{2,100}"
+                className={`ap-reg-input ${errors.companyName ? "error" : ""}`}
                 placeholder="Enter your Company Name"
                 value={form.companyName}
                 onChange={handleChange}
-                autoComplete="organization"
-                required
-                pattern="[a-zA-Z0-9\s\-\.\,\&\'KATEX_INLINE_OPENKATEX_INLINE_CLOSE]{2,100}"
-                title="Enter a valid company name (2-100 characters)"
-                minLength={2}
-                maxLength={100}
+                title="2-100 characters"
               />
               {errors.companyName && (
-                <span className="ap-reg-error" style={{ color: 'red', fontSize: '12px' }}>
-                  {errors.companyName}
-                </span>
+                <span className="ap-reg-error">{errors.companyName}</span>
               )}
               {!errors.companyName && (
-                <small className="ap-reg-hint">It is mandatory field</small>
+                <small className="ap-reg-hint">It is mandatory</small>
               )}
             </div>
 
-
+            {/* Company Product / Service */}
             <div className="ap-reg-field ap-reg-field--full">
               <label htmlFor="companyProductService" className="ap-reg-label">
-                Company Product/Service<span className="ap-reg-required">*</span>
+                Company Product/Service <span className="ap-reg-required">*</span>
               </label>
               <input
                 id="companyProductService"
                 type="text"
                 name="companyProductService"
-                className={`ap-reg-input ${errors.companyProductService ? 'error' : ''}`}
-                placeholder="e.g., Construction Materials, IT Services, Manufacturing"
+                autoComplete="off"
+                maxLength={200}
+                pattern="[a-zA-Z0-9\s\-.,&']{0,200}"
+                className={`ap-reg-input ${
+                  errors.companyProductService ? "error" : ""
+                }`}
+                placeholder="e.g., Construction Materials, IT Services"
                 value={form.companyProductService}
                 onChange={handleChange}
-                autoComplete="off"
-                pattern="[a-zA-Z0-9\s\-\.\,\&\'KATEX_INLINE_OPENKATEX_INLINE_CLOSE]{0,200}"
-                title="Describe your company's products or services"
-                maxLength={200}
+                title="Describe your products or services"
               />
               {errors.companyProductService && (
-                <span className="ap-reg-error" style={{ color: 'red', fontSize: '12px' }}>
+                <span className="ap-reg-error">
                   {errors.companyProductService}
                 </span>
               )}
               {!errors.companyProductService && (
-                <small className="ap-reg-hint">What does your company sell or provide?</small>
+                <small className="ap-reg-hint">
+                  What does your company sell or provide?
+                </small>
               )}
             </div>
 
+            {/* Company Address */}
             <div className="ap-reg-field ap-reg-field--full">
-
-
-            <div className="ap-reg-field ap-reg-field--full">
-              <label htmlFor="companyProductService" className="ap-reg-label">
-                Company Product/Service<span className="ap-reg-required">*</span>
-              </label>
-              <input
-                id="companyProductService"
-                type="text"
-                name="companyProductService"
-                className={`ap-reg-input ${errors.companyProductService ? 'error' : ''}`}
-                placeholder="e.g., Construction Materials, IT Services, Manufacturing"
-                value={form.companyProductService}
-                onChange={handleChange}
-                autoComplete="off"
-                pattern="[a-zA-Z0-9\s\-\.\,\&\'KATEX_INLINE_OPENKATEX_INLINE_CLOSE]{0,200}"
-                title="Describe your company's products or services"
-                maxLength={200}
-              />
-              {errors.companyProductService && (
-                <span className="ap-reg-error" style={{ color: 'red', fontSize: '12px' }}>
-                  {errors.companyProductService}
-                </span>
-              )}
-              {!errors.companyProductService && (
-                <small className="ap-reg-hint">What does your company sell or provide?</small>
-              )}
-            </div>
-
-            <div className="ap-reg-field ap-reg-field--full">
-
               <label htmlFor="companyAddress" className="ap-reg-label">
                 Company Address
               </label>
@@ -367,55 +293,53 @@ function Registration() {
                 id="companyAddress"
                 type="text"
                 name="companyAddress"
-                className={`ap-reg-input ${errors.companyAddress ? 'error' : ''}`}
+                autoComplete="street-address"
+                maxLength={200}
+                pattern="[a-zA-Z0-9\s\-.,#/]{0,200}"
+                className={`ap-reg-input ${errors.companyAddress ? "error" : ""}`}
                 placeholder="123 Business Street, City, State"
                 value={form.companyAddress}
                 onChange={handleChange}
-                autoComplete="street-address"
-                pattern="[a-zA-Z0-9\s\-\.\,\#\/KATEX_INLINE_OPENKATEX_INLINE_CLOSE]{0,200}"
                 title="Enter a valid address"
-                maxLength={200}
               />
               {errors.companyAddress && (
-                <span className="ap-reg-error" style={{ color: 'red', fontSize: '12px' }}>
-                  {errors.companyAddress}
-                </span>
+                <span className="ap-reg-error">{errors.companyAddress}</span>
               )}
             </div>
-
           </div>
 
-
-
-
+          {/* Actions */}
           <div className="ap-reg-actions">
             <button
               type="submit"
               className="ap-reg-btn"
-              disabled={submitting || !form.phone || !form.companyName || !form.companyProductService}
+              disabled={
+                submitting || !form.phone || !form.companyName || !form.companyProductService
+              }
             >
-              {submitting ? "Registering" : "Register"}
+              {submitting ? "Registering…" : "Register"}
             </button>
-
-
-
 
             <button
               type="button"
               className="ap-reg-btn ap-reg-btn--secondary"
-              onClick={() => navigate('/login')}
+              onClick={() => navigate("/login")}
             >
               Back to Login
             </button>
           </div>
 
-
-
-
+          {/* Footer */}
           <p className="ap-reg-disclaimer">
             By continuing you agree to our{" "}
-            <a onClick={() => setIsTermsModalOpen(true)}>Terms</a> &{" "}
-            <a onClick={() => setIsTermsModalOpen(true)}>Privacy Policy</a>.
+            <a role="button" onClick={() => setIsTermsModalOpen(true)}>
+              Terms
+            </a>{" "}
+            &{" "}
+            <a role="button" onClick={() => setIsTermsModalOpen(true)}>
+              Privacy Policy
+            </a>
+            .
             <TermsModal
               isOpen={isTermsModalOpen}
               onClose={() => setIsTermsModalOpen(false)}
@@ -426,8 +350,3 @@ function Registration() {
     </div>
   );
 }
-
-export default Registration;
-
-
-
