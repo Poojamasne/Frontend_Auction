@@ -545,7 +545,7 @@ const periodToApiFilter: Record<string, 'today' | 'this_week' | 'this_month' | '
         </div>
       )} */}
 
-      {/* Categories Report */}
+      {/* Categories Report 
       {selectedReport === 'categories' && (
         <div className="reports-section">
           <div className="admin-card">
