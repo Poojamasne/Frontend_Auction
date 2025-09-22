@@ -386,48 +386,33 @@ const AdminHome: React.FC = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="card">
-          <div className="card-header">
-            <h2 className="text-xl font-semibold">Quick Actions</h2>
-          </div>
-          <div className="card-body">
-            {/* <div className="grid grid-cols-3 md:grid-cols-3 gap-4"> */}
-              {/* <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"> */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 md:grid-cols-3 gap-4" id='quick-actions-grid'>
-                
+        {/* Quick Actions */}
+<div className="card">
+  <div className="card-header">
+    <h2 className="text-xl font-semibold">Quick Actions</h2>
+  </div>
+  <div className="card-body">
+    <div className="grid grid-cols-3 md:grid-cols-3 gap-4">
+      {/* Approve Pending Users */}
+      <button className="btn btn-primary" onClick={() => navigate('/admin/users')}>
+        <Users className="w-4 h-4 mr-2" />
+        Manage Users
+      </button>
 
+      {/* Review Auction Requests */}
+      <button className="btn btn-primary" onClick={() => navigate('/admin/auctions')}>
+        <Gavel className="w-4 h-4 mr-2" />
+        Review Auction Requests
+      </button>
 
-
-              {/* Approve Pending Users */}
-              <button
-                className="btn btn-primary"
-                onClick={() => navigate("/admin/users")}
-              >
-                <Users className="w-4 h-4 mr-2" />
-                Manage Users
-              </button>
-
-              {/* Review Auction Requests */}
-              <button
-                className="btn btn-secondary"
-                onClick={() => navigate("/admin/auctions")}
-              >
-                <Gavel className="w-4 h-4 mr-2" />
-                Review Auction Requests
-              </button>
-
-              {/* Generate Reports */}
-              <button
-                className="btn btn-outline"
-                onClick={() => navigate("/admin/reports")}
-              >
-                <TrendingUp className="w-4 h-4 mr-2" />
-                Reports
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Generate Reports */}
+      <button className="btn btn-outline" onClick={() => navigate('/admin/reports')}>
+        <BarChart3 className="w-4 h-4 mr-2" />
+        Reports
+      </button>
+    </div>
+  </div>
+</div>
     </LoadingGate>
   );
 };
