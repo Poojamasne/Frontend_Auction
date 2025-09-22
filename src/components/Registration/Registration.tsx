@@ -255,7 +255,7 @@ export default function Registration() {
             {/* Company Product / Service */}
             <div className="ap-reg-field ap-reg-field--full">
               <label htmlFor="companyProductService" className="ap-reg-label">
-                Company Product/Service <span className="ap-reg-required">*</span>
+                Company Product/Service 
               </label>
               <input
                 id="companyProductService"
