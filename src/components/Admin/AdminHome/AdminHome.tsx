@@ -17,6 +17,7 @@ import LoadingGate from '../../Common/LoadingGate';
 import adminService from '../../../services/adminService';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useNavigate } from "react-router-dom";
+import { BarChart3 } from 'lucide-react';
 
 // Type definitions for improved code clarity and bug prevention
 interface Stat {
