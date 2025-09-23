@@ -262,19 +262,13 @@ const NewAuction: React.FC = () => {
   setIsSubmitting(true);
 
   try {
-    // Process and validate participants - FIXED VERSION
+    // Send only phone numbers (strings) instead of objects
     const participantsArray = data.participants
-      .map((p) => ({
-        phone_number: normalizedPhone(p.contactNumber),
-        company_name: p.companyName || "",
-        person_name: p.personName || "",
-        email: p.mailId || "",
-        company_address: p.companyAddress || ""
-      }))
-      .filter((p) => PHONE_REGEX.test(p.phone_number))
-      .filter((p, index, self) => 
-        self.findIndex(part => part.phone_number === p.phone_number) === index
-      );
+      .map((p) => normalizedPhone(p.contactNumber))
+      .filter((phone) => PHONE_REGEX.test(phone))
+      .filter((phone, index, self) => self.indexOf(phone) === index);
+
+    console.log("Sending participants as phone numbers:", participantsArray);
 
     if (!data.openToAllCompanies && participantsArray.length === 0) {
       toast.error(
@@ -314,18 +308,16 @@ const NewAuction: React.FC = () => {
       decremental_value: data.decrementalValue ?? 0,
       pre_bid_allowed: true,
       send_invitations: !data.openToAllCompanies,
-      participants: participantsArray, // Send full participant objects
+      participants: participantsArray, // Now this should match the type
       open_to_all: data.openToAllCompanies,
     };
 
-    console.log("Sending participants:", participantsArray); // Debug log
+    console.log("Final payload:", auctionPayload);
 
     const response = await AuctionService.createAuction(
       auctionPayload,
       uploadedFiles
     );
-
-    console.log("API Response:", response); // Debug log
 
     if (!response.success || !response.auction) {
       throw new Error(response.message || "Failed to create auction");
