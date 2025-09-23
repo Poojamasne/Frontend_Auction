@@ -703,7 +703,7 @@ const NewAuction: React.FC = () => {
                 />
                 <div className="text-sm text-text-secondary mt-1">
                   Upload max {MAX_FILES} files of any type (PDF, DOC, XLS,
-                  images, etc.) • up to {MAX_FILE_MB} MB each
+                  images) • up to {MAX_FILE_MB} MB each
                 </div>
               </div>
 
