@@ -649,8 +649,6 @@ const MyCreatedAuctionView: React.FC = () => {
         </span>
       </div>
 
-      
-
       {/* Company Details */}
       <div className="auction-details-card">
         <h2 className="card-title">
@@ -658,7 +656,7 @@ const MyCreatedAuctionView: React.FC = () => {
           Your Company Details
         </h2>
         <div className="auction-info-grid">
-          <div>
+          <div className="info-item">
             <label className="info-label">Company Name</label>
             <div className="info-value">
               {userDetails?.company_name ||
@@ -669,7 +667,7 @@ const MyCreatedAuctionView: React.FC = () => {
                 "Unknown Company"}
             </div>
           </div>
-          <div>
+          <div className="info-item">
             <label className="info-label">Person Name</label>
             <div className="info-value">
               {userDetails?.person_name ||
@@ -680,7 +678,7 @@ const MyCreatedAuctionView: React.FC = () => {
                 "Unknown Person"}
             </div>
           </div>
-          <div>
+          <div className="info-item">
             <label className="info-label">Email Address</label>
             <div className="info-value">
               {userDetails?.email ||
@@ -692,7 +690,7 @@ const MyCreatedAuctionView: React.FC = () => {
                 "Unknown Email"}
             </div>
           </div>
-          <div>
+          <div className="info-item">
             <label className="info-label">Company Address</label>
             <div className="info-value">
               {userDetails?.company_address ||
@@ -823,7 +821,7 @@ const MyCreatedAuctionView: React.FC = () => {
               {auction.currency} {auction.decrementalValue.toLocaleString()}
               <span> (Minimum bid reduction amount)</span>
             </p>
-  {/*       <div style={{ marginTop: 8 }}>
+            {/*       <div style={{ marginTop: 8 }}>
               <button
                 className="btn btn-secondary"
                 onClick={() => {
@@ -1005,7 +1003,7 @@ const MyCreatedAuctionView: React.FC = () => {
                   </div>
                   {(!preBid.status || preBid.status === "pending") && (
                     <div className="prebid-action-buttons">
-{/*                       <button
+                      {/*                       <button
                         type="button"
                         onClick={() => handlePreBidAction(preBid.id, "approve")}
                         className="btn btn-primary btn-sm"
@@ -1044,8 +1042,7 @@ const MyCreatedAuctionView: React.FC = () => {
           <h2 className="card-title">
             <Users className="w-5 h-5" />
             Registered Participants
-
-{/*             <span className="participants-count">
+            {/*             <span className="participants-count">
               ({backendParticipants.length} total,{" "}
               {
                 backendParticipants.filter((p: any) => p.status === "joined")
@@ -1053,9 +1050,6 @@ const MyCreatedAuctionView: React.FC = () => {
               }{" "}
               active)
             </span> */}
-
-            
-
           </h2>
           <button
             type="button"
@@ -1072,7 +1066,7 @@ const MyCreatedAuctionView: React.FC = () => {
           <>
             {/* Participants Summary */}
 
-{/*             <div className="participants-summary">
+            {/*             <div className="participants-summary">
 
             {/* <div className="participants-summary">
 
@@ -1100,71 +1094,76 @@ const MyCreatedAuctionView: React.FC = () => {
 
             <div className="participants-list">
               {backendParticipants
-              .filter((p: any) => ["invited", "joined"].includes(p.status || "invited"))
-              .map((participant: any, index: number) => (
-                <div key={participant.id || index} className="participant-item">
-                  <div className="participant-info">
-                    <div className="participant-avatar">
-                      {(
-                        participant.person_name ||
-                        participant.phone_number ||
-                        "?"
-                      )
-                        .charAt(0)
-                        .toUpperCase()}
-                    </div>
-                    <div className="participant-details">
-                      <h4>{participant.person_name || "N/A"}</h4>
-                      <p className="participant-company">
-                        {participant.company_name
-                          ? `${participant.company_name} • `
-                          : ""}
-                        {participant.phone_number}
-                      </p>
-                      {participant.user_id && (
-                        <p className="participant-id">
-                          User ID: {participant.user_id}
+                .filter((p: any) =>
+                  ["invited", "joined"].includes(p.status || "invited")
+                )
+                .map((participant: any, index: number) => (
+                  <div
+                    key={participant.id || index}
+                    className="participant-item"
+                  >
+                    <div className="participant-info">
+                      <div className="participant-avatar">
+                        {(
+                          participant.person_name ||
+                          participant.phone_number ||
+                          "?"
+                        )
+                          .charAt(0)
+                          .toUpperCase()}
+                      </div>
+                      <div className="participant-details">
+                        <h4>{participant.person_name || "N/A"}</h4>
+                        <p className="participant-company">
+                          {participant.company_name
+                            ? `${participant.company_name} • `
+                            : ""}
+                          {participant.phone_number}
                         </p>
+                        {participant.user_id && (
+                          <p className="participant-id">
+                            User ID: {participant.user_id}
+                          </p>
+                        )}
+                        <div className="participant-timestamps">
+                          {participant.invited_at && (
+                            <span className="timestamp">
+                              📧 Invited:{" "}
+                              {new Date(
+                                participant.invited_at
+                              ).toLocaleDateString()}
+                            </span>
+                          )}
+                          {participant.joined_at && (
+                            <span className="timestamp">
+                              ✅ Joined:{" "}
+                              {new Date(
+                                participant.joined_at
+                              ).toLocaleDateString()}{" "}
+                              {new Date(
+                                participant.joined_at
+                              ).toLocaleTimeString()}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="participant-actions">
+                      <div
+                        className={`participant-status status-${
+                          participant.status || "invited"
+                        }`}
+                      >
+                        {participant.status || "invited"}
+                      </div>
+                      {participant.status === "joined" && (
+                        <div className="participant-badge status-active">
+                          Active
+                        </div>
                       )}
-                      <div className="participant-timestamps">
-                        {participant.invited_at && (
-                          <span className="timestamp">
-                            📧 Invited:{" "}
-                            {new Date(
-                              participant.invited_at
-                            ).toLocaleDateString()}
-                          </span>
-                        )}
-                        {participant.joined_at && (
-                          <span className="timestamp">
-                            ✅ Joined:{" "}
-                            {new Date(
-                              participant.joined_at
-                            ).toLocaleDateString()}{" "}
-                            {new Date(
-                              participant.joined_at
-                            ).toLocaleTimeString()}
-                          </span>
-                        )}
-                      </div>
                     </div>
                   </div>
-                  <div className="participant-actions">
-                    <div
-                      className={`participant-status status-${
-                        participant.status || "invited"
-                      }`}
-                    >
-                      {participant.status || "invited"}
-                    </div>
-                    {participant.status === "joined" && (
-                      <div className="participant-badge status-active">
-                        Active
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
+                ))}
             </div>
           </>
         ) : participants.length === 0 ? (
@@ -1243,7 +1242,7 @@ const MyCreatedAuctionView: React.FC = () => {
             Back to My Auctions
           </button>
 
-{/*           {auction.status === "live" && (
+          {/*           {auction.status === "live" && (
 
           {/* {auction.status === "live" && (
 
