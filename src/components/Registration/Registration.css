@@ -80,6 +80,33 @@
 .ap-reg-btn:active:not(:disabled) { transform: translateY(0); }
 .ap-reg-btn:disabled { opacity: .65; cursor: not-allowed; }
 
+
+.ap-reg-error {
+    font-size: .75rem;
+    color: #dc2626;
+    margin-top: .35rem;
+    font-weight: 600;
+    letter-spacing: .3px;
+    animation: shake 0.5s ease-in-out;
+}
+
+.ap-reg-input.error {
+    border-color: #dc2626;
+    /* background-color: #fef2f2; */
+}
+
+.ap-reg-input.error:focus {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.1);
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+}
+
+
 .ap-reg-btn-secondary {
 	background: transparent;
 	color: #6b7280;
@@ -176,3 +203,10 @@
 	.ap-reg-btn, .ap-reg-input { transition: none; }
 	.ap-reg-btn::before { display: none; }
 }
+
+
+
+
+
+
+

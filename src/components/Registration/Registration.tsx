@@ -90,14 +90,11 @@ export default function Registration() {
       newErrors.email = "Must end with .com, .in or .org";
 
     if (!form.companyName.trim()) newErrors.companyName = "Required";
-    else if (form.companyName.trim().length < 2)
-      newErrors.companyName = "≥ 2 characters";
+    else if (form.companyName.trim().length < 4)
+      newErrors.companyName = " Enter at least 4-5 characters";
 
-    if (form.name && form.name.trim().length < 2)
-      newErrors.name = "≥ 2 characters";
-
-    if (!form.companyProductService.trim())
-      newErrors.companyProductService = "Required";
+    if (form.name && form.name.trim().length < 4)
+      newErrors.name = "Enter at Least 4-5 Characters";
 
     setErrors(newErrors);
     return !Object.keys(newErrors).length;
@@ -272,7 +269,7 @@ export default function Registration() {
                 onChange={handleChange}
                 title="Describe your products or services"
               />
-              {errors.companyProductService && (
+              {/* {errors.companyProductService && (
                 <span className="ap-reg-error">
                   {errors.companyProductService}
                 </span>
@@ -281,7 +278,7 @@ export default function Registration() {
                 <small className="ap-reg-hint">
                   What does your company sell or provide?
                 </small>
-              )}
+              )} */}
             </div>
 
             {/* Company Address */}
@@ -314,7 +311,7 @@ export default function Registration() {
               type="submit"
               className="ap-reg-btn"
               disabled={
-                submitting || !form.phone || !form.companyName || !form.companyProductService
+                submitting || !form.phone || !form.companyName 
               }
             >
               {submitting ? "Registering…" : "Register"}

@@ -286,6 +286,7 @@
 
 .ap-myauctions-filter-select option {
   background: #2d3748;
+  margin: 2px;
   color: white;
 }
 
