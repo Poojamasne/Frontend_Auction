@@ -6,6 +6,9 @@
   overflow: hidden;
 }
 
+
+
+
 .ap-newauction-wrapper::before {
   content: "";
   position: absolute;
@@ -560,6 +563,8 @@ textarea.form-input {
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
 }
+
+
 
 .form-input::placeholder {
   color: rgba(255, 255, 255, 0.6);

@@ -433,7 +433,9 @@ const NewAuction: React.FC = () => {
                 <div className="form-group">
                   <label htmlFor="title" className="form-label">
                     <FileText className="w-4 h-4 inline mr-2" />
-                    Auction Title <span className="required">*</span>
+                    <span>
+                      Auction Title<span className="required">*</span>
+                    </span>
                   </label>
 
                   <input
@@ -462,7 +464,9 @@ const NewAuction: React.FC = () => {
                 <div className="form-group">
                   <label htmlFor="auctionDate" className="form-label">
                     <Calendar className="w-4 h-4 inline mr-2" />
-                    Auction Date <span className="required">*</span>
+                    <span>
+                      Auction Date<span className="required">*</span>
+                    </span>
                   </label>
                   <input
                     type="date"
@@ -496,7 +500,9 @@ const NewAuction: React.FC = () => {
                 <div className="form-group">
                   <label htmlFor="auctionStartTime" className="form-label">
                     <Clock className="w-4 h-4 inline mr-2" />
-                    Auction Start Time <span className="required">*</span>
+                    <span>
+                      Auction Start Time<span className="required">*</span>
+                    </span>
                   </label>
                   <input
                     type="time"
@@ -527,7 +533,9 @@ const NewAuction: React.FC = () => {
                 <div className="form-group">
                   <label htmlFor="duration" className="form-label">
                     <Clock className="w-4 h-4 inline mr-2" />
-                    Duration <span className="required">*</span>
+                    <span>
+                      Duration<span className="required">*</span>
+                    </span>
                   </label>
                   <select
                     id="duration"
@@ -554,7 +562,9 @@ const NewAuction: React.FC = () => {
                 <div className="form-group">
                   <label htmlFor="currency" className="form-label">
                     <IndianRupee className="w-4 h-4 inline mr-2" />
-                    Currency <span className="required">*</span>
+                    <span>
+                      Currency<span className="required">*</span>
+                    </span>
                   </label>
                   <select
                     id="currency"
@@ -607,8 +617,10 @@ const NewAuction: React.FC = () => {
               <div className="form-group">
                 <label htmlFor="auctionDetails" className="form-label">
                   <FileText className="w-4 h-4 inline mr-2" />
-                  Product Details / Description{" "}
-                  <span className="required">*</span>
+
+                  <span>
+                    Product Details / Description<span className="required">*</span>
+                  </span>
                 </label>
                 <textarea
                   id="auctionDetails"
@@ -730,7 +742,6 @@ const NewAuction: React.FC = () => {
                           className="file-remove-btn"
                           // className="text-red-600 hover:text-red-800 p-1"
                           // className="file-remove-btn"
-                          
                         >
                           <Trash2 className="file-icon" />
                         </button>
@@ -744,7 +755,7 @@ const NewAuction: React.FC = () => {
           {/* Add Participants */}
           <div className="card">
             <div className="card-header">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between" id="Setby">
                 <div>
                   <h2 className="text-xl font-semibold text-text-primary">
                     Add Participants
@@ -764,7 +775,7 @@ const NewAuction: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <input
                     type="tel"
-                    placeholder="Enter Phone number"
+                    placeholder="Phone number"
                     value={newParticipantPhone}
                     onChange={(e) => setNewParticipantPhone(e.target.value)}
                     className="form-input text-center"
@@ -830,7 +841,6 @@ const NewAuction: React.FC = () => {
                           className="text-red-600 hover:text-red-800 p-1"
                         >
                           <Trash2 className="w-4 h-4" />
-                          
                         </button>
                       </div>
 
@@ -866,7 +876,8 @@ const NewAuction: React.FC = () => {
                           <div className="flex flex-col sm:flex-row items-stretch gap-2 w-full">
                             <input
                               type="tel"
-                              className="form-input flex-1 min-w-0"
+                              // className="form-input flex-1 min-w-0"
+                              id="setby"
                               placeholder="Enter phone number"
                               {...register(
                                 `participants.${index}.contactNumber`,
