@@ -371,7 +371,7 @@
 
 @media (max-width: 480px) {
   .ap-notification-dropdown {
-    right: -180px;
+    right: -8px;
     width: calc(100vw - 40px);
     max-width: 260px;
   }
