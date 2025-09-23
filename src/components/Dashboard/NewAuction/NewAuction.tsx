@@ -645,7 +645,7 @@ const NewAuction: React.FC = () => {
               <div className="form-group">
                 <label htmlFor="decrementalValue" className="form-label">
                   <ArrowDown className="w-4 h-4 inline mr-2" />
-                  Decremental Value (Optional)
+                  Decremental Value
                 </label>
                 <input
                   type="number"
