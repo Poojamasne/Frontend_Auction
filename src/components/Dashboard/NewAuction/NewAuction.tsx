@@ -245,88 +245,91 @@ const NewAuction: React.FC = () => {
   };
 
   const onSubmit = async (data: AuctionForm) => {
-    if (isSubmitting || rhfSubmitting) return;
+  if (isSubmitting || rhfSubmitting) return;
 
-    if (!user) {
-      toast.error("Please log in to create an auction");
-      navigate("/login");
+  if (!user) {
+    toast.error("Please log in to create an auction");
+    navigate("/login");
+    return;
+  }
+
+  if (!AuctionService.isAuthenticated()) {
+    toast.error("Your session has expired. Please log in again.");
+    navigate("/login");
+    return;
+  }
+
+  setIsSubmitting(true);
+
+  try {
+    // Process and validate participants - FIXED VERSION
+    const participantsArray = data.participants
+      .map((p) => ({
+        phone_number: normalizedPhone(p.contactNumber),
+        company_name: p.companyName || "",
+        person_name: p.personName || "",
+        email: p.mailId || "",
+        company_address: p.companyAddress || ""
+      }))
+      .filter((p) => PHONE_REGEX.test(p.phone_number))
+      .filter((p, index, self) => 
+        self.findIndex(part => part.phone_number === p.phone_number) === index
+      );
+
+    if (!data.openToAllCompanies && participantsArray.length === 0) {
+      toast.error(
+        'Please add at least one participant or set auction as "Open to all companies"'
+      );
+      setIsSubmitting(false);
       return;
     }
 
-    if (!AuctionService.isAuthenticated()) {
-      toast.error("Your session has expired. Please log in again.");
-      navigate("/login");
-      return;
-    }
+    // Validate time for today's date
+    const selectedDate = new Date(data.auctionDate);
+    if (isToday(selectedDate)) {
+      const now = new Date();
+      const currentTime = format(now, "HH:mm");
 
-    setIsSubmitting(true);
-
-    try {
-      // Process and validate participants
-      const validParticipants = data.participants
-        .map((p) => normalizedPhone(p.contactNumber))
-        .filter((phone) => PHONE_REGEX.test(phone))
-        .filter((phone, index, self) => self.indexOf(phone) === index); // Remove duplicates
-
-      if (!data.openToAllCompanies && data.participants.length === 0) {
-        toast.error(
-          'Please add at least one participant or set auction as "Open to all companies"'
-        );
+      if (data.auctionStartTime < currentTime) {
+        toast.error("Start time must be in the future for today's date");
         setIsSubmitting(false);
         return;
       }
+    }
 
-      // Validate time for today's date
-      const selectedDate = new Date(data.auctionDate);
-      if (isToday(selectedDate)) {
-        const now = new Date();
-        const currentTime = format(now, "HH:mm");
+    // Normalize start time to include seconds if missing
+    const startTime =
+      data.auctionStartTime && data.auctionStartTime.length === 5
+        ? `${data.auctionStartTime}:00`
+        : data.auctionStartTime;
 
-        if (data.auctionStartTime < currentTime) {
-          toast.error("Start time must be in the future for today's date");
-          setIsSubmitting(false);
-          return;
-        }
-      }
+    const auctionPayload: CreateAuctionRequest = {
+      title: data.title.trim(),
+      description: data.auctionDetails.trim(),
+      auction_date: data.auctionDate,
+      start_time: startTime,
+      duration: data.duration || 0,
+      currency: data.currency,
+      base_price: 0,
+      decremental_value: data.decrementalValue ?? 0,
+      pre_bid_allowed: true,
+      send_invitations: !data.openToAllCompanies,
+      participants: participantsArray, // Send full participant objects
+      open_to_all: data.openToAllCompanies,
+    };
 
-      // Process all participants, ensure proper normalization and uniqueness
-      // Build an array of normalized, unique phone numbers to send as participants
-      const participantsArray = data.participants
-        .map((p) => normalizedPhone(p.contactNumber))
-        .filter((phone) => PHONE_REGEX.test(phone))
-        .filter((phone, index, self) => self.indexOf(phone) === index);
+    console.log("Sending participants:", participantsArray); // Debug log
 
-      // Normalize start time to include seconds if missing
-      const startTime =
-        data.auctionStartTime && data.auctionStartTime.length === 5
-          ? `${data.auctionStartTime}:00`
-          : data.auctionStartTime;
+    const response = await AuctionService.createAuction(
+      auctionPayload,
+      uploadedFiles
+    );
 
-      const auctionPayload: CreateAuctionRequest = {
-        title: data.title.trim(),
-        description: data.auctionDetails.trim(),
-        auction_date: data.auctionDate,
-        start_time: startTime,
-        // Send duration in minutes (UI provides minutes)
-        duration: data.duration || 0,
-        currency: data.currency,
-        base_price: 0,
-        decremental_value: data.decrementalValue ?? 0,
-        pre_bid_allowed: true,
-        send_invitations: !data.openToAllCompanies,
-        participants: participantsArray, // Send normalized array of unique phone numbers
-        //  ➜  ADD THIS LINE
-        open_to_all: data.openToAllCompanies,
-      };
+    console.log("API Response:", response); // Debug log
 
-      const response = await AuctionService.createAuction(
-        auctionPayload,
-        uploadedFiles
-      );
-
-      if (!response.success || !response.auction) {
-        throw new Error(response.message || "Failed to create auction");
-      }
+    if (!response.success || !response.auction) {
+      throw new Error(response.message || "Failed to create auction");
+    }
 
       const auctionId = response.auction.id;
       let successMessage = `Auction "${response.auction.title}" created successfully!`;
