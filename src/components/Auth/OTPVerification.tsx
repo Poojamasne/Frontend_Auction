@@ -96,7 +96,7 @@ const OTPVerification: React.FC = () => {
           <div className="ap-otp-logo-row">
             <div className="ap-otp-logo-badge"><Gavel className="ap-otp-logo-icon" /></div>
             <div>
-              <div className="ap-otp-brand-title">Quickauction</div>
+              <div className="ap-otp-brand-title">Quick Auction</div>
               <div className="ap-otp-brand-sub">
                 {isAdmin ? 'Admin Access - Verify identity' : 'Verify your identity to continue'}
               </div>
