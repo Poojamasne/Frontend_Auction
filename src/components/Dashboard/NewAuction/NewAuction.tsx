@@ -244,90 +244,85 @@ const NewAuction: React.FC = () => {
     setNewParticipantPhone("");
   };
 
-   const onSubmit = async (data: AuctionForm) => {
-    if (isSubmitting || rhfSubmitting) return;
+ const onSubmit = async (data: AuctionForm) => {
+  if (isSubmitting || rhfSubmitting) return;
 
-    if (!user) {
-      toast.error("Please log in to create an auction");
-      navigate("/login");
+  if (!user) {
+    toast.error("Please log in to create an auction");
+    navigate("/login");
+    return;
+  }
+
+  if (!AuctionService.isAuthenticated()) {
+    toast.error("Your session has expired. Please log in again.");
+    navigate("/login");
+    return;
+  }
+
+  setIsSubmitting(true);
+
+  try {
+    // Process participants only if NOT open to all
+    const participantsArray = data.openToAllCompanies 
+      ? [] // Empty array when open to all
+      : data.participants
+          .map((p) => normalizedPhone(p.contactNumber))
+          .filter((phone) => PHONE_REGEX.test(phone))
+          .filter((phone, index, self) => self.indexOf(phone) === index);
+
+    // Validate: if NOT open to all, must have participants
+    if (!data.openToAllCompanies && participantsArray.length === 0) {
+      toast.error('Please add at least one participant or set auction as "Open to all companies"');
+      setIsSubmitting(false);
       return;
     }
 
-    if (!AuctionService.isAuthenticated()) {
-      toast.error("Your session has expired. Please log in again.");
-      navigate("/login");
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      // Process and validate participants
-      const validParticipants = data.participants
-        .map((p) => normalizedPhone(p.contactNumber))
-        .filter((phone) => PHONE_REGEX.test(phone))
-        .filter((phone, index, self) => self.indexOf(phone) === index); // Remove duplicates
-
-      if (!data.openToAllCompanies && data.participants.length === 0) {
-        toast.error(
-          'Please add at least one participant or set auction as "Open to all companies"'
-        );
+    // Time validation (keep existing)
+    const selectedDate = new Date(data.auctionDate);
+    if (isToday(selectedDate)) {
+      const now = new Date();
+      const currentTime = format(now, "HH:mm");
+      if (data.auctionStartTime < currentTime) {
+        toast.error("Start time must be in the future for today's date");
         setIsSubmitting(false);
         return;
       }
+    }
 
-      // Validate time for today's date
-      const selectedDate = new Date(data.auctionDate);
-      if (isToday(selectedDate)) {
-        const now = new Date();
-        const currentTime = format(now, "HH:mm");
+    const startTime = data.auctionStartTime && data.auctionStartTime.length === 5
+      ? `${data.auctionStartTime}:00`
+      : data.auctionStartTime;
 
-        if (data.auctionStartTime < currentTime) {
-          toast.error("Start time must be in the future for today's date");
-          setIsSubmitting(false);
-          return;
-        }
-      }
+    const auctionPayload: CreateAuctionRequest = {
+      title: data.title.trim(),
+      description: data.auctionDetails.trim(),
+      auction_date: data.auctionDate,
+      start_time: startTime,
+      duration: data.duration || 0,
+      currency: data.currency,
+      base_price: 0,
+      decremental_value: data.decrementalValue ?? 0,
+      pre_bid_allowed: true,
+      open_to_all: data.openToAllCompanies, // THIS IS THE CRITICAL FIX
+      send_invitations: !data.openToAllCompanies, // Send invitations only when NOT open to all
+      participants: participantsArray,
+    };
 
-      // Process all participants, ensure proper normalization and uniqueness
-      // Build an array of normalized, unique phone numbers to send as participants
-      const participantsArray = data.participants
-        .map((p) => normalizedPhone(p.contactNumber))
-        .filter((phone) => PHONE_REGEX.test(phone))
-        .filter((phone, index, self) => self.indexOf(phone) === index);
+    // Rest of your code remains the same...
+    const response = await AuctionService.createAuction(auctionPayload, uploadedFiles);
+    
+    if (!response.success || !response.auction) {
+      throw new Error(response.message || "Failed to create auction");
+    }
 
-      // Normalize start time to include seconds if missing
-      const startTime =
-        data.auctionStartTime && data.auctionStartTime.length === 5
-          ? `${data.auctionStartTime}:00`
-          : data.auctionStartTime;
-
-      const auctionPayload: CreateAuctionRequest = {
-        title: data.title.trim(),
-        description: data.auctionDetails.trim(),
-        auction_date: data.auctionDate,
-        start_time: startTime,
-        // Send duration in minutes (UI provides minutes)
-        duration: data.duration || 0,
-        currency: data.currency,
-        base_price: 0,
-        decremental_value: data.decrementalValue ?? 0,
-        pre_bid_allowed: true,
-        send_invitations: !data.openToAllCompanies,
-        participants: participantsArray, // Send normalized array of unique phone numbers
-        open_to_all: data.openToAllCompanies,
-        
-      };
-
-      const response = await AuctionService.createAuction(
-        auctionPayload,
-        uploadedFiles
-      );
-
-      if (!response.success || !response.auction) {
-        throw new Error(response.message || "Failed to create auction");
-      }
-
+    // Success handling...
+  } catch (error: any) {
+    // Error handling...
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+  
       const auctionId = response.auction.id;
       let successMessage = `Auction "${response.auction.title}" created successfully!`;
       // Prefer new API shape invitationResults; fallback to legacy smsResults if present
@@ -395,7 +390,7 @@ const NewAuction: React.FC = () => {
       setIsSubmitting(false);
     }
   };
-  
+
   return (
     <div className="ap-newauction-wrapper">
       {/* Header Section */}
@@ -435,9 +430,7 @@ const NewAuction: React.FC = () => {
                 <div className="form-group">
                   <label htmlFor="title" className="form-label">
                     <FileText className="w-4 h-4 inline mr-2" />
-                    <span>
-                      Auction Title<span className="required">*</span>
-                    </span>
+                    Auction Title <span className="required">*</span>
                   </label>
 
                   <input
@@ -466,9 +459,7 @@ const NewAuction: React.FC = () => {
                 <div className="form-group">
                   <label htmlFor="auctionDate" className="form-label">
                     <Calendar className="w-4 h-4 inline mr-2" />
-                    <span>
-                      Auction Date<span className="required">*</span>
-                    </span>
+                    Auction Date <span className="required">*</span>
                   </label>
                   <input
                     type="date"
@@ -493,15 +484,16 @@ const NewAuction: React.FC = () => {
                       {errors.auctionDate.message}
                     </div>
                   )}
+                  <div className="text-sm text-text-secondary mt-1">
+                    Default: Today ({format(new Date(), "dd/MM/yyyy")})
+                  </div>
                 </div>
 
                 {/* Auction Start Time */}
                 <div className="form-group">
                   <label htmlFor="auctionStartTime" className="form-label">
                     <Clock className="w-4 h-4 inline mr-2" />
-                    <span>
-                      Auction Start Time<span className="required">*</span>
-                    </span>
+                    Auction Start Time <span className="required">*</span>
                   </label>
                   <input
                     type="time"
@@ -518,15 +510,21 @@ const NewAuction: React.FC = () => {
                       {errors.auctionStartTime.message}
                     </div>
                   )}
+                  <div className="text-sm text-text-secondary mt-1">
+                    {watchAuctionDate === todayISO
+                      ? `Current time: ${format(
+                          new Date(),
+                          "HH:mm"
+                        )} - Must be future time`
+                      : "Select auction start time"}
+                  </div>
                 </div>
 
                 {/* Duration */}
                 <div className="form-group">
                   <label htmlFor="duration" className="form-label">
                     <Clock className="w-4 h-4 inline mr-2" />
-                    <span>
-                      Duration<span className="required">*</span>
-                    </span>
+                    Duration <span className="required">*</span>
                   </label>
                   <select
                     id="duration"
@@ -544,15 +542,16 @@ const NewAuction: React.FC = () => {
                   {errors.duration && (
                     <div className="form-error">{errors.duration.message}</div>
                   )}
+                  <div className="text-sm text-text-secondary mt-1">
+                    Default: 2 Hours
+                  </div>
                 </div>
 
                 {/* Currency */}
                 <div className="form-group">
                   <label htmlFor="currency" className="form-label">
                     <IndianRupee className="w-4 h-4 inline mr-2" />
-                    <span>
-                      Currency<span className="required">*</span>
-                    </span>
+                    Currency <span className="required">*</span>
                   </label>
                   <select
                     id="currency"
@@ -567,6 +566,9 @@ const NewAuction: React.FC = () => {
                   {errors.currency && (
                     <div className="form-error">{errors.currency.message}</div>
                   )}
+                  <div className="text-sm text-text-secondary mt-1">
+                    Default: INR
+                  </div>
                 </div>
               </div>
 
@@ -602,11 +604,8 @@ const NewAuction: React.FC = () => {
               <div className="form-group">
                 <label htmlFor="auctionDetails" className="form-label">
                   <FileText className="w-4 h-4 inline mr-2" />
-
-                  <span>
-                    Product Details / Description
-                    <span className="required">*</span>
-                  </span>
+                  Product Details / Description{" "}
+                  <span className="required">*</span>
                 </label>
                 <textarea
                   id="auctionDetails"
@@ -728,6 +727,7 @@ const NewAuction: React.FC = () => {
                           className="file-remove-btn"
                           // className="text-red-600 hover:text-red-800 p-1"
                           // className="file-remove-btn"
+                          
                         >
                           <Trash2 className="file-icon" />
                         </button>
@@ -741,7 +741,7 @@ const NewAuction: React.FC = () => {
           {/* Add Participants */}
           <div className="card">
             <div className="card-header">
-              <div className="flex items-center justify-between" id="Setby">
+              <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-semibold text-text-primary">
                     Add Participants
@@ -761,7 +761,7 @@ const NewAuction: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <input
                     type="tel"
-                    placeholder="Add Phone"
+                    placeholder="Enter Phone number"
                     value={newParticipantPhone}
                     onChange={(e) => setNewParticipantPhone(e.target.value)}
                     className="form-input text-center"
@@ -781,21 +781,11 @@ const NewAuction: React.FC = () => {
                     type="button"
                     onClick={() => setBulkOpen((s) => !s)}
                     className="btn btn-secondary"
-                    // title="Add multiple participants"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Bulk
-                  </button>
-
-                  {/* <button
-                    type="button"
-                    onClick={() => setBulkOpen((s) => !s)}
-                    className="btn btn-secondary"
                     title="Add multiple participants"
                   >
                     <Plus className="w-4 h-4" />
                     Bulk Add
-                  </button> */}
+                  </button>
                   {/* <button
                       type="button"
                       onClick={addParticipant}
@@ -837,6 +827,7 @@ const NewAuction: React.FC = () => {
                           className="text-red-600 hover:text-red-800 p-1"
                         >
                           <Trash2 className="w-4 h-4" />
+                          
                         </button>
                       </div>
 
@@ -872,8 +863,7 @@ const NewAuction: React.FC = () => {
                           <div className="flex flex-col sm:flex-row items-stretch gap-2 w-full">
                             <input
                               type="tel"
-                              // className="form-input flex-1 min-w-0"
-                              id="setby"
+                              className="form-input flex-1 min-w-0"
                               placeholder="Enter phone number"
                               {...register(
                                 `participants.${index}.contactNumber`,
