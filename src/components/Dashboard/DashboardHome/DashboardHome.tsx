@@ -8,8 +8,8 @@ import {
   Plus,
   Eye,
   ArrowRight,
-  Activity
-} from 'lucide-react';
+  Activity,
+} from "lucide-react";
 import { useAuth } from '../../../contexts/AuthContext';
 import AuctionService from '../../../services/auctionService';
 import dashboardService, { FullDashboardApiResponse, DashboardUpcomingAuctionApi, DashboardRecentActivityApi } from '../../../services/dashboardService';
@@ -269,7 +269,6 @@ const DashboardHome: React.FC = () => {
   
 
   return (
-    
     <div className="ap-dashboard-home-wrapper">
       {/* Header Section */}
       <div className="ap-dashboard-home-header">
@@ -279,10 +278,6 @@ const DashboardHome: React.FC = () => {
               <Activity className="w-8 h-8" />
               Dashboard Overview
             </h1>
-
-            
-
-
 
             <p className="ap-dashboard-home-subtitle">
               Monitor your auction activities and performance
@@ -297,19 +292,24 @@ const DashboardHome: React.FC = () => {
         <div className="ap-dashboard-home-welcome">
           <div className="ap-dashboard-home-welcome-header">
             <div className="ap-dashboard-home-welcome-text">
-              <h1>
-                Welcome back!
-              </h1>
-              <p>
-                {welcomeMessage}
-              </p>
+              <h1>Welcome back!</h1>
+              <p>{welcomeMessage}</p>
               {error && (
-                <p style={{ color: '#f59e0b', fontSize: '0.85rem', marginTop: '4px' }}>
+                <p
+                  style={{
+                    color: "#f59e0b",
+                    fontSize: "0.85rem",
+                    marginTop: "4px",
+                  }}
+                >
                   {error}
                 </p>
               )}
             </div>
-            <Link to="/dashboard/new-auction" className="ap-dashboard-home-welcome-btn">
+            <Link
+              to="/dashboard/new-auction"
+              className="ap-dashboard-home-welcome-btn"
+            >
               <Plus className="w-4 h-4" />
               Create Auction
             </Link>
@@ -324,17 +324,23 @@ const DashboardHome: React.FC = () => {
               <div key={index} className="ap-dashboard-home-stat-card">
                 <div className="ap-dashboard-home-stat-content">
                   <div className="ap-dashboard-home-stat-text">
-                    <h3>
-                      {stat.title}
-                    </h3>
-                    <p className="ap-dashboard-home-stat-value">
-                      {stat.value}
-                    </p>
+                    <h3>{stat.title}</h3>
+                    <p className="ap-dashboard-home-stat-value">{stat.value}</p>
                     <p className="ap-dashboard-home-stat-change">
                       {stat.change}
                     </p>
                   </div>
-                  <div className={`ap-dashboard-home-stat-icon ${stat.color.includes('blue') ? 'blue' : stat.color.includes('green') ? 'green' : stat.color.includes('purple') ? 'purple' : 'orange'}`}>
+                  <div
+                    className={`ap-dashboard-home-stat-icon ${
+                      stat.color.includes("blue")
+                        ? "blue"
+                        : stat.color.includes("green")
+                        ? "green"
+                        : stat.color.includes("purple")
+                        ? "purple"
+                        : "orange"
+                    }`}
+                  >
                     <Icon className="w-6 h-6 text-white" />
                   </div>
                 </div>
@@ -356,66 +362,117 @@ const DashboardHome: React.FC = () => {
               >
                 View all
               </Link>
-              
             </div>
             <div className="ap-dashboard-home-section-body">
               <div className="ap-dashboard-home-auction-list">
-                {useRemote ? (
-                  upcomingAuctions.map((a: any) => (
-                    <div key={a.id} className="ap-dashboard-home-auction-item">
-                      <div className="ap-dashboard-home-auction-content">
-                        <div className="ap-dashboard-home-auction-header">
-                          <h3 className="ap-dashboard-home-auction-title">{a.title}</h3>
-                          <span className={`ap-dashboard-home-auction-badge ${a.status.toLowerCase() === 'live' ? 'live' : 'participant'}`}> {a.status.toUpperCase()} </span>
+                {useRemote
+                  ? upcomingAuctions.map((a: any) => (
+                      <div
+                        key={a.id}
+                        className="ap-dashboard-home-auction-item"
+                      >
+                        <div className="ap-dashboard-home-auction-content">
+                          <div className="ap-dashboard-home-auction-header">
+                            <h3 className="ap-dashboard-home-auction-title">
+                              {a.title}
+                            </h3>
+                            <span
+                              className={`ap-dashboard-home-auction-badge ${
+                                a.status.toLowerCase() === "live"
+                                  ? "live"
+                                  : "participant"
+                              }`}
+                            >
+                              {" "}
+                              {a.status.toUpperCase()}{" "}
+                            </span>
+                          </div>
+                          <div className="ap-dashboard-home-auction-meta">
+                          <span>
+                            
+                            <Calendar /> 
+                            </span>
+                            {a.auction_date} at {a.start_time}
+                            <span>
+                              <User /> {a.participant_count} participants
+                            </span>
+                          </div>
                         </div>
-                        <div className="ap-dashboard-home-auction-meta">
-                          <span>📅 {a.auction_date} at {a.start_time}</span>
-                          <span>👥 {a.participant_count} participants</span>
-                        </div>
-                      </div>
-                      <Link to={`/dashboard/my-auction/${a.id}`} className="ap-dashboard-home-auction-btn">
-                        <Eye className="w-4 h-4" />
-                        View
-                      </Link>
+                        <Link
+                          to={`/dashboard/my-auction/${a.id}`}
+                          className="ap-dashboard-home-auction-btn"
+                        >
+                          <Eye className="w-4 h-4" />
+                          View
+                        </Link>
 
-                      {/*  my changes and make sure is not in live changes make it change */}
-                      
-                      
-                    </div>
-                  ))
-                ) : (
-                  upcomingAuctions.map((auction: any) => (
-                    <div key={auction.id} className="ap-dashboard-home-auction-item">
-                      <div className="ap-dashboard-home-auction-content">
-                        <div className="ap-dashboard-home-auction-header">
-                          <h3 className="ap-dashboard-home-auction-title">{auction.title}</h3>
-                          <span className={`ap-dashboard-home-auction-badge ${auction.status === 'live' ? 'live' : auction.role === 'auctioneer' ? 'auctioneer' : 'participant'}`}>
-                            {auction.status === 'live' ? 'LIVE' : auction.role}
-                          </span>
-                        </div>
-                        <div className="ap-dashboard-home-auction-meta">
-                          <span>📅 {auction.auctionDate} at {auction.auctionStartTime}</span>
-                          <span>👥 {AuctionService.getParticipantsByAuction(auction.id).length} participants</span>
-                        </div>
+                        {/*  my changes and make sure is not in live changes make it change */}
                       </div>
-                      <Link to={auction.role === 'auctioneer' 
-                        ? `/dashboard/my-auction/${auction.id}` 
-                        : `/dashboard/auction/${auction.id}`
-                      } className="ap-dashboard-home-auction-btn">
-                        <Eye className="w-4 h-4" />
-                        View
-                      </Link>
-                    </div>
-                  ))
-                )}
-
-                
+                    ))
+                  : upcomingAuctions.map((auction: any) => (
+                      <div
+                        key={auction.id}
+                        className="ap-dashboard-home-auction-item"
+                      >
+                        <div className="ap-dashboard-home-auction-content">
+                          <div className="ap-dashboard-home-auction-header">
+                            <h3 className="ap-dashboard-home-auction-title">
+                              {auction.title}
+                            </h3>
+                            <span
+                              className={`ap-dashboard-home-auction-badge ${
+                                auction.status === "live"
+                                  ? "live"
+                                  : auction.role === "auctioneer"
+                                  ? "auctioneer"
+                                  : "participant"
+                              }`}
+                            >
+                              {auction.status === "live"
+                                ? "LIVE"
+                                : auction.role}
+                            </span>
+                          </div>
+                          <div className="ap-dashboard-home-auction-meta">
+                            <span>
+                              📅 {auction.auctionDate} at{" "}
+                              {auction.auctionStartTime}
+                            </span>
+                            <span>
+                              👥{" "}
+                              {
+                                AuctionService.getParticipantsByAuction(
+                                  auction.id
+                                ).length
+                              }{" "}
+                              participants
+                            </span>
+                          </div>
+                        </div>
+                        <Link
+                          to={
+                            auction.role === "auctioneer"
+                              ? `/dashboard/my-auction/${auction.id}`
+                              : `/dashboard/auction/${auction.id}`
+                          }
+                          className="ap-dashboard-home-auction-btn"
+                        >
+                          <Eye className="w-4 h-4" />
+                          View
+                        </Link>
+                      </div>
+                    ))}
               </div>
               {upcomingAuctions.length === 0 && (
                 <div className="ap-dashboard-home-empty">
                   <Calendar className="ap-dashboard-home-empty-icon" />
-                  <p className="ap-dashboard-home-empty-text">No upcoming auctions</p>
-                  <Link to="/dashboard/new-auction" className="ap-dashboard-home-empty-btn">
+                  <p className="ap-dashboard-home-empty-text">
+                    No upcoming auctions
+                  </p>
+                  <Link
+                    to="/dashboard/new-auction"
+                    className="ap-dashboard-home-empty-btn"
+                  >
                     Create your first auction
                   </Link>
                 </div>
@@ -437,17 +494,19 @@ const DashboardHome: React.FC = () => {
                     key={index}
                     className="ap-dashboard-home-activity-item flex items-center space-x-4"
                   >
-
-                    <div className={`ap-dashboard-home-activity-icon p-2 rounded-full ${activity.type === 'bid'
-                      ? 'bg-indigo-100'
-                      : activity.type === 'join'
-                        ? 'bg-green-100'
-                        : activity.type === 'create'
-                          ? 'bg-blue-100'
-                          : activity.type === 'profile'
-                            ? 'bg-yellow-100'
-                            : 'bg-gray-100'
-                      }`}>
+                    <div
+                      className={`ap-dashboard-home-activity-icon p-2 rounded-full ${
+                        activity.type === "bid"
+                          ? "bg-indigo-100"
+                          : activity.type === "join"
+                          ? "bg-green-100"
+                          : activity.type === "create"
+                          ? "bg-blue-100"
+                          : activity.type === "profile"
+                          ? "bg-yellow-100"
+                          : "bg-gray-100"
+                      }`}
+                    >
                       {activity.icon}
                     </div>
 
@@ -464,19 +523,15 @@ const DashboardHome: React.FC = () => {
               </div>
             </div>
           </div>
-
         </div>
 
         {/* Quick Actions */}
         <div className="ap-dashboard-home-actions">
           <div className="ap-dashboard-home-actions-header">
-            <h2 className="ap-dashboard-home-actions-title">
-              Quick Actions
-            </h2>
+            <h2 className="ap-dashboard-home-actions-title">Quick Actions</h2>
           </div>
           <div className="ap-dashboard-home-actions-body">
             <div className="ap-dashboard-home-actions-grid">
-
               <Link
                 to="/dashboard/new-auction"
                 className="ap-dashboard-home-action-card"
@@ -488,7 +543,13 @@ const DashboardHome: React.FC = () => {
                   </div>
 
                   {/* reuse same class so color + hover match */}
-                  <Gavel style={{ width: '20px', height: '20px', color: 'rgba(255,255,255,0.6)' }} />
+                  <Gavel
+                    style={{
+                      width: "20px",
+                      height: "20px",
+                      color: "rgba(255,255,255,0.6)",
+                    }}
+                  />
                 </div>
               </Link>
 
@@ -502,7 +563,13 @@ const DashboardHome: React.FC = () => {
                     <p>Find auctions to participate in</p>
                   </div>
 
-                  <Search style={{ width: '20px', height: '20px', color: 'rgba(255,255,255,0.6)' }} />
+                  <Search
+                    style={{
+                      width: "20px",
+                      height: "20px",
+                      color: "rgba(255,255,255,0.6)",
+                    }}
+                  />
                 </div>
               </Link>
 
@@ -516,15 +583,18 @@ const DashboardHome: React.FC = () => {
                     <p>Analyze auction performance</p>
                   </div>
 
-                  <BarChart style={{ width: '20px', height: '20px', color: 'rgba(255,255,255,0.6)' }} />
+                  <BarChart
+                    style={{
+                      width: "20px",
+                      height: "20px",
+                      color: "rgba(255,255,255,0.6)",
+                    }}
+                  />
                 </div>
               </Link>
-
             </div>
           </div>
         </div>
-
-
       </div>
     </div>
   );

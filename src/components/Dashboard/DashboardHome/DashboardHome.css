@@ -7,21 +7,31 @@
 }
 
 .ap-dashboard-home-wrapper::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background:
-    radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 40% 80%, rgba(120, 119, 198, 0.2) 0%, transparent 50%);
+  background: radial-gradient(
+      circle at 20% 50%,
+      rgba(120, 119, 198, 0.3) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 80% 20%,
+      rgba(255, 255, 255, 0.1) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 40% 80%,
+      rgba(120, 119, 198, 0.2) 0%,
+      transparent 50%
+    );
   animation: backgroundShift 20s ease-in-out infinite;
 }
 
 @keyframes backgroundShift {
-
   0%,
   100% {
     opacity: 1;
@@ -94,14 +104,217 @@
 }
 
 .ap-dashboard-home-welcome::before {
-  content: '';
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+}
+
+/* Quick Actions Section */
+.ap-dashboard-home-actions {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+  margin-bottom: 2rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.ap-dashboard-home-actions-header {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.1) 0%,
+    rgba(124, 58, 237, 0.1) 100%
+  );
+}
+
+.ap-dashboard-home-actions-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.ap-dashboard-home-actions-body {
+  padding: 2rem;
+}
+
+.ap-dashboard-home-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.ap-dashboard-home-action-card {
+  /* background: rgba(255, 255, 255, 0.05); */
+  background: red;
+
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+}
+
+.ap-dashboard-home-action-card::before {
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
   transition: left 0.5s ease;
+}
+
+.ap-dashboard-home-action-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.ap-dashboard-home-action-card:hover::before {
+  left: 100%;
+}
+
+.ap-dashboard-home-action-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.ap-dashboard-home-action-text {
+  flex: 1;
+}
+
+.ap-dashboard-home-action-text h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: white;
+  letter-spacing: -0.5px;
+}
+
+.ap-dashboard-home-action-text p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.4;
+}
+
+.ap-dashboard-home-action-card:hover .ap-dashboard-home-action-text h3 {
+  color: #fff;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+}
+
+.ap-dashboard-home-action-card:hover svg {
+  color: rgba(255, 255, 255, 0.9) !important;
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+}
+
+/* Icon Animation */
+.ap-dashboard-home-action-card svg {
+  transition: all 0.3s ease;
+}
+
+/* Responsive Design for Quick Actions */
+@media (max-width: 768px) {
+  .ap-dashboard-home-actions-body {
+    padding: 1.5rem;
+  }
+
+  .ap-dashboard-home-actions-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .ap-dashboard-home-action-card {
+    padding: 1.25rem;
+  }
+
+  .ap-dashboard-home-action-text h3 {
+    font-size: 1.1rem;
+  }
+
+  .ap-dashboard-home-action-text p {
+    font-size: 0.85rem;
+  }
+}
+
+/* Animation for icons on hover */
+@keyframes iconPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.ap-dashboard-home-action-card:hover svg {
+  animation: iconPulse 1s ease-in-out infinite;
+}
+
+/* Add smooth transition for background color change */
+.ap-dashboard-home-action-card {
+  background-image: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.08) 100%
+  );
+  background-size: 200% 200%;
+  transition: all 0.3s ease, background-position 0.6s ease;
+}
+
+.ap-dashboard-home-action-card:hover {
+  background-position: 100% 100%;
+}
+
+/* Add a subtle border glow effect on hover */
+.ap-dashboard-home-action-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.5),
+    rgba(124, 58, 237, 0.5)
+  );
+  /*  applied shadow effect  */
+  box-shadow: 0 4px 15px rgba(232, 13, 13, 0.1);
+
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.ap-dashboard-home-action-card:hover::after {
+  opacity: 1;
 }
 
 .ap-dashboard-home-welcome:hover::before {
@@ -179,13 +392,18 @@
 }
 
 .ap-dashboard-home-stat-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
   transition: left 0.5s ease;
 }
 
@@ -232,7 +450,7 @@
 }
 
 .ap-dashboard-home-stat-change::before {
-  content: '↗️';
+  content: "↗️";
   font-size: 1rem;
 }
 
@@ -259,7 +477,6 @@
 }
 
 @media (min-width: 1024px) {
-  
   .ap-dashboard-home-content {
     grid-template-columns: 1.2fr 0.8fr;
   }
@@ -323,6 +540,32 @@
 
 .ap-dashboard-home-section-body {
   padding: 1.5rem;
+  max-height: 480px; /* Height for approximately 6 items */
+  overflow-y: auto;
+  /* Scrollbar Styling */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.1);
+}
+
+.ap-dashboard-home-section-body::-webkit-scrollbar {
+  width: 8px; /* Slightly wider for better visibility */
+}
+
+.ap-dashboard-home-section-body::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  margin: 4px 0; /* Add some space at top and bottom */
+}
+
+.ap-dashboard-home-section-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.ap-dashboard-home-section-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+  border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
 /* Auction Items - Glass Morphism Style */
@@ -330,6 +573,34 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  max-height: 880px; /* Height for approximately 6 items */
+  overflow-y: auto;
+  padding-right: 0.75rem;
+  /* Scrollbar Styling */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.1);
+}
+
+/* Webkit scrollbar styling */
+.ap-dashboard-home-auction-list::-webkit-scrollbar {
+  width: 8px; /* Slightly wider for better visibility */
+}
+
+.ap-dashboard-home-auction-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  margin: 4px 0; /* Add some space at top and bottom */
+}
+
+.ap-dashboard-home-auction-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.ap-dashboard-home-auction-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+  border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
 .ap-dashboard-home-auction-item {
@@ -347,13 +618,18 @@
 }
 
 .ap-dashboard-home-auction-item::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
   transition: left 0.5s ease;
 }
 
@@ -410,12 +686,9 @@
 }
 
 @media (max-width: 640px) {
-  
-   .ap-dashboard-home-title {
- 
-  font-size: 1.5rem;
- 
-}
+  .ap-dashboard-home-title {
+    font-size: 1.5rem;
+  }
   .ap-dashboard-home-activity-item {
     flex-direction: row !important;
     /* force row layout */
@@ -431,7 +704,6 @@
 }
 
 @keyframes pulse-live {
-
   0%,
   100% {
     box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
@@ -495,6 +767,34 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  max-height: 480px; /* Height for approximately 6 items */
+  /* overflow-y: auto; */
+  padding-right: 0.75rem;
+  /* Scrollbar Styling */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.1);
+}
+
+/* Webkit scrollbar styling */
+.ap-dashboard-home-activity-list::-webkit-scrollbar {
+  width: 8px; /* Slightly wider for better visibility */
+}
+
+.ap-dashboard-home-activity-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  margin: 4px 0; /* Add some space at top and bottom */
+}
+
+.ap-dashboard-home-activity-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.ap-dashboard-home-activity-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+  border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
 .ap-dashboard-home-activity-item {
@@ -589,8 +889,6 @@
 }
 
 @media (min-width: 768px) {
-
-
   .ap-dashboard-home-actions-grid {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -610,13 +908,18 @@
 }
 
 .ap-dashboard-home-action-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
   transition: left 0.5s ease;
 }
 
@@ -750,6 +1053,8 @@
 }
 
 @media (max-width: 480px) {
+
+  
   
   .ap-dashboard-home-section-header {
     padding: 1rem;
@@ -764,4 +1069,5 @@
     align-items: flex-start;
     gap: 0.5rem;
   }
+
 }
