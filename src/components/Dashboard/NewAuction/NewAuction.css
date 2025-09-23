@@ -559,7 +559,7 @@ textarea.form-input {
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.1);
   color: white;
-  font-size: 0.95rem;
+  font-size: 0.80rem;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
 }

@@ -518,14 +518,6 @@ const NewAuction: React.FC = () => {
                       {errors.auctionStartTime.message}
                     </div>
                   )}
-                  <div className="text-sm text-text-secondary mt-1">
-                    {watchAuctionDate === todayISO
-                      ? `Current time: ${format(
-                          new Date(),
-                          "HH:mm"
-                        )} - Must be future time`
-                      : "Select auction start time"}
-                  </div>
                 </div>
 
                 {/* Duration */}
@@ -552,7 +544,6 @@ const NewAuction: React.FC = () => {
                   {errors.duration && (
                     <div className="form-error">{errors.duration.message}</div>
                   )}
-                  
                 </div>
 
                 {/* Currency */}
@@ -576,7 +567,6 @@ const NewAuction: React.FC = () => {
                   {errors.currency && (
                     <div className="form-error">{errors.currency.message}</div>
                   )}
-                  
                 </div>
               </div>
 
@@ -614,7 +604,8 @@ const NewAuction: React.FC = () => {
                   <FileText className="w-4 h-4 inline mr-2" />
 
                   <span>
-                    Product Details / Description<span className="required">*</span>
+                    Product Details / Description
+                    <span className="required">*</span>
                   </span>
                 </label>
                 <textarea
@@ -770,7 +761,7 @@ const NewAuction: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <input
                     type="tel"
-                    placeholder="Phone number"
+                    placeholder="Add Phone"
                     value={newParticipantPhone}
                     onChange={(e) => setNewParticipantPhone(e.target.value)}
                     className="form-input text-center"
@@ -790,11 +781,21 @@ const NewAuction: React.FC = () => {
                     type="button"
                     onClick={() => setBulkOpen((s) => !s)}
                     className="btn btn-secondary"
+                    // title="Add multiple participants"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Bulk
+                  </button>
+
+                  {/* <button
+                    type="button"
+                    onClick={() => setBulkOpen((s) => !s)}
+                    className="btn btn-secondary"
                     title="Add multiple participants"
                   >
                     <Plus className="w-4 h-4" />
                     Bulk Add
-                  </button>
+                  </button> */}
                   {/* <button
                       type="button"
                       onClick={addParticipant}
