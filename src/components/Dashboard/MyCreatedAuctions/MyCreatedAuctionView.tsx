@@ -33,6 +33,14 @@ import apiAuctionService from "../../../services/apiAuctionService";
 import newAuctionService from "../../../services/newAuctionService";
 import { BaseAuction, AuctionParticipant } from "../../../types/auction";
 
+/* 🔧 ADD-1  helper – add minutes to HH:MM  */
+const addMinutesToTime = (time: string, mins: number): string => {
+  const [h, m] = time.split(':').map(Number);
+  const d = new Date();
+  d.setHours(h, m + mins, 0, 0);
+  return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: true });
+};
+
 const MyCreatedAuctionView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -524,6 +532,16 @@ const MyCreatedAuctionView: React.FC = () => {
       }
 
       setAuction(auctionData);
+
+      /* 🔧 ADD-2  fix end-time only for upcoming auctions */
+if (auctionData && auctionData.status === 'upcoming') {
+  auctionData.auctionEndTime = addMinutesToTime(
+    auctionData.auctionStartTime,
+    auctionData.duration
+  );
+  console.log('[MyCreatedAuctionView] Upcoming end-time corrected ->', auctionData.auctionEndTime);
+}
+      
       const participantData = AuctionService.getParticipantsByAuction(id);
       setParticipants(participantData);
       const auctioneerData = AuctionService.getUserById(auctionData.createdBy);
