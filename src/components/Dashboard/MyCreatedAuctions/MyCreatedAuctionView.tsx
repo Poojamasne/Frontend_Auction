@@ -34,11 +34,15 @@ import newAuctionService from "../../../services/newAuctionService";
 import { BaseAuction, AuctionParticipant } from "../../../types/auction";
 
 /* 🔧 ADD-1  helper – add minutes to HH:MM  */
-const addMinutesToTime = (time: string, mins: number): string => {
-  const [h, m] = time.split(':').map(Number);
+/* 🔧 FIXED helper – add minutes to 12-hour string */
+const addMinutesToTime = (time12: string, mins: number): string => {
   const d = new Date();
+  const [time, modifier] = time12.split(' ');
+  let [h, m] = time.split(':').map(Number);
+  if (modifier === 'PM' && h < 12) h += 12;
+  if (modifier === 'AM' && h === 12) h = 0;
   d.setHours(h, m + mins, 0, 0);
-  return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: true });
+  return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 };
 
 const MyCreatedAuctionView: React.FC = () => {
