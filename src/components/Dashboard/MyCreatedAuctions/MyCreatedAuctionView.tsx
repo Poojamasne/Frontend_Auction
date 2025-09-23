@@ -268,47 +268,42 @@ const MyCreatedAuctionView: React.FC = () => {
   };
 
   // Fetch all participants for this auction with complete information
-  const fetchAllParticipants = async () => {
-    if (!id) return;
-    setParticipantsLoading(true);
-    try {
-      const token =
-        localStorage.getItem("authToken") ||
-        localStorage.getItem("token") ||
-        localStorage.getItem("accessToken");
-      if (!token) return;
+  // Replace the fetchAllParticipants function with:
+const fetchAllParticipants = async () => {
+  if (!id) return;
+  setParticipantsLoading(true);
+  try {
+    const token = localStorage.getItem("authToken") || localStorage.getItem("token") || localStorage.getItem("accessToken");
+    if (!token) return;
 
-      const response = await fetch(
-        `${API_BASE_URL}/auction/${id}/participants`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+    const response = await fetch(`${API_BASE_URL}/auction/${id}/participants`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
 
-      if (response.ok) {
-        const result = await response.json();
-        if (
-          result.success &&
-          result.participants &&
-          Array.isArray(result.participants)
-        ) {
-          setAllParticipants(result.participants);
-        }
+    if (response.ok) {
+      const result = await response.json();
+      console.log("Participants API Response:", result); // Debug log
+      
+      if (result.success && result.participants && Array.isArray(result.participants)) {
+        setAllParticipants(result.participants);
+      } else if (result.success && Array.isArray(result.data)) {
+        // Handle different API response structure
+        setAllParticipants(result.data);
       }
-    } catch (error) {
-      console.error(
-        "[MyCreatedAuctionView] Error fetching participants:",
-        error
-      );
-    } finally {
-      setParticipantsLoading(false);
+    } else {
+      console.error("Failed to fetch participants:", response.status);
     }
-  };
-
+  } catch (error) {
+    console.error("Error fetching participants:", error);
+  } finally {
+    setParticipantsLoading(false);
+  }
+};
+  
   // Fetch pre-bids for this auction
   const fetchPreBids = async () => {
     if (!id) return;
