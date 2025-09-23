@@ -315,6 +315,8 @@ const NewAuction: React.FC = () => {
         pre_bid_allowed: true,
         send_invitations: !data.openToAllCompanies,
         participants: participantsArray, // Send normalized array of unique phone numbers
+        //  ➜  ADD THIS LINE
+        open_to_all: data.openToAllCompanies,
       };
 
       const response = await AuctionService.createAuction(
