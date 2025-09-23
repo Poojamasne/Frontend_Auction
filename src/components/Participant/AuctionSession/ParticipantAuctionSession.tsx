@@ -9,6 +9,8 @@ import {
   Send,
   Building,
   MapPin,
+  School,
+  User,
   Clock,
   AlertTriangle,
   Crown,
@@ -390,6 +392,21 @@ const ParticipantAuctionSession: React.FC = () => {
   const timeRemaining = formatTimeRemaining(timeLeft);
   const currentLowest = auction.statistics?.lowest_bid;
 
+  const validateBidAmount = (value: string): string | null => {
+    if (!value) return "Please enter a bid amount";
+
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) return "Please enter a valid number";
+    if (numValue <= 0) return "Bid amount must be greater than 0";
+
+    const decrement = parseFloat(auction.decremental_value);
+    if (currentLowest && numValue >= currentLowest) {
+      return `Bid must be at least ${decrement} ${auction.currency} less than current lowest (${currentLowest})`;
+    }
+
+    return null;
+  };
+
   /* ---------- PERMISSION: full ranking only for auctioneer ---------- */
   const myId = Number(user?.id);
   const isAuctioneer = myId === auction.created_by;
@@ -399,10 +416,10 @@ const ParticipantAuctionSession: React.FC = () => {
     ? bidRanking
     : (() => {
         // 1.  current L-1 (lowest)
-        const l1 = bidRanking.find(r => r.rank === 1);
+        const l1 = bidRanking.find((r) => r.rank === 1);
         // 2.  participant’s own best bid (lowest amount they placed)
         const own = bidRanking
-          .filter(r => r.user_id === myId)
+          .filter((r) => r.user_id === myId)
           .sort((a, b) => parseFloat(a.amount) - parseFloat(b.amount))[0];
         // 3.  de-duplicate (if participant is L-1)
         const set = new Map();
@@ -569,12 +586,32 @@ const ParticipantAuctionSession: React.FC = () => {
                     Your Bid Price ({auction.currency})
                   </label>
                   <input
-                    type="number"
+                    type="text"
                     id="bidAmount"
                     value={bidAmount}
-                    onChange={(e) => setBidAmount(e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      // Allow only numbers and decimal point
+                      if (value === "" || /^\d*\.?\d*$/.test(value)) {
+                        // Validate against current lowest bid
+                        const numValue = parseFloat(value);
+                        const error = validateBidAmount(value);
+                        if (error) {
+                          toast.error(error);
+                        }
+                        setBidAmount(value);
+                      }
+                    }}
+                    onBlur={() => {
+                      // Format the number properly when leaving the input
+                      if (bidAmount && !isNaN(parseFloat(bidAmount))) {
+                        setBidAmount(parseFloat(bidAmount).toString());
+                      }
+                    }}
                     className="bid-input"
-                    placeholder="Enter your bid amount"
+                    step="0.01"
+                    min="0"
+                    placeholder="Enter Your Bid Amount"
                   />
                 </div>
               </div>
@@ -640,15 +677,15 @@ const ParticipantAuctionSession: React.FC = () => {
                     </div>
                     <div className="participant-info">
                       <div className="company-name">
-                        <Building className="w-4 h-4" />
+                        <User className="w-3 h-3" />
+                        {bid.person_name || "Unknown"}
+                      </div>
+                      <div className="company-address">
+                        <School className="w-4 h-4" />
                         {bid.company_name || bid.person_name || "Unknown"}
                         {bid.user_id === myId && (
                           <span className="user-badge">You</span>
                         )}
-                      </div>
-                      <div className="company-address">
-                        <MapPin className="w-3 h-3" />
-                        {bid.person_name || "Unknown"}
                       </div>
                     </div>
                   </div>
@@ -657,10 +694,10 @@ const ParticipantAuctionSession: React.FC = () => {
                       {auction.currency}{" "}
                       {parseFloat(bid.amount).toLocaleString()}
                     </div>
-                    <div className="bid-time">
+                    {/* <div className="bid-time">
                       <Clock className="w-3 h-3" />
                       {new Date(bid.bid_time).toLocaleTimeString()}
-                    </div>
+                    </div> */}
                   </div>
                 </div>
               ))
