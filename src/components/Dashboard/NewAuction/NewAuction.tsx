@@ -491,9 +491,6 @@ const NewAuction: React.FC = () => {
                       {errors.auctionDate.message}
                     </div>
                   )}
-                  <div className="text-sm text-text-secondary mt-1">
-                    Default: Today ({format(new Date(), "dd/MM/yyyy")})
-                  </div>
                 </div>
 
                 {/* Auction Start Time */}
@@ -553,9 +550,7 @@ const NewAuction: React.FC = () => {
                   {errors.duration && (
                     <div className="form-error">{errors.duration.message}</div>
                   )}
-                  <div className="text-sm text-text-secondary mt-1">
-                    Default: 2 Hours
-                  </div>
+                  
                 </div>
 
                 {/* Currency */}
@@ -579,9 +574,7 @@ const NewAuction: React.FC = () => {
                   {errors.currency && (
                     <div className="form-error">{errors.currency.message}</div>
                   )}
-                  <div className="text-sm text-text-secondary mt-1">
-                    Default: INR
-                  </div>
+                  
                 </div>
               </div>
 
