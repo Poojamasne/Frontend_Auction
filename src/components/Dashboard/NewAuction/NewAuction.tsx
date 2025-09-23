@@ -245,156 +245,182 @@ const NewAuction: React.FC = () => {
   };
 
    const onSubmit = async (data: AuctionForm) => {
-    if (isSubmitting || rhfSubmitting) return;
+  if (isSubmitting || rhfSubmitting) return;
 
-    if (!user) {
-      toast.error("Please log in to create an auction");
-      navigate("/login");
+  if (!user) {
+    toast.error("Please log in to create an auction");
+    navigate("/login");
+    return;
+  }
+
+  if (!AuctionService.isAuthenticated()) {
+    toast.error("Your session has expired. Please log in again.");
+    navigate("/login");
+    return;
+  }
+
+  setIsSubmitting(true);
+
+  try {
+    // Validate that we have participants if auction is not open to all
+    if (!data.openToAllCompanies && data.participants.length === 0) {
+      toast.error(
+        'Please add at least one participant or set auction as "Open to all companies"'
+      );
+      setIsSubmitting(false);
       return;
     }
 
-    if (!AuctionService.isAuthenticated()) {
-      toast.error("Your session has expired. Please log in again.");
-      navigate("/login");
-      return;
-    }
+    // Validate time for today's date
+    const selectedDate = new Date(data.auctionDate);
+    if (isToday(selectedDate)) {
+      const now = new Date();
+      const currentTime = format(now, "HH:mm");
 
-    setIsSubmitting(true);
-
-    try {
-      // Process and validate participants
-      const validParticipants = data.participants
-        .map((p) => normalizedPhone(p.contactNumber))
-        .filter((phone) => PHONE_REGEX.test(phone))
-        .filter((phone, index, self) => self.indexOf(phone) === index); // Remove duplicates
-
-      if (!data.openToAllCompanies && data.participants.length === 0) {
-        toast.error(
-          'Please add at least one participant or set auction as "Open to all companies"'
-        );
+      if (data.auctionStartTime < currentTime) {
+        toast.error("Start time must be in the future for today's date");
         setIsSubmitting(false);
         return;
       }
-
-      // Validate time for today's date
-      const selectedDate = new Date(data.auctionDate);
-      if (isToday(selectedDate)) {
-        const now = new Date();
-        const currentTime = format(now, "HH:mm");
-
-        if (data.auctionStartTime < currentTime) {
-          toast.error("Start time must be in the future for today's date");
-          setIsSubmitting(false);
-          return;
-        }
-      }
-
-      // Process all participants, ensure proper normalization and uniqueness
-      // Build an array of normalized, unique phone numbers to send as participants
-      const participantsArray = data.participants
-        .map((p) => normalizedPhone(p.contactNumber))
-        .filter((phone) => PHONE_REGEX.test(phone))
-        .filter((phone, index, self) => self.indexOf(phone) === index);
-
-      // Normalize start time to include seconds if missing
-      const startTime =
-        data.auctionStartTime && data.auctionStartTime.length === 5
-          ? `${data.auctionStartTime}:00`
-          : data.auctionStartTime;
-
-      const auctionPayload: CreateAuctionRequest = {
-        title: data.title.trim(),
-        description: data.auctionDetails.trim(),
-        auction_date: data.auctionDate,
-        start_time: startTime,
-        // Send duration in minutes (UI provides minutes)
-        duration: data.duration || 0,
-        currency: data.currency,
-        base_price: 0,
-        decremental_value: data.decrementalValue ?? 0,
-        pre_bid_allowed: true,
-        send_invitations: !data.openToAllCompanies,
-        participants: participantsArray, // Send normalized array of unique phone numbers
-        open_to_all: data.openToAllCompanies,
-      };
-
-      const response = await AuctionService.createAuction(
-        auctionPayload,
-        uploadedFiles
-      );
-
-      if (!response.success || !response.auction) {
-        throw new Error(response.message || "Failed to create auction");
-      }
-
-      const auctionId = response.auction.id;
-      let successMessage = `Auction "${response.auction.title}" created successfully!`;
-      // Prefer new API shape invitationResults; fallback to legacy smsResults if present
-      const inv = (response as any).invitationResults;
-      if (inv) {
-        const successfulSMS = inv.successfulSMS || 0;
-        const successfulWhatsApp = inv.successfulWhatsApp || 0;
-        const failed = Array.isArray(inv.failures) ? inv.failures.length : 0;
-        const total =
-          inv.totalParticipants ?? successfulSMS + successfulWhatsApp + failed;
-        successMessage += ` ${successfulSMS} SMS sent${
-          successfulWhatsApp ? `, ${successfulWhatsApp} WhatsApp sent` : ""
-        }.`;
-        if (failed > 0) successMessage += ` ${failed} invitation(s) failed.`;
-        if (typeof total === "number")
-          successMessage += ` (${total} participant${
-            total === 1 ? "" : "s"
-          } processed)`;
-      } else if ((response as any).smsResults) {
-        const { successfulSMS = 0, failedSMS = 0 } = (response as any)
-          .smsResults;
-        if (successfulSMS > 0)
-          successMessage += ` ${successfulSMS} invitation(s) sent.`;
-        if (failedSMS > 0)
-          successMessage += ` ${failedSMS} invitation(s) failed.`;
-      }
-
-      toast.success(successMessage, { duration: 6000 });
-
-      // Reset form safely (keep today/date defaults the same after reset)
-      reset({
-        title: "",
-        auctionDate: todayISO,
-        auctionStartTime: format(new Date(), "HH:mm"),
-        duration: 120,
-        openToAllCompanies: true,
-        currency: "INR",
-        auctionDetails: "",
-        participants: [],
-      });
-      setUploadedFiles([]);
-
-      setTimeout(() => {
-        navigate(`/dashboard/my-auction/${auctionId}`);
-      }, 1200);
-    } catch (error: any) {
-      const msg =
-        typeof error?.message === "string"
-          ? error.message
-          : "Failed to create auction. Please try again.";
-      if (/Authentication|session/i.test(msg)) {
-        toast.error(`${msg} Redirecting to login...`);
-        AuctionService.clearAuth();
-        setTimeout(() => navigate("/login"), 1400);
-      } else if (/Network/i.test(msg)) {
-        toast.error(
-          "Network error. Please check your connection and try again."
-        );
-      } else if (/Server/i.test(msg)) {
-        toast.error("Server error. Please try again in a few moments.");
-      } else {
-        toast.error(msg);
-      }
-    } finally {
-      setIsSubmitting(false);
     }
-  };
 
+    // Process participants - remove duplicates and invalid numbers
+    const uniqueParticipants = new Map();
+    const validParticipants: Participant[] = [];
+
+    data.participants.forEach((participant) => {
+  const normalizedPhoneNumber = normalizedPhone(participant.contactNumber);
+  
+  // Skip if phone is invalid
+  if (!PHONE_REGEX.test(normalizedPhoneNumber)) {
+    return;
+  }
+
+  // Skip if duplicate
+  if (uniqueParticipants.has(normalizedPhoneNumber)) {
+    return;
+  }
+
+  // Skip if it's the auctioneer's own number
+  if (user?.phoneNumber && normalizedPhone(user.phoneNumber) === normalizedPhoneNumber) {
+    return;
+  }
+
+  uniqueParticipants.set(normalizedPhoneNumber, true);
+  
+  // Create participant object with normalized phone
+  validParticipants.push({
+    ...participant,
+    contactNumber: normalizedPhoneNumber
+  });
+});
+
+    // If not open to all, ensure we have valid participants
+    if (!data.openToAllCompanies && validParticipants.length === 0) {
+      toast.error("No valid participants found. Please check the phone numbers.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Normalize start time to include seconds if missing
+    const startTime =
+      data.auctionStartTime && data.auctionStartTime.length === 5
+        ? `${data.auctionStartTime}:00`
+        : data.auctionStartTime;
+
+    const auctionPayload: CreateAuctionRequest = {
+      title: data.title.trim(),
+      description: data.auctionDetails.trim(),
+      auction_date: data.auctionDate,
+      start_time: startTime,
+      duration: data.duration || 0,
+      currency: data.currency,
+      base_price: 0,
+      decremental_value: data.decrementalValue ?? 0,
+      pre_bid_allowed: true,
+      send_invitations: !data.openToAllCompanies,
+      participants: validParticipants.map(p => p.contactNumber), // Send only phone numbers
+      open_to_all: data.openToAllCompanies,
+    };
+
+    const response = await AuctionService.createAuction(
+      auctionPayload,
+      uploadedFiles
+    );
+
+    if (!response.success || !response.auction) {
+      throw new Error(response.message || "Failed to create auction");
+    }
+
+    const auctionId = response.auction.id;
+    let successMessage = `Auction "${response.auction.title}" created successfully!`;
+    
+    // Handle invitation results
+    const inv = (response as any).invitationResults;
+    if (inv) {
+      const successfulSMS = inv.successfulSMS || 0;
+      const successfulWhatsApp = inv.successfulWhatsApp || 0;
+      const failed = Array.isArray(inv.failures) ? inv.failures.length : 0;
+      const total =
+        inv.totalParticipants ?? successfulSMS + successfulWhatsApp + failed;
+      successMessage += ` ${successfulSMS} SMS sent${
+        successfulWhatsApp ? `, ${successfulWhatsApp} WhatsApp sent` : ""
+      }.`;
+      if (failed > 0) successMessage += ` ${failed} invitation(s) failed.`;
+      if (typeof total === "number")
+        successMessage += ` (${total} participant${
+          total === 1 ? "" : "s"
+        } processed)`;
+    } else if ((response as any).smsResults) {
+      const { successfulSMS = 0, failedSMS = 0 } = (response as any)
+        .smsResults;
+      if (successfulSMS > 0)
+        successMessage += ` ${successfulSMS} invitation(s) sent.`;
+      if (failedSMS > 0)
+        successMessage += ` ${failedSMS} invitation(s) failed.`;
+    }
+
+    toast.success(successMessage, { duration: 6000 });
+
+    // Reset form
+    reset({
+      title: "",
+      auctionDate: todayISO,
+      auctionStartTime: format(new Date(), "HH:mm"),
+      duration: 120,
+      openToAllCompanies: true,
+      currency: "INR",
+      auctionDetails: "",
+      participants: [],
+    });
+    setUploadedFiles([]);
+
+    setTimeout(() => {
+      navigate(`/dashboard/my-auction/${auctionId}`);
+    }, 1200);
+  } catch (error: any) {
+    const msg =
+      typeof error?.message === "string"
+        ? error.message
+        : "Failed to create auction. Please try again.";
+    if (/Authentication|session/i.test(msg)) {
+      toast.error(`${msg} Redirecting to login...`);
+      AuctionService.clearAuth();
+      setTimeout(() => navigate("/login"), 1400);
+    } else if (/Network/i.test(msg)) {
+      toast.error(
+        "Network error. Please check your connection and try again."
+      );
+    } else if (/Server/i.test(msg)) {
+      toast.error("Server error. Please try again in a few moments.");
+    } else {
+      toast.error(msg);
+    }
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+  
   return (
     <div className="ap-newauction-wrapper">
       {/* Header Section */}
