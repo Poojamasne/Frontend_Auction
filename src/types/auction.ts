@@ -120,4 +120,5 @@ export interface CreateAuctionRequest {
   send_invitations: boolean;
   // Backend accepts participants either as an array or a comma-separated string
   participants?: string[] | string;
+  open_to_all: boolean;   
 }
