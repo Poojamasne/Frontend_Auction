@@ -1099,7 +1099,9 @@ const MyCreatedAuctionView: React.FC = () => {
             </div> */}
 
             <div className="participants-list">
-              {backendParticipants.map((participant: any, index: number) => (
+              {backendParticipants
+              .filter((p: any) => ["invited", "joined"].includes(p.status || "invited"))
+              .map((participant: any, index: number) => (
                 <div key={participant.id || index} className="participant-item">
                   <div className="participant-info">
                     <div className="participant-avatar">
