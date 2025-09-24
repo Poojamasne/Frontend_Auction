@@ -553,13 +553,14 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 .form-select,
 textarea.form-input {
   display: block;
+  text-align: center;
   width: 100%;
   border: 1px solid rgba(255, 255, 255, 0.2);
   padding: 0.875rem 1rem;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.1);
   color: white;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
 }
