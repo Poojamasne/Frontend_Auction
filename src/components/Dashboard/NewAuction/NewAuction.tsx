@@ -286,7 +286,7 @@ const NewAuction: React.FC = () => {
                 <label className="form-label">
                   <FileText className="w-4 h-4 inline mr-2" />
                   <span>
-                  Auction Title<span className="required">*</span>
+                    Auction Title<span className="required">*</span>
                   </span>
                 </label>
                 <input
@@ -307,8 +307,7 @@ const NewAuction: React.FC = () => {
                 <label className="form-label">
                   <Calendar className="w-4 h-4 inline mr-2" />
                   <span>
-
-                  Auction Date<span className="required">*</span>
+                    Auction Date<span className="required">*</span>
                   </span>
                 </label>
                 <input
@@ -329,7 +328,7 @@ const NewAuction: React.FC = () => {
                 <label className="form-label">
                   <Clock className="w-4 h-4 inline mr-2" />
                   <span>
-                  Start Time<span className="required">*</span>
+                    Start Time<span className="required">*</span>
                   </span>
                 </label>
                 <input
@@ -340,7 +339,9 @@ const NewAuction: React.FC = () => {
                   })}
                 />
                 {errors.auctionStartTime && (
-                  <p className="form-error">{errors.auctionStartTime.message}</p>
+                  <p className="form-error">
+                    {errors.auctionStartTime.message}
+                  </p>
                 )}
               </div>
 
@@ -348,7 +349,7 @@ const NewAuction: React.FC = () => {
                 <label className="form-label">
                   <Clock className="w-4 h-4 inline mr-2" />
                   <span>
-                  Duration<span className="required">*</span>
+                    Duration<span className="required">*</span>
                   </span>
                 </label>
                 <select className="form-input" {...register("duration")}>
@@ -363,7 +364,7 @@ const NewAuction: React.FC = () => {
                 <label className="form-label">
                   <IndianRupee className="w-4 h-4 inline mr-2" />
                   <span>
-                  Currency<span className="required">*</span>
+                    Currency<span className="required">*</span>
                   </span>
                 </label>
                 <select className="form-input" {...register("currency")}>
@@ -402,9 +403,8 @@ const NewAuction: React.FC = () => {
                 <label className="form-label">
                   <FileText className="w-4 h-4 inline mr-2" />
                   <span>
-
-                  Product Details / Description
-                  <span className="required">*</span>
+                    Product Details / Description
+                    <span className="required">*</span>
                   </span>
                 </label>
                 <textarea
@@ -438,7 +438,9 @@ const NewAuction: React.FC = () => {
                   })}
                 />
                 {errors.decrementalValue && (
-                  <p className="form-error">{errors.decrementalValue.message}</p>
+                  <p className="form-error">
+                    {errors.decrementalValue.message}
+                  </p>
                 )}
               </div>
             </div>
@@ -567,7 +569,7 @@ const NewAuction: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => remove(idx)}
-                          className="text-red-600 hover:text-red-800"
+                          className="file-remove-btn"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -576,7 +578,11 @@ const NewAuction: React.FC = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {!field._quick && (
                           <div className="form-group">
-                            <label className="form-label">Company Name *</label>
+                            <label className="form-label">
+                              <span>
+                                Company Name<span className="required">*</span>
+                              </span>
+                            </label>
                             <input
                               type="text"
                               className="form-input"
@@ -594,7 +600,11 @@ const NewAuction: React.FC = () => {
                         )}
 
                         <div className="form-group">
-                          <label className="form-label">Contact Number *</label>
+                          <label className="form-label">
+                            <span>
+                              Contact Number<span className="required">*</span>
+                            </span>
+                          </label>
                           <input
                             type="tel"
                             className="form-input"
@@ -635,7 +645,8 @@ const NewAuction: React.FC = () => {
                                 placeholder="Email address"
                                 {...register(`participants.${idx}.mailId`, {
                                   pattern: {
-                                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                                    value:
+                                      /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
                                     message: "Invalid email",
                                   },
                                 })}
@@ -684,7 +695,11 @@ const NewAuction: React.FC = () => {
                 disabled={isSubmitting}
                 className="btn btn-primary"
               >
-                {isSubmitting ? <div className="loading-spinner" /> : <>Create Auction</>}
+                {isSubmitting ? (
+                  <div className="loading-spinner" />
+                ) : (
+                  <>Create Auction</>
+                )}
               </button>
             </div>
           </div>
