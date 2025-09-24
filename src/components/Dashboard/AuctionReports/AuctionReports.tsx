@@ -50,13 +50,32 @@ const AuctionReports: React.FC = () => {
     }
   };
 
+  // Function to convert 12-hour time back to 24-hour for calculations
+  const convert12to24 = (time12h: string): string => {
+    if (!time12h) return '00:00';
+    
+    const [time, modifier] = time12h.split(' ');
+    let [hours, minutes] = time.split(':');
+    
+    if (hours === '12') {
+      hours = '00';
+    }
+    
+    if (modifier === 'PM') {
+      hours = (parseInt(hours, 10) + 12).toString();
+    }
+    
+    return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}:00`;
+  };
+
   const transformAuctionData = (report: AuctionReport): BaseAuction => ({
     id: report.id.toString(),
     auctionNo: `AUC-${report.id.toString().padStart(3, '0')}`,
     title: report.title,
     auctionDetails: report.auction_details || report.description,
     auctionDate: safeDateParse(report.auctionDate || report.auction_date),
-    auctionStartTime: report.auctionStartTime || report.start_time || '10:00:00',
+    // Keep the 12-hour format for display, but store original for calculations
+    auctionStartTime: report.auctionStartTime || report.start_time || '10:00 AM',
     duration: 60,
     openToAllCompanies: true,
     currency: report.currency || 'INR',
@@ -81,7 +100,6 @@ const AuctionReports: React.FC = () => {
         setLoading(true);
         setError(null);
         
-        // Use the new API endpoint to fetch auction reports for the specific user
         const auctionReports = await ReportService.getAuctionReportsByUserId(user.id);
         
         const transformedAuctions: BaseAuction[] = auctionReports.map(report => ({
@@ -90,7 +108,7 @@ const AuctionReports: React.FC = () => {
           title: report.title,
           auctionDetails: report.auction_details || report.description || report.title,
           auctionDate: safeDateParse(report.auctionDate || report.auction_date),
-          auctionStartTime: report.auctionStartTime || report.start_time || '10:00:00',
+          auctionStartTime: report.auctionStartTime || report.start_time || '10:00 AM',
           duration: 60,
           openToAllCompanies: true,
           currency: report.currency || 'INR',
@@ -100,12 +118,11 @@ const AuctionReports: React.FC = () => {
         setAuctions(transformedAuctions);
         if (transformedAuctions.length > 0) {
           setSelectedAuction(transformedAuctions[0]);
-          // Set participants data if available from the first auction report
           const firstReport = auctionReports[0];
           if (firstReport.bids && firstReport.bids.length > 0) {
             setParticipants(transformParticipantsData(firstReport.bids));
           } else {
-            setParticipants([]); // No bid data available
+            setParticipants([]);
           }
         }
       } catch (err) {
@@ -126,8 +143,6 @@ const AuctionReports: React.FC = () => {
         setLoading(true);
         setError(null);
         
-        // Try to fetch the specific auction report to get the latest bid data
-        // Note: This endpoint currently returns 500 errors, so we handle it gracefully
         try {
           const report = await ReportService.getAuctionReport(parseInt(selectedAuction.id));
           setSelectedAuction(transformAuctionData(report));
@@ -137,9 +152,7 @@ const AuctionReports: React.FC = () => {
             setParticipants([]);
           }
         } catch (reportErr) {
-          // The individual auction report endpoint is not working (500 error)
-          console.warn('Individual auction report endpoint failed (this is expected):', reportErr);
-          // Keep the basic auction data but clear participants since we can't get bid details
+          console.warn('Individual auction report endpoint failed:', reportErr);
           setParticipants([]);
         }
       } catch (err) {
@@ -156,8 +169,9 @@ const AuctionReports: React.FC = () => {
 
   const getEndTime = (auction: BaseAuction) => {
     try {
-      const startTime = auction.auctionStartTime.substring(0, 5);
-      const startIso = `${auction.auctionDate}T${startTime}:00`;
+      // Convert 12-hour time to 24-hour for calculation
+      const startTime24 = convert12to24(auction.auctionStartTime);
+      const startIso = `${auction.auctionDate}T${startTime24}`;
       const start = new Date(startIso);
       if (isNaN(start.getTime())) return new Date();
       return new Date(start.getTime() + (auction.duration || 60) * 60000);
@@ -166,33 +180,40 @@ const AuctionReports: React.FC = () => {
     }
   };
 
-  // Updated date formatting function for consistency across modules
+  // Updated to handle both 12-hour and 24-hour formats
+  const formatTimeConsistent = (date: Date | string): string => {
+    try {
+      // If it's already a formatted 12-hour time string, return as is
+      if (typeof date === 'string' && (date.includes('AM') || date.includes('PM'))) {
+        return date;
+      }
+      
+      const dateObj = typeof date === 'string' ? new Date(date) : date;
+      if (isNaN(dateObj.getTime())) return 'Invalid Time';
+
+      // Format as 12-hour time
+      let hours = dateObj.getHours();
+      const minutes = dateObj.getMinutes().toString().padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12 || 12;
+      
+      return `${hours}:${minutes} ${ampm}`;
+    } catch {
+      return 'Invalid Time';
+    }
+  };
+
   const formatDateConsistent = (date: Date | string): string => {
     try {
       const dateObj = typeof date === 'string' ? new Date(date) : date;
       if (isNaN(dateObj.getTime())) return 'Invalid Date';
 
-      // Use DD-MM-YYYY format for consistency with other modules
       const day = dateObj.getDate().toString().padStart(2, '0');
       const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
       const year = dateObj.getFullYear();
       return `${day}-${month}-${year}`;
     } catch {
       return 'Invalid Date';
-    }
-  };
-
-  const formatTimeConsistent = (date: Date | string): string => {
-    try {
-      const dateObj = typeof date === 'string' ? new Date(date) : date;
-      if (isNaN(dateObj.getTime())) return 'Invalid Time';
-
-      // Use HH:MM format
-      const hours = dateObj.getHours().toString().padStart(2, '0');
-      const minutes = dateObj.getMinutes().toString().padStart(2, '0');
-      return `${hours}:${minutes}`;
-    } catch {
-      return 'Invalid Time';
     }
   };
 
@@ -307,7 +328,6 @@ const AuctionReports: React.FC = () => {
 
       {selectedAuction && (
         <div className="ap-reports-overview">
-          {/* Auction Details - Improved formatting */}
           <div className="ap-reports-overview-card">
             <div className="ap-reports-overview-header">
               <h2 className="ap-reports-overview-title">Auction Details</h2>
@@ -327,10 +347,12 @@ const AuctionReports: React.FC = () => {
               </div>
               <div>
                 <strong>Start Time</strong>
-                <span>{formatTimeConsistent(`${selectedAuction.auctionDate}T${selectedAuction.auctionStartTime}`)}</span>
+                {/* Display the 12-hour format directly */}
+                <span>{selectedAuction.auctionStartTime}</span>
               </div>
               <div>
                 <strong>End Time</strong>
+                {/* Format end time in 12-hour format */}
                 <span>{formatTimeConsistent(getEndTime(selectedAuction))}</span>
               </div>
               <div>
@@ -352,7 +374,6 @@ const AuctionReports: React.FC = () => {
             </div>
           </div>
 
-          {/* Bid Summary - Enhanced mobile visibility */}
           <div className="ap-reports-overview-card">
             <div className="ap-reports-overview-header">
               <h2 className="ap-reports-overview-title">Bid Summary</h2>
