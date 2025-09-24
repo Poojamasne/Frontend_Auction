@@ -1,7 +1,10 @@
+/* ------------------------------------------------------------------ */
+/*  NewAuction.tsx  –  Clean, builds, participants always saved       */
+/* ------------------------------------------------------------------ */
 import React, { useMemo, useRef, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { format, addDays, isToday, isAfter, parse } from "date-fns";
+import { format, isToday } from "date-fns";
 import {
   Calendar,
   Clock,
@@ -10,9 +13,6 @@ import {
   Upload,
   Plus,
   Trash2,
-  Save,
-  Send,
-  DollarSign,
   IndianRupee,
   ArrowDown,
 } from "lucide-react";
@@ -22,13 +22,14 @@ import AuctionService from "../../../services/newAuctionService";
 import { CreateAuctionRequest } from "../../../types/auction";
 import "./NewAuction.css";
 
+/* -------------------------- types --------------------------------- */
 interface Participant {
   companyName: string;
   companyAddress: string;
   personName: string;
   mailId: string;
   contactNumber: string;
-  _quick?: boolean; // internal flag for quick-added by phone
+  _quick?: boolean;
 }
 
 interface AuctionForm {
@@ -43,25 +44,27 @@ interface AuctionForm {
   participants: Participant[];
 }
 
+/* ------------------------ constants ------------------------------- */
 const PHONE_REGEX = /^(\+91)?[6-9]\d{9}$/;
 const MAX_FILES = 3;
 const MAX_FILE_MB = 15;
 
+/* ================================================================== */
 const NewAuction: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
-
   const todayISO = useMemo(() => format(new Date(), "yyyy-MM-dd"), []);
 
+  /* -------------- react-hook-form -------------- */
   const {
     register,
     control,
     handleSubmit,
     watch,
-    formState: { errors, isSubmitting: rhfSubmitting },
+    formState: { errors },
     reset,
     setError,
     clearErrors,
@@ -77,7 +80,6 @@ const NewAuction: React.FC = () => {
       participants: [],
     },
     mode: "onSubmit",
-    reValidateMode: "onChange",
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -93,29 +95,23 @@ const NewAuction: React.FC = () => {
   const watchAuctionDate = watch("auctionDate");
   const watchAuctionStartTime = watch("auctionStartTime");
 
-  // Validate time when date or time changes
+  /* -------------- side-effects -------------- */
   React.useEffect(() => {
-    if (watchAuctionDate && watchAuctionStartTime) {
-      const selectedDate = new Date(watchAuctionDate);
-      const selectedTime = watchAuctionStartTime;
-
-      if (isToday(selectedDate)) {
-        const now = new Date();
-        const currentTime = format(now, "HH:mm");
-
-        if (selectedTime < currentTime) {
-          setError("auctionStartTime", {
-            type: "manual",
-            message: "Start time must be in the future for today's date",
-          });
-        } else {
-          clearErrors("auctionStartTime");
-        }
-      }
+    if (!watchAuctionDate || !watchAuctionStartTime) return;
+    if (!isToday(new Date(watchAuctionDate))) return;
+    const now = format(new Date(), "HH:mm");
+    if (watchAuctionStartTime < now) {
+      setError("auctionStartTime", {
+        type: "manual",
+        message: "Start time must be in the future for today's date",
+      });
+    } else {
+      clearErrors("auctionStartTime");
     }
   }, [watchAuctionDate, watchAuctionStartTime, setError, clearErrors]);
 
-  const normalizedPhone = (raw: string) => {
+  /* -------------- helpers -------------- */
+  const normalizedPhone = (raw: string): string => {
     const trimmed = raw.trim();
     const noLeadingZeros = trimmed.startsWith("0")
       ? trimmed.replace(/^0+/, "")
@@ -124,235 +120,114 @@ const NewAuction: React.FC = () => {
       ? noLeadingZeros
       : noLeadingZeros;
     if (!candidate.startsWith("+91")) {
-      // if plain 10-digit indian number, prefix
       if (/^[6-9]\d{9}$/.test(candidate)) candidate = `+91${candidate}`;
     }
     return candidate;
   };
 
-  const isDuplicateFile = (a: File, b: File) =>
-    a.name === b.name && a.size === b.size && a.lastModified === b.lastModified;
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || []);
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
     if (!files.length) return;
-
-    // Size check + dedupe vs existing
     const tooBig = files.find((f) => f.size > MAX_FILE_MB * 1024 * 1024);
     if (tooBig) {
-      toast.error(`"${tooBig.name}" exceeds ${MAX_FILE_MB} MB limit`);
+      toast.error(`"${tooBig.name}" exceeds ${MAX_FILE_MB} MB`);
       return;
     }
-
-    const dedupedNew = files.filter(
-      (f) => !uploadedFiles.some((e) => isDuplicateFile(e, f))
+    const dedup = files.filter(
+      (f) => !uploadedFiles.some((u) => u.name === u.name && u.size === f.size)
     );
-
-    if (uploadedFiles.length + dedupedNew.length > MAX_FILES) {
-      const allowed = MAX_FILES - uploadedFiles.length;
-      if (allowed <= 0) {
-        toast.error(`Maximum ${MAX_FILES} files allowed`);
-        if (fileInputRef.current) fileInputRef.current.value = "";
-        return;
-      }
-      dedupedNew.splice(allowed);
-      toast("Some files skipped to keep within limit", { icon: "ℹ️" });
+    if (uploadedFiles.length + dedup.length > MAX_FILES) {
+      toast.error(`Max ${MAX_FILES} files allowed`);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
     }
-
-    if (dedupedNew.length === 0) {
-      toast("No new files added (duplicates skipped)", {
-        icon: "ℹ️ No new files added (duplicates skipped",
-      });
-    } else {
-      setUploadedFiles((prev) => [...prev, ...dedupedNew]);
-      toast.success(`${dedupedNew.length} file(s) uploaded`);
+    if (dedup.length) {
+      setUploadedFiles((p) => [...p, ...dedup]);
+      toast.success(`${dedup.length} file(s) uploaded`);
     }
-
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const removeFile = (index: number) => {
-    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
+  const removeFile = (idx: number) => {
+    setUploadedFiles((p) => p.filter((_, i) => i !== idx));
     toast.success("File removed");
   };
 
-  const addParticipant = () => {
-    append({
-      companyName: "",
-      companyAddress: "",
-      personName: "",
-      mailId: "",
-      contactNumber: "",
-    });
-  };
-
   const addParticipantByPhone = () => {
-    const normalized = normalizedPhone(newParticipantPhone);
-    if (!PHONE_REGEX.test(normalized)) {
-      toast.error(
-        "Enter valid Indian number (+91XXXXXXXXXX or 9/8/7/6XXXXXXXXX)"
-      );
+    const norm = normalizedPhone(newParticipantPhone);
+    if (!PHONE_REGEX.test(norm)) {
+      toast.error("Enter valid Indian number");
       return;
     }
-
-    // Prevent adding auctioneer's own number
-    if (user?.phoneNumber && normalizedPhone(user.phoneNumber) === normalized) {
-      toast.error("You cannot add your own number as a participant");
+    if (user?.phoneNumber && normalizedPhone(user.phoneNumber) === norm) {
+      toast.error("You cannot add your own number");
       return;
     }
-
-    // Check for duplicates by normalizing all numbers for comparison
-    const normalizedNumbers = fields.map((f) =>
-      normalizedPhone(f.contactNumber)
-    );
-    const duplicateIndex = normalizedNumbers.findIndex(
-      (num) => num === normalized
-    );
-
-    if (duplicateIndex !== -1) {
-      const duplicate = fields[duplicateIndex];
-      const message = duplicate.personName
-        ? `This number is already added for ${duplicate.personName}`
-        : "This phone number has already been added to the participants list";
-      toast.error(message);
+    const exists = fields.some((f) => normalizedPhone(f.contactNumber) === norm);
+    if (exists) {
+      toast.error("Number already added");
       return;
     }
-
-    // Check if number format is similar to an existing one (without +91)
-    const similarNumber = fields.find((f) => {
-      const a = normalizedPhone(f.contactNumber).replace("+91", "");
-      const b = normalized.replace("+91", "");
-      return a === b;
-    });
-
-    if (similarNumber) {
-      toast.error(
-        "This number appears to be a duplicate with different formatting"
-      );
-      return;
-    }
-
     append({
       companyName: "",
       companyAddress: "",
       personName: "",
       mailId: "",
-      contactNumber: normalized,
+      contactNumber: norm,
       _quick: true,
     });
-    toast.success("Added");
+    toast.success("Participant added");
     setNewParticipantPhone("");
   };
 
- const onSubmit = async (data: AuctionForm) => {
-  if (isSubmitting || rhfSubmitting) return;
-
-  if (!user) {
-    toast.error("Please log in to create an auction");
-    navigate("/login");
-    return;
-  }
-
-  if (!AuctionService.isAuthenticated()) {
-    toast.error("Your session has expired. Please log in again.");
-    navigate("/login");
-    return;
-  }
-
-  setIsSubmitting(true);
-
-  try {
-    // Process participants only if NOT open to all
-    const participantsArray = data.openToAllCompanies 
-      ? [] // Empty array when open to all
-      : data.participants
-          .map((p) => normalizedPhone(p.contactNumber))
-          .filter((phone) => PHONE_REGEX.test(phone))
-          .filter((phone, index, self) => self.indexOf(phone) === index);
-
-    // Validate: if NOT open to all, must have participants
-    if (!data.openToAllCompanies && participantsArray.length === 0) {
-      toast.error('Please add at least one participant or set auction as "Open to all companies"');
-      setIsSubmitting(false);
+  /* -------------- submit -------------- */
+  const onSubmit = async (data: AuctionForm) => {
+    if (isSubmitting) return;
+    if (!user || !AuctionService.isAuthenticated()) {
+      toast.error("Please log in");
+      navigate("/login");
       return;
     }
+    setIsSubmitting(true);
 
-    // Time validation (keep existing)
-    const selectedDate = new Date(data.auctionDate);
-    if (isToday(selectedDate)) {
-      const now = new Date();
-      const currentTime = format(now, "HH:mm");
-      if (data.auctionStartTime < currentTime) {
-        toast.error("Start time must be in the future for today's date");
-        setIsSubmitting(false);
+    try {
+      /* 1. phones – always build */
+      const phones = data.participants
+        .map((p) => normalizedPhone(p.contactNumber))
+        .filter((p) => PHONE_REGEX.test(p));
+      const uniquePhones = Array.from(new Set(phones));
+
+      /* 2. validate only when closed */
+      if (!data.openToAllCompanies && uniquePhones.length === 0) {
+        toast.error('Add at least one participant when auction is not "Open to all"');
         return;
       }
-    }
 
-    const startTime = data.auctionStartTime && data.auctionStartTime.length === 5
-      ? `${data.auctionStartTime}:00`
-      : data.auctionStartTime;
+      const startTime =
+        data.auctionStartTime.length === 5
+          ? `${data.auctionStartTime}:00`
+          : data.auctionStartTime;
 
-    const auctionPayload: CreateAuctionRequest = {
-      title: data.title.trim(),
-      description: data.auctionDetails.trim(),
-      auction_date: data.auctionDate,
-      start_time: startTime,
-      duration: data.duration || 0,
-      currency: data.currency,
-      base_price: 0,
-      decremental_value: data.decrementalValue ?? 0,
-      pre_bid_allowed: true,
-      open_to_all: data.openToAllCompanies, // THIS IS THE CRITICAL FIX
-      send_invitations: !data.openToAllCompanies, // Send invitations only when NOT open to all
-      participants: participantsArray,
-    };
+      /* 3. payload – always send the list */
+      const payload: CreateAuctionRequest = {
+        title: data.title.trim(),
+        description: data.auctionDetails.trim(),
+        auction_date: data.auctionDate,
+        start_time: startTime,
+        duration: data.duration,
+        currency: data.currency,
+        base_price: 0,
+        decremental_value: data.decrementalValue ?? 0,
+        pre_bid_allowed: true,
+        open_to_all: data.openToAllCompanies,
+        send_invitations: !data.openToAllCompanies,
+        participants: uniquePhones, 
+      };
 
-    // Rest of your code remains the same...
-    const response = await AuctionService.createAuction(auctionPayload, uploadedFiles);
-    
-    if (!response.success || !response.auction) {
-      throw new Error(response.message || "Failed to create auction");
-    }
+      const res = await AuctionService.createAuction(payload, uploadedFiles);
+      if (!res.success) throw new Error(res.message || "Creation failed");
 
-    // Success handling...
-  } catch (error: any) {
-    // Error handling...
-  } finally {
-    setIsSubmitting(false);
-  }
-};
-  
-      const auctionId = response.auction.id;
-      let successMessage = `Auction "${response.auction.title}" created successfully!`;
-      // Prefer new API shape invitationResults; fallback to legacy smsResults if present
-      const inv = (response as any).invitationResults;
-      if (inv) {
-        const successfulSMS = inv.successfulSMS || 0;
-        const successfulWhatsApp = inv.successfulWhatsApp || 0;
-        const failed = Array.isArray(inv.failures) ? inv.failures.length : 0;
-        const total =
-          inv.totalParticipants ?? successfulSMS + successfulWhatsApp + failed;
-        successMessage += ` ${successfulSMS} SMS sent${
-          successfulWhatsApp ? `, ${successfulWhatsApp} WhatsApp sent` : ""
-        }.`;
-        if (failed > 0) successMessage += ` ${failed} invitation(s) failed.`;
-        if (typeof total === "number")
-          successMessage += ` (${total} participant${
-            total === 1 ? "" : "s"
-          } processed)`;
-      } else if ((response as any).smsResults) {
-        const { successfulSMS = 0, failedSMS = 0 } = (response as any)
-          .smsResults;
-        if (successfulSMS > 0)
-          successMessage += ` ${successfulSMS} invitation(s) sent.`;
-        if (failedSMS > 0)
-          successMessage += ` ${failedSMS} invitation(s) failed.`;
-      }
-
-      toast.success(successMessage, { duration: 6000 });
-
-      // Reset form safely (keep today/date defaults the same after reset)
+      toast.success(res.message || `Auction "${res.auction.title}" created!`);
       reset({
         title: "",
         auctionDate: todayISO,
@@ -364,43 +239,29 @@ const NewAuction: React.FC = () => {
         participants: [],
       });
       setUploadedFiles([]);
-
-      setTimeout(() => {
-        navigate(`/dashboard/my-auction/${auctionId}`);
-      }, 1200);
-    } catch (error: any) {
-      const msg =
-        typeof error?.message === "string"
-          ? error.message
-          : "Failed to create auction. Please try again.";
-      if (/Authentication|session/i.test(msg)) {
-        toast.error(`${msg} Redirecting to login...`);
+      setTimeout(() => navigate(`/dashboard/my-auction/${res.auction.id}`), 1200);
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e.message || "Creation error");
+      if (/auth|session/i.test(e.message)) {
         AuctionService.clearAuth();
-        setTimeout(() => navigate("/login"), 1400);
-      } else if (/Network/i.test(msg)) {
-        toast.error(
-          "Network error. Please check your connection and try again."
-        );
-      } else if (/Server/i.test(msg)) {
-        toast.error("Server error. Please try again in a few moments.");
-      } else {
-        toast.error(msg);
+        navigate("/login");
       }
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  /* -------------- render -------------- */
   return (
     <div className="ap-newauction-wrapper">
-      {/* Header Section */}
       <div className="ap-newauction-container">
         <div className="card mb-6">
           <div className="card-header flex items-center justify-between">
             <h1 className="text-2xl font-bold text-text-primary flex items-center gap-2">
               Create New Auction
             </h1>
-            <span className="inline-flex  items-center gap-1 px-3 py-1 rounded-full bg-accent text-white text-sm font-medium shadow-sm">
+            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-accent text-white text-sm font-medium">
               <Users className="w-4 h-4 mr-2" />
               Auctioneer
             </span>
@@ -411,10 +272,7 @@ const NewAuction: React.FC = () => {
             </p>
           </div>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="ap-newauction-container">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Basic Information */}
           <div className="card">
@@ -423,171 +281,99 @@ const NewAuction: React.FC = () => {
                 Basic Information
               </h2>
             </div>
-            {/* Bulk modal is rendered at end of return to appear as popup */}
-            <div className="card-body">
-              <div className="grid grid-cols-1 gap-6">
-                {/* Auction Title */}
-                <div className="form-group">
-                  <label htmlFor="title" className="form-label">
-                    <FileText className="w-4 h-4 inline mr-2" />
-                    Auction Title <span className="required">*</span>
-                  </label>
-
-                  <input
-                    type="text"
-                    id="title"
-                    className={`form-input ${
-                      errors.title ? "border-red-500" : ""
-                    }`}
-                    placeholder="Enter Auction Title (e.g., Steel Pipes)"
-                    {...register("title", {
-                      required: "Auction title is required",
-                      minLength: {
-                        value: 5,
-                        message: "Auction title must be at least 5 characters",
-                      },
-                    })}
-                  />
-                  {errors.title && (
-                    <p className="error-message">{errors.title.message}</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                {/* Auction Date */}
-                <div className="form-group">
-                  <label htmlFor="auctionDate" className="form-label">
-                    <Calendar className="w-4 h-4 inline mr-2" />
-                    Auction Date <span className="required">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    id="auctionDate"
-                    className={`form-input ${
-                      errors.auctionDate ? "error" : ""
-                    }`}
-                    min={todayISO}
-                    {...register("auctionDate", {
-                      required: "Auction date is required",
-                      validate: (value) => {
-                        if (!value) return "Auction date is required";
-                        return (
-                          value >= todayISO ||
-                          "Auction date cannot be in the past"
-                        );
-                      },
-                    })}
-                  />
-                  {errors.auctionDate && (
-                    <div className="form-error">
-                      {errors.auctionDate.message}
-                    </div>
-                  )}
-                  <div className="text-sm text-text-secondary mt-1">
-                    Default: Today ({format(new Date(), "dd/MM/yyyy")})
-                  </div>
-                </div>
-
-                {/* Auction Start Time */}
-                <div className="form-group">
-                  <label htmlFor="auctionStartTime" className="form-label">
-                    <Clock className="w-4 h-4 inline mr-2" />
-                    Auction Start Time <span className="required">*</span>
-                  </label>
-                  <input
-                    type="time"
-                    id="auctionStartTime"
-                    className={`form-input ${
-                      errors.auctionStartTime ? "error" : ""
-                    }`}
-                    {...register("auctionStartTime", {
-                      required: "Start time is required",
-                    })}
-                  />
-                  {errors.auctionStartTime && (
-                    <div className="form-error">
-                      {errors.auctionStartTime.message}
-                    </div>
-                  )}
-                  <div className="text-sm text-text-secondary mt-1">
-                    {watchAuctionDate === todayISO
-                      ? `Current time: ${format(
-                          new Date(),
-                          "HH:mm"
-                        )} - Must be future time`
-                      : "Select auction start time"}
-                  </div>
-                </div>
-
-                {/* Duration */}
-                <div className="form-group">
-                  <label htmlFor="duration" className="form-label">
-                    <Clock className="w-4 h-4 inline mr-2" />
-                    Duration <span className="required">*</span>
-                  </label>
-                  <select
-                    id="duration"
-                    className={`form-input ${errors.duration ? "error" : ""}`}
-                    {...register("duration", {
-                      required: "Duration is required",
-                      valueAsNumber: true,
-                    })}
-                  >
-                    <option value={15}>15 Minutes</option>
-                    <option value={30}>30 Minutes</option>
-                    <option value={60}>1 Hour</option>
-                    <option value={120}>2 Hours</option>
-                  </select>
-                  {errors.duration && (
-                    <div className="form-error">{errors.duration.message}</div>
-                  )}
-                  <div className="text-sm text-text-secondary mt-1">
-                    Default: 2 Hours
-                  </div>
-                </div>
-
-                {/* Currency */}
-                <div className="form-group">
-                  <label htmlFor="currency" className="form-label">
-                    <IndianRupee className="w-4 h-4 inline mr-2" />
-                    Currency <span className="required">*</span>
-                  </label>
-                  <select
-                    id="currency"
-                    className={`form-input ${errors.currency ? "error" : ""}`}
-                    {...register("currency", {
-                      required: "Currency is required",
-                    })}
-                  >
-                    <option value="INR">INR (Indian Rupee)</option>
-                    <option value="USD">USD (US Dollar)</option>
-                  </select>
-                  {errors.currency && (
-                    <div className="form-error">{errors.currency.message}</div>
-                  )}
-                  <div className="text-sm text-text-secondary mt-1">
-                    Default: INR
-                  </div>
-                </div>
-              </div>
-
-              {/* Open to All Companies */}
+            <div className="card-body grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="form-group">
-                <label className="flex items-start gap-3 flex-wrap">
-                  <span className="form-label">
-                    Open to all companies (Suppliers)
-                  </span>
+                <label className="form-label">
+                  <FileText className="w-4 h-4 inline mr-2" />
+                  Auction Title <span className="required">*</span>
+                </label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="Enter Auction Title"
+                  {...register("title", {
+                    required: "Required",
+                    minLength: { value: 5, message: "Min 5 chars" },
+                  })}
+                />
+                {errors.title && (
+                  <p className="form-error">{errors.title.message}</p>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">
+                  <Calendar className="w-4 h-4 inline mr-2" />
+                  Auction Date <span className="required">*</span>
+                </label>
+                <input
+                  type="date"
+                  min={todayISO}
+                  className="form-input"
+                  {...register("auctionDate", {
+                    required: "Required",
+                    validate: (v) => v >= todayISO || "Cannot be in the past",
+                  })}
+                />
+                {errors.auctionDate && (
+                  <p className="form-error">{errors.auctionDate.message}</p>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">
+                  <Clock className="w-4 h-4 inline mr-2" />
+                  Start Time <span className="required">*</span>
+                </label>
+                <input
+                  type="time"
+                  className="form-input"
+                  {...register("auctionStartTime", {
+                    required: "Required",
+                  })}
+                />
+                {errors.auctionStartTime && (
+                  <p className="form-error">{errors.auctionStartTime.message}</p>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">
+                  <Clock className="w-4 h-4 inline mr-2" />
+                  Duration <span className="required">*</span>
+                </label>
+                <select className="form-input" {...register("duration")}>
+                  <option value={15}>15 Minutes</option>
+                  <option value={30}>30 Minutes</option>
+                  <option value={60}>1 Hour</option>
+                  <option value={120}>2 Hours</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">
+                  <IndianRupee className="w-4 h-4 inline mr-2" />
+                  Currency <span className="required">*</span>
+                </label>
+                <select className="form-input" {...register("currency")}>
+                  <option value="INR">INR</option>
+                  <option value="USD">USD</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="flex items-center gap-2">
                   <input
                     type="checkbox"
                     className="form-checkbox"
                     {...register("openToAllCompanies")}
                   />
+                  <span>Open to all companies (Suppliers)</span>
                 </label>
                 <div className="form-helper-text">
                   {watchOpenToAll
-                    ? "✓ Auction details will be visible to every participant"
-                    : "⚠️ Only invited participants can view and join this auction"}
+                    ? "✓ Visible to every participant"
+                    : "⚠️ Only invited participants can view"}
                 </div>
               </div>
             </div>
@@ -602,143 +388,105 @@ const NewAuction: React.FC = () => {
             </div>
             <div className="card-body">
               <div className="form-group">
-                <label htmlFor="auctionDetails" className="form-label">
+                <label className="form-label">
                   <FileText className="w-4 h-4 inline mr-2" />
                   Product Details / Description{" "}
                   <span className="required">*</span>
                 </label>
                 <textarea
-                  id="auctionDetails"
                   rows={4}
-                  className={`form-input ${
-                    errors.auctionDetails ? "error" : ""
-                  }`}
-                  placeholder="Enter Detailed Description of Products/Services to Be Auctioned"
+                  className="form-input"
+                  placeholder="Detailed description..."
                   {...register("auctionDetails", {
-                    required: "Product details are required",
-                    minLength: {
-                      value: 10,
-                      message:
-                        "Please provide detailed product information (minimum 10 characters)",
-                    },
+                    required: "Required",
+                    minLength: { value: 10, message: "Min 10 chars" },
                   })}
                 />
                 {errors.auctionDetails && (
-                  <div className="form-error">
-                    {errors.auctionDetails.message}
-                  </div>
+                  <p className="form-error">{errors.auctionDetails.message}</p>
                 )}
               </div>
 
-              {/* Pre-Bid Offer note (implicit) */}
               <div className="form-group">
-                <div className="text-sm text-text-secondary">
-                  ✓ Participants can submit pre-bid offers before auction starts
-                  (pre-bid enabled by default)
-                </div>
-              </div>
-
-              {/* Decremental Value */}
-              <div className="form-group">
-                <label htmlFor="decrementalValue" className="form-label">
+                <label className="form-label">
                   <ArrowDown className="w-4 h-4 inline mr-2" />
                   Decremental Value
                 </label>
                 <input
                   type="number"
-                  id="decrementalValue"
-                  min="1"
-                  step="1"
+                  min={1}
+                  step={1}
                   className="form-input"
-                  placeholder="Enter minimum bid reduction amount"
+                  placeholder="Min bid reduction"
                   {...register("decrementalValue", {
                     valueAsNumber: true,
-                    min: {
-                      value: 1,
-                      message: "Decremental value must be at least 1",
-                    },
+                    min: { value: 1, message: "Min 1" },
                   })}
                 />
                 {errors.decrementalValue && (
-                  <div className="form-error">
-                    {errors.decrementalValue.message}
-                  </div>
+                  <p className="form-error">{errors.decrementalValue.message}</p>
                 )}
-                <div className="text-sm text-text-secondary mt-1">
-                  Minimum amount by which each bid must be lower than the
-                  current lowest bid
-                </div>
               </div>
             </div>
           </div>
 
-          {/* Auction Documents */}
+          {/* Documents */}
           <div className="card">
             <div className="card-header">
               <h2 className="text-xl font-semibold text-text-primary">
                 Auction Documents
               </h2>
               <p className="text-text-secondary">
-                Upload supporting documents (Optional, max 3 files)
+                Optional – max {MAX_FILES} files, {MAX_FILE_MB} MB each
               </p>
             </div>
             <div className="card-body">
               <div className="form-group">
-                <label htmlFor="documents" className="form-label">
+                <label className="form-label">
                   <Upload className="w-4 h-4 inline mr-2" />
                   Upload Documents
                 </label>
                 <input
                   ref={fileInputRef}
                   type="file"
-                  id="documents"
                   multiple
                   accept="*/*"
                   className="form-input"
                   onChange={handleFileUpload}
                   disabled={uploadedFiles.length >= MAX_FILES}
                 />
-                <div className="text-sm text-text-secondary mt-1">
-                  Upload max {MAX_FILES} files of any type (PDF, DOC, XLS,
-                  images) • up to {MAX_FILE_MB} MB each
-                </div>
               </div>
 
-              {/* Uploaded Files */}
               {uploadedFiles.length > 0 && (
-                <div className="space-y-2">
+                <div className="space-y-2 mt-4">
                   <h4 className="font-medium text-white">Uploaded Files:</h4>
-                  {uploadedFiles.length > 0 &&
-                    uploadedFiles.map((file, index) => (
-                      <div
-                        key={`${file.name}-${file.size}-${file.lastModified}-${index}`}
-                        className="ap-newauction-file-item"
-                      >
-                        <div className="file-info">
-                          <FileText className="file-icon" />
-                          <span className="file-name">{file.name}</span>
-                          <span className="file-size">
-                            ({(file.size / 1024 / 1024).toFixed(2)} MB)
-                          </span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => removeFile(index)}
-                          className="file-remove-btn"
-                          // className="text-red-600 hover:text-red-800 p-1"
-                          // className="file-remove-btn"
-                          
-                        >
-                          <Trash2 className="file-icon" />
-                        </button>
+                  {uploadedFiles.map((file, idx) => (
+                    <div
+                      key={`${file.name}-${idx}`}
+                      className="ap-newauction-file-item"
+                    >
+                      <div className="file-info">
+                        <FileText className="file-icon" />
+                        <span className="file-name">{file.name}</span>
+                        <span className="file-size">
+                          ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                        </span>
                       </div>
-                    ))}
+                      <button
+                        type="button"
+                        onClick={() => removeFile(idx)}
+                        className="file-remove-btn"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
           </div>
 
-          {/* Add Participants */}
+          {/* Participants */}
           <div className="card">
             <div className="card-header">
               <div className="flex items-center justify-between">
@@ -746,15 +494,11 @@ const NewAuction: React.FC = () => {
                   <h2 className="text-xl font-semibold text-text-primary">
                     Add Participants
                   </h2>
-                  <p
-                    className="text-text-secondary"
-                    style={{ marginTop: "15px", marginBottom: "15px" }}
-                  >
-                    Add unlimited participants (Phone number is primary
-                    identifier).
+                  <p className="text-text-secondary mt-2">
+                    Phone number is the primary identifier.
                     {watchOpenToAll
-                      ? " Note: auction is open to all companies; invitations are optional."
-                      : " Only invited participants will be able to view and join."}
+                      ? " Invitations are optional (auction is open)."
+                      : " Only invited participants can join."}
                   </p>
                 </div>
 
@@ -764,10 +508,8 @@ const NewAuction: React.FC = () => {
                     placeholder="Enter Phone number"
                     value={newParticipantPhone}
                     onChange={(e) => setNewParticipantPhone(e.target.value)}
-                    className="form-input text-center"
-                    aria-label="Participant phone number"
+                    className="form-input"
                   />
-
                   <button
                     type="button"
                     onClick={addParticipantByPhone}
@@ -776,25 +518,14 @@ const NewAuction: React.FC = () => {
                     <Plus className="w-4 h-4" />
                     Add
                   </button>
-
                   <button
                     type="button"
                     onClick={() => setBulkOpen((s) => !s)}
                     className="btn btn-secondary"
-                    title="Add multiple participants"
                   >
                     <Plus className="w-4 h-4" />
-                    Bulk Add
+                    Bulk
                   </button>
-                  {/* <button
-                      type="button"
-                      onClick={addParticipant}
-                      className="btn btn-secondary"
-                      title="Add full participant form"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Add Participant
-                    </button> */}
                 </div>
               </div>
             </div>
@@ -803,13 +534,12 @@ const NewAuction: React.FC = () => {
                 <div className="ap-newauction-empty-state">
                   <Users className="w-12 h-12 text-text-secondary mx-auto mb-4" />
                   <p className="text-text-secondary">
-                    No participants added yet. Click "Add by Phone" to invite
-                    users.
+                    No participants added yet.
                   </p>
                 </div>
               ) : (
                 <div className="space-y-6">
-                  {fields.map((field, index) => (
+                  {fields.map((field, idx) => (
                     <div
                       key={field.id}
                       className={`ap-newauction-participant-card ${
@@ -818,140 +548,92 @@ const NewAuction: React.FC = () => {
                     >
                       <div className="flex items-center justify-between mb-4">
                         <h4 className="font-medium text-text-primary">
-                          Participant {index + 1}
+                          Participant {idx + 1}
                         </h4>
                         <button
                           type="button"
-                          onClick={() => remove(index)}
-                          // className="text-red-600 hover:text-red-800 p-1"
-                          className="text-red-600 hover:text-red-800 p-1"
+                          onClick={() => remove(idx)}
+                          className="text-red-600 hover:text-red-800"
                         >
                           <Trash2 className="w-4 h-4" />
-                          
                         </button>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Company Name (hidden for quick add) */}
                         {!field._quick && (
                           <div className="form-group">
                             <label className="form-label">Company Name *</label>
                             <input
                               type="text"
                               className="form-input"
-                              placeholder="Enter company name"
-                              {...register(
-                                `participants.${index}.companyName`,
-                                {
-                                  required: "Company name is required",
-                                }
-                              )}
+                              placeholder="Company name"
+                              {...register(`participants.${idx}.companyName`, {
+                                required: "Required",
+                              })}
                             />
-                            {errors.participants?.[index]?.companyName && (
-                              <div className="form-error">
-                                {
-                                  errors.participants[index]?.companyName
-                                    ?.message
-                                }
-                              </div>
+                            {errors.participants?.[idx]?.companyName && (
+                              <p className="form-error">
+                                {errors.participants[idx]?.companyName?.message}
+                              </p>
                             )}
                           </div>
                         )}
 
                         <div className="form-group">
                           <label className="form-label">Contact Number *</label>
-                          <div className="flex flex-col sm:flex-row items-stretch gap-2 w-full">
-                            <input
-                              type="tel"
-                              className="form-input flex-1 min-w-0"
-                              placeholder="Enter phone number"
-                              {...register(
-                                `participants.${index}.contactNumber`,
-                                {
-                                  required: "Contact number is required",
-                                  pattern: {
-                                    value: PHONE_REGEX,
-                                    message:
-                                      "Please enter a valid Indian phone number",
-                                  },
-                                  setValueAs: (v: string) => normalizedPhone(v),
-                                }
-                              )}
-                            />
-                            {/* {field.contactNumber && (
-                              <button
-                                type="button"
-                                className="btn btn-primary whitespace-nowrap flex-shrink-0 px-3 py-2 text-base"
-                                style={{ minWidth: "120px" }}
-                                onClick={() =>
-                                  toast.success(
-                                    `Invitation sent to ${field.contactNumber}`
-                                  )
-                                }
-                              >
-                                <span className="flex items-center justify-center">
-                                  <Send className="w-4 h-4 inline mr-1" />
-                                  <span className="inline-block">
-                                    Invitation
-                                  </span>
-                                </span>
-                              </button>
-                            )} */}
-                          </div>
-                          {errors.participants?.[index]?.contactNumber && (
-                            <div className="form-error">
-                              {
-                                errors.participants[index]?.contactNumber
-                                  ?.message
-                              }
-                            </div>
+                          <input
+                            type="tel"
+                            className="form-input"
+                            placeholder="Phone number"
+                            {...register(`participants.${idx}.contactNumber`, {
+                              required: "Required",
+                              pattern: {
+                                value: PHONE_REGEX,
+                                message: "Invalid Indian number",
+                              },
+                              setValueAs: (v: string) => normalizedPhone(v),
+                            })}
+                          />
+                          {errors.participants?.[idx]?.contactNumber && (
+                            <p className="form-error">
+                              {errors.participants[idx]?.contactNumber?.message}
+                            </p>
                           )}
                         </div>
 
                         {!field._quick && (
-                          <div className="form-group">
-                            <label className="form-label">Person Name</label>
-                            <input
-                              type="text"
-                              className="form-input"
-                              placeholder="Enter contact person name"
-                              {...register(`participants.${index}.personName`)}
-                            />
-                          </div>
-                        )}
+                          <>
+                            <div className="form-group">
+                              <label className="form-label">Person Name</label>
+                              <input
+                                type="text"
+                                className="form-input"
+                                placeholder="Contact person"
+                                {...register(`participants.${idx}.personName`)}
+                              />
+                            </div>
 
-                        {!field._quick && (
-                          <div className="form-group">
-                            <label className="form-label">Email Id</label>
-                            <input
-                              type="email"
-                              className="form-input"
-                              placeholder="Enter email address"
-                              {...register(`participants.${index}.mailId`, {
-                                pattern: {
-                                  value:
-                                    /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                                  message: "Please enter a valid email address",
-                                },
-                              })}
-                            />
-                            {errors.participants?.[index]?.mailId && (
-                              <div className="form-error">
-                                {errors.participants[index]?.mailId?.message}
-                              </div>
-                            )}
-                          </div>
+                            <div className="form-group">
+                              <label className="form-label">Email</label>
+                              <input
+                                type="email"
+                                className="form-input"
+                                placeholder="Email address"
+                                {...register(`participants.${idx}.mailId`, {
+                                  pattern: {
+                                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                                    message: "Invalid email",
+                                  },
+                                })}
+                              />
+                              {errors.participants?.[idx]?.mailId && (
+                                <p className="form-error">
+                                  {errors.participants[idx]?.mailId?.message}
+                                </p>
+                              )}
+                            </div>
+                          </>
                         )}
-
-                        {/* <div className="form-group md:col-span-2">
-                          <label className="form-label">Company Address</label>
-                          <textarea
-                            rows={2}
-                            className="form-input"
-                            placeholder="Enter company address"
-                            {...register(`participants.${index}.companyAddress`)}
-                          />
-                        </div> */}
                       </div>
                     </div>
                   ))}
@@ -960,60 +642,41 @@ const NewAuction: React.FC = () => {
             </div>
           </div>
 
-          {/* Submit Button */}
+          {/* Actions */}
           <div className="card">
-            <div className="card-body">
-              <div className="flex items-center justify-end gap-4">
-                <button
-                  type="button"
-                  onClick={() => {
-                    reset({
-                      title: "",
-                      auctionDate: todayISO,
-                      auctionStartTime: format(new Date(), "HH:mm"),
-                      duration: 120,
-                      openToAllCompanies: true,
-                      currency: "INR",
-                      auctionDetails: "",
-                      participants: [],
-                    });
-                    setUploadedFiles([]);
-                    if (fileInputRef.current) fileInputRef.current.value = "";
-                  }}
-                  className="btn btn-secondary"
-                >
-                  Reset Form
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="btn btn-primary"
-                >
-                  {isSubmitting ? (
-                    <div className="loading-spinner" />
-                  ) : (
-                    <>Submit & Create Auction</>
-                  )}
-                </button>
-              </div>
-
-              {/* SMS Notification Info */}
-              {/* <div className="ap-newauction-sms-notification">
-                <div className="flex items-center gap-2 text-sm text-purple-800">
-                  <Send className="w-4 h-4" />
-                  <span className="font-medium">Auto SMS Type 3:</span>
-                </div>
-                <p className="text-xs text-purple-700 mt-1">
-                  "Please submit Pre Bid on Auction Website to join Auction + Website/App link"
-                  <br />
-                  (Will be sent to all added participants upon auction creation)
-                </p>
-              </div> */}
+            <div className="card-body flex items-center justify-end gap-4">
+              <button
+                type="button"
+                onClick={() => {
+                  reset({
+                    title: "",
+                    auctionDate: todayISO,
+                    auctionStartTime: format(new Date(), "HH:mm"),
+                    duration: 120,
+                    openToAllCompanies: true,
+                    currency: "INR",
+                    auctionDetails: "",
+                    participants: [],
+                  });
+                  setUploadedFiles([]);
+                  if (fileInputRef.current) fileInputRef.current.value = "";
+                }}
+                className="btn btn-secondary"
+              >
+                Reset
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="btn btn-primary"
+              >
+                {isSubmitting ? <div className="loading-spinner" /> : <>Create Auction</>}
+              </button>
             </div>
           </div>
         </form>
 
-        {/* Bulk Add Modal */}
+        {/* Bulk Modal */}
         {bulkOpen && (
           <div className="ap-modal-overlay">
             <div className="ap-modal">
@@ -1027,7 +690,7 @@ const NewAuction: React.FC = () => {
                 <textarea
                   rows={6}
                   className="form-input w-full"
-                  placeholder={`+919876543210, 9876543210`}
+                  placeholder="+919876543210&#10;9876543210, 9123456789"
                   value={bulkText}
                   onChange={(e) => setBulkText(e.target.value)}
                 />
@@ -1049,17 +712,10 @@ const NewAuction: React.FC = () => {
                       .split(/[,\n\s]+/)
                       .map((p) => p.trim())
                       .filter(Boolean);
-
-                    if (parts.length === 0) {
-                      toast.error("No phone numbers found to add");
-                      return;
-                    }
-
-                    const normalizedList: string[] = [];
-                    const already = fields.map((f) =>
-                      normalizedPhone(f.contactNumber)
+                    const phones: string[] = [];
+                    const exists = new Set(
+                      fields.map((f) => normalizedPhone(f.contactNumber))
                     );
-
                     for (const p of parts) {
                       const n = normalizedPhone(p);
                       if (!PHONE_REGEX.test(n)) continue;
@@ -1068,17 +724,14 @@ const NewAuction: React.FC = () => {
                         normalizedPhone(user.phoneNumber) === n
                       )
                         continue;
-                      if (already.includes(n) || normalizedList.includes(n))
-                        continue;
-                      normalizedList.push(n);
+                      if (exists.has(n) || phones.includes(n)) continue;
+                      phones.push(n);
                     }
-
-                    if (normalizedList.length === 0) {
-                      toast.error("No valid or new phone numbers to add");
+                    if (!phones.length) {
+                      toast.error("No valid/new numbers");
                       return;
                     }
-
-                    normalizedList.forEach((num) =>
+                    phones.forEach((num) =>
                       append({
                         companyName: "",
                         companyAddress: "",
@@ -1088,10 +741,7 @@ const NewAuction: React.FC = () => {
                         _quick: true,
                       })
                     );
-
-                    toast.success(
-                      `Added ${normalizedList.length} participant(s)`
-                    );
+                    toast.success(`Added ${phones.length} participant(s)`);
                     setBulkText("");
                     setBulkOpen(false);
                   }}
