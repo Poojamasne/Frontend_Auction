@@ -553,7 +553,6 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 .form-select,
 textarea.form-input {
   display: block;
-  text-align: center;
   width: 100%;
   border: 1px solid rgba(255, 255, 255, 0.2);
   padding: 0.875rem 1rem;
@@ -961,6 +960,7 @@ textarea.form-input {
   .card-header .form-input {
     max-width: 100%;
     width: 100%;
+    text-align: center;
   }
 
   .card-header .btn {
