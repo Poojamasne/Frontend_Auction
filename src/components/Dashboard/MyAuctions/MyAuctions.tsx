@@ -732,14 +732,32 @@ const MyAuctions: React.FC = () => {
 }
 
   // Derive start Date object for an auction
-  const getAuctionStart = (auction: BaseAuction) => {
-    try {
-      const iso = `${auction.auctionDate}T${auction.auctionStartTime}:00`;
-      return new Date(iso);
-    } catch {
-      return new Date();
-    }
-  };
+ /* 1.  Helper : make a JS-Date out of the auction fields */
+const getAuctionStart = (auction: BaseAuction) => {
+  try {
+    // keep the ISO string for internal math, but we will *display* differently
+    const iso = `${auction.auctionDate}T${auction.auctionStartTime}:00`;
+    return new Date(iso);
+  } catch {
+    return new Date();
+  }
+};
+
+/* 2.  Helper : pretty-print date  -> 24-09-2025 */
+const formatAuctionDate = (dateStr: string) => {
+  // dateStr is expected as YYYY-MM-DD  (2025-09-24)
+  const [y, m, d] = dateStr.split('-');
+  return `${d}-${m}-${y}`;                 // 24-09-2025
+};
+
+/* 3.  Helper : pretty-print time  -> 12-hour with AM/PM */
+const formatAuctionTime = (time24: string) => {
+  // time24 is expected as HH:mm  (12:38)
+  const [h, minute] = time24.split(':').map(Number);
+  const suffix = h >= 12 ? 'PM' : 'AM';
+  const hour12 = h % 12 || 12;
+  return `${hour12}:${String(minute).padStart(2, '0')} ${suffix}`; // 12:38 PM
+};
 
   // Derive end time using duration (backend returns seconds for live, minutes for upcoming)
   // const getAuctionEnd = (auction: BaseAuction) => {
@@ -1303,8 +1321,8 @@ const getDerivedStatus = (auction: BaseAuction, nowMs: number): BaseAuction['sta
                     <div className="ap-myauctions-info-item">
                       <span className="ap-myauctions-info-label">Date &amp; Time:</span>
                       <p className="ap-myauctions-info-value">
-                        <Calendar className="w-4 h-4" />
-                        {auction.auctionDate} at {auction.auctionStartTime}
+                      <Calendar className="w-4 h-4" />
+                     {formatAuctionDate(auction.auctionDate)} at {formatAuctionTime(auction.auctionStartTime)}
                       </p>
                     </div>
                       {activeTab !== 'participant' && (
