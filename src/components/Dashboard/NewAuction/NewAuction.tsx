@@ -122,6 +122,7 @@ const NewAuction: React.FC = () => {
     if (!candidate.startsWith("+91")) {
       if (/^[6-9]\d{9}$/.test(candidate)) candidate = `+91${candidate}`;
     }
+
     return candidate;
   };
 
@@ -163,7 +164,9 @@ const NewAuction: React.FC = () => {
       toast.error("You cannot add your own number");
       return;
     }
-    const exists = fields.some((f) => normalizedPhone(f.contactNumber) === norm);
+    const exists = fields.some(
+      (f) => normalizedPhone(f.contactNumber) === norm
+    );
     if (exists) {
       toast.error("Number already added");
       return;
@@ -199,7 +202,9 @@ const NewAuction: React.FC = () => {
 
       /* 2. validate only when closed */
       if (!data.openToAllCompanies && uniquePhones.length === 0) {
-        toast.error('Add at least one participant when auction is not "Open to all"');
+        toast.error(
+          'Add at least one participant when auction is not "Open to all"'
+        );
         return;
       }
 
@@ -221,7 +226,7 @@ const NewAuction: React.FC = () => {
         pre_bid_allowed: true,
         open_to_all: data.openToAllCompanies,
         send_invitations: !data.openToAllCompanies,
-        participants: uniquePhones, 
+        participants: uniquePhones,
       };
 
       const res = await AuctionService.createAuction(payload, uploadedFiles);
@@ -239,7 +244,10 @@ const NewAuction: React.FC = () => {
         participants: [],
       });
       setUploadedFiles([]);
-      setTimeout(() => navigate(`/dashboard/my-auction/${res.auction.id}`), 1200);
+      setTimeout(
+        () => navigate(`/dashboard/my-auction/${res.auction.id}`),
+        1200
+      );
     } catch (e: any) {
       console.error(e);
       toast.error(e.message || "Creation error");
@@ -523,7 +531,15 @@ const NewAuction: React.FC = () => {
                     type="tel"
                     placeholder="Add phone"
                     value={newParticipantPhone}
-                    onChange={(e) => setNewParticipantPhone(e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, ""); // Remove non-digits
+                      if (value.length <= 10) {
+                        // Only update if length is <= 10
+                        setNewParticipantPhone(value);
+                      }
+                    }}
+                    maxLength={10}
+                    pattern="[0-9]{10}"
                     className="form-input"
                   />
                   <button
@@ -719,7 +735,7 @@ const NewAuction: React.FC = () => {
                 <textarea
                   rows={6}
                   className="form-input w-full"
-                  placeholder="+919876543210&#10;9876543210, 9123456789"
+                  placeholder="Enter phone numbers here eg. +919876543210, 9876543210"
                   value={bulkText}
                   onChange={(e) => setBulkText(e.target.value)}
                 />
