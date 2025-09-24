@@ -783,3 +783,39 @@
     right: -1rem;
   }
 }
+
+/* ---------- Notification toggle button ---------- */
+.ap-notification-item .ap-notification-toggle-btn {
+  margin-left: auto;               /* keep it on the right side of the row */
+  padding: 4px 10px;
+  font-size: 0.75rem;              /* 12px */
+  line-height: 1;
+  border-radius: 9999px;           /* pill shape */
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+/* ----- Unread state ----- */
+.ap-notification-item.unread .ap-notification-toggle-btn {
+  background: #10b981;             /* Tailwind green-500 */
+  color: #ffffff;
+}
+.ap-notification-item.unread .ap-notification-toggle-btn:hover {
+  background: #059669;             /* Tailwind green-600 */
+}
+
+/* ----- Read state ----- */
+.ap-notification-item:not(.unread) .ap-notification-toggle-btn {
+  background: #e5e7eb;             /* Tailwind gray-200 */
+  color: #374151;                  /* Tailwind gray-700 */
+}
+
+/* ---------- Tiny green dot ---------- */
+.ap-notification-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  margin-left: 8px;
+}

@@ -10,7 +10,6 @@ interface DashboardHeaderProps {
   isSidebarOpen: boolean;
 }
 
-// Notification type matches NotificationContext
 type Notification = {
   id: string | number;
   message: string;
@@ -20,28 +19,28 @@ type Notification = {
   [key: string]: any;
 };
 
-const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuClick, isSidebarOpen }) => {
+const DashboardHeader: React.FC<DashboardHeaderProps> = ({
+  onMenuClick,
+  isSidebarOpen,
+}) => {
   const { user } = useAuth();
+  const {
+    notifications,
+    unreadCount,
+    markAsRead,
+    clearNotifications,
+    fetchNotifications,
+  } = useNotifications();
 
-  // Remove duplicate destructuring and keep only the one with all needed properties
-  const { notifications, unreadCount, markAsRead, clearNotifications, fetchNotifications } = useNotifications();
   const location = useLocation();
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const notificationRef = useRef<HTMLDivElement>(null);
 
-  // Fetch notifications on component mount to show badge immediately
   useEffect(() => {
-    const loadInitialNotifications = async () => {
-      try {
-        await fetchNotifications();
-      } catch (error) {
-        console.error('Failed to load initial notifications:', error);
-      }
-    };
-
-    loadInitialNotifications();
+    fetchNotifications().catch((err) =>
+      console.error('Failed to load initial notifications:', err)
+    );
   }, [fetchNotifications]);
-
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard' },
@@ -52,68 +51,59 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuClick, isSideba
   ];
 
   const getCurrentPageName = () => {
-    const currentNav = navigation.find(nav =>
-      location.pathname === nav.href ||
-      (nav.href !== '/dashboard' && location.pathname.startsWith(nav.href))
+    const current = navigation.find(
+      (n) =>
+        location.pathname === n.href ||
+        (n.href !== '/dashboard' && location.pathname.startsWith(n.href))
     );
-    return currentNav?.name || 'Dashboard';
+    return current?.name || 'Dashboard';
   };
 
-  // Close notification dropdown when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
+    const handleOutside = (e: MouseEvent) => {
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(e.target as Node)
+      ) {
         setIsNotificationOpen(false);
       }
     };
-
     if (isNotificationOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('mousedown', handleOutside);
+      return () => document.removeEventListener('mousedown', handleOutside);
     }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
   }, [isNotificationOpen]);
 
   const handleNotificationClick = async () => {
-    const wasOpen = isNotificationOpen;
-    setIsNotificationOpen(!wasOpen);
-    
-    // Fetch notifications when opening the dropdown
-    if (!wasOpen) {
+    const willOpen = !isNotificationOpen;
+    setIsNotificationOpen(willOpen);
+    if (willOpen) {
       try {
         await fetchNotifications();
-      } catch (error) {
-        console.error('Failed to fetch notifications:', error);
+      } catch (e) {
+        console.error('Failed to fetch notifications:', e);
       }
     }
   };
 
-  const handleMarkAsRead = (id: string | number) => {
-    markAsRead(Number(id));
-  };
+  const handleMarkAsRead = (id: string | number) => markAsRead(Number(id));
 
   const handleClearNotifications = () => {
     clearNotifications();
-    setIsNotificationOpen(false); // Close the dropdown after clearing
+    setIsNotificationOpen(false);
   };
 
-  const formatTime = (created_at: string) => {
-    const dateObj = new Date(created_at);
-    const now = new Date();
-    const diff = now.getTime() - dateObj.getTime();
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor(diff / (1000 * 60));
+  const formatTime = (created: string) => {
+    const diff = Date.now() - new Date(created).getTime();
+    const mins = Math.floor(diff / 60000);
+    const hrs = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    
 
-    if (hours < 1) {
-      return minutes < 1 ? 'Just now' : `${minutes}m ago`;
-    } else if (hours < 24) {
-      return `${hours}h ago`;
-    } else {
-      const days = Math.floor(hours / 24);
-      return `${days}d ago`;
-    }
+    if (mins < 1) return 'Just now';
+    if (hrs < 1) return `${mins}m ago`;
+    if (days < 1) return `${hrs}h ago`;
+    return `${days}d ago`;
   };
 
   return (
@@ -122,7 +112,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuClick, isSideba
         <button
           onClick={onMenuClick}
           className="ap-dashboard-menu-btn"
-          aria-label="Open sidebar"
+          aria-label="Toggle sidebar"
           aria-controls="dashboard-sidebar"
           aria-expanded={isSidebarOpen}
         >
@@ -130,16 +120,19 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuClick, isSideba
         </button>
 
         <div className="ap-dashboard-header-title">
-          <h1 className="ap-dashboard-page-title">
-            {getCurrentPageName()}
-          </h1>
+          <h1 className="ap-dashboard-page-title">{getCurrentPageName()}</h1>
         </div>
 
         <div className="ap-dashboard-header-actions">
-          {/* Notifications */}
-          <div className="ap-dashboard-notification-container" ref={notificationRef}>
+          {/* ----- Notifications ----- */}
+          <div
+            className="ap-dashboard-notification-container"
+            ref={notificationRef}
+          >
             <button
-              className={`ap-dashboard-notification-btn ${isNotificationOpen ? 'active' : ''}`}
+              className={`ap-dashboard-notification-btn ${
+                isNotificationOpen ? 'active' : ''
+              }`}
               onClick={handleNotificationClick}
               aria-label="Notifications"
               aria-expanded={isNotificationOpen}
@@ -151,7 +144,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuClick, isSideba
                 </span>
               )}
             </button>
-            {/* Notification Dropdown */}
+
             {isNotificationOpen && (
               <div className="ap-notification-dropdown">
                 <div className="ap-notification-header">
@@ -165,14 +158,15 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuClick, isSideba
                   </div>
                   {notifications.length > 0 && (
                     <button
-                      onClick={handleClearNotifications}
                       className="ap-notification-clear-btn"
-                      title="Clear all notifications"
+                      onClick={handleClearNotifications}
+                      title="Clear all"
                     >
                       <X size={16} />
                     </button>
                   )}
                 </div>
+
                 <div className="ap-notification-list">
                   {notifications.length === 0 ? (
                     <div className="ap-notification-empty">
@@ -180,37 +174,53 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuClick, isSideba
                       <p>No notifications yet</p>
                     </div>
                   ) : (
-                    notifications.map((notification) => (
-                      <div
-                        key={notification.id}
-                        className={`ap-notification-item ${!notification.is_read ? 'unread' : ''}`}
-                        onClick={() => handleMarkAsRead(notification.id)}
-                      >
-                        <div className="ap-notification-content">
-                          <div className="ap-notification-message">
-                            {notification.message}
+                    <>
+                      {notifications.map((n) => (
+                        <div
+                          key={n.id}
+                          className={`ap-notification-item ${
+                            !n.is_read ? 'unread' : ''
+                          }`}
+                          onClick={() => handleMarkAsRead(n.id)}
+                        >
+                          <div className="ap-notification-content">
+                            <div className="ap-notification-message">
+                              {n.message}
+                            </div>
+                            <div className="ap-notification-meta">
+                              <span className="ap-notification-type">
+                                {n.type?.toUpperCase() ?? ''}
+                              </span>
+                              <span className="ap-notification-time">
+                                <Clock size={12} />
+                                {formatTime(n.created_at)}
+                              </span>
+                            </div>
                           </div>
-                          <div className="ap-notification-meta">
-                            <span className="ap-notification-type">
-                              {notification.type?.toUpperCase?.() ?? ''}
-                            </span>
-                            <span className="ap-notification-time">
-                              <Clock size={12} />
-                              {formatTime(notification.created_at)}
-                            </span>
-                          </div>
+
+                          <button
+  className="ap-notification-toggle-btn"
+  onClick={(e) => {
+    e.stopPropagation();
+    handleMarkAsRead(n.id);
+  }}
+>
+  {n.is_read ? 'Read' : 'Unread'}
+</button>
+
+                          {!n.is_read && (
+                            <div className="ap-notification-dot" />
+                          )}
                         </div>
-                        {!notification.is_read && (
-                          <div className="ap-notification-dot"></div>
-                        )}
-                      </div>
-                    ))
+                      ))}
+                    </>
                   )}
                 </div>
               </div>
             )}
           </div>
-          {/* User menu - for larger screens */}
+
+          {/* ----- User menu ----- */}
           <div className="ap-dashboard-user-menu">
             <div className="ap-dashboard-user-info">
               <div className="ap-dashboard-user-name">
