@@ -463,7 +463,8 @@ const NewAuction: React.FC = () => {
                 Auction Documents
               </h2>
               <p className="text-text-secondary">
-                Optional – max {MAX_FILES} files, {MAX_FILE_MB} MB each
+                Optional – max {MAX_FILES} files
+                {/* Optional – max {MAX_FILES} files, {MAX_FILE_MB} MB each */}
               </p>
             </div>
             <div className="card-body">
