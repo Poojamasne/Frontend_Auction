@@ -285,8 +285,13 @@ const ManageAuctions: React.FC = () => {
             <Gavel className="w-5 h-5 mr-2" />
             Auctions
           </h2>
-          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-            <button className="btn btn-outline" onClick={() => setRefreshIndex(i => i + 1)} title="Refresh" disabled={loading}>
+          <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+            <button
+              className="btn btn-outline"
+              onClick={() => setRefreshIndex((i) => i + 1)}
+              title="Refresh"
+              disabled={loading}
+            >
               <RefreshCcw className="w-4 h-4" />
             </button>
           </div>
@@ -294,13 +299,32 @@ const ManageAuctions: React.FC = () => {
         <div className="card-body p-0">
           <div className="auctions-table-container">
             {actionMessage && (
-              <div style={{ padding: '0.5rem 1rem', background: '#eef2ff', color: '#3730a3', fontSize: 14 }}>{actionMessage}</div>
+              <div
+                style={{
+                  padding: "0.5rem 1rem",
+                  background: "#eef2ff",
+                  color: "#3730a3",
+                  fontSize: 14,
+                }}
+              >
+                {actionMessage}
+              </div>
             )}
             {error && (
-              <div style={{ padding: '0.75rem 1rem', background: '#fee2e2', color: '#991b1b' }}>{error}</div>
+              <div
+                style={{
+                  padding: "0.75rem 1rem",
+                  background: "#fee2e2",
+                  color: "#991b1b",
+                }}
+              >
+                {error}
+              </div>
             )}
             {loading ? (
-              <div style={{ padding: '2rem', textAlign: 'center' }}>Loading auctions...</div>
+              <div style={{ padding: "2rem", textAlign: "center" }}>
+                Loading auctions...
+              </div>
             ) : (
               <table className="auctions-table responsive-table">
                 <thead>
@@ -319,13 +343,19 @@ const ManageAuctions: React.FC = () => {
                       <td data-label="Auction Details">
                         <div>
                           <div className="font-medium">{auction.title}</div>
-                          <div className="text-sm mt-1">{auction.description.substring(0, 15)}</div>
+                          <div className="text-sm mt-1">
+                            {auction.description.substring(0, 15)}
+                          </div>
                         </div>
                       </td>
                       <td data-label="Auctioneer">
                         <div>
-                          <div className="font-medium">{auction.auctioneerName}</div>
-                          <div className="text-sm">{auction.auctioneer_phone}</div>
+                          <div className="font-medium">
+                            {auction.auctioneerName}
+                          </div>
+                          <div className="text-sm">
+                            {auction.auctioneer_phone}
+                          </div>
                         </div>
                       </td>
                       <td data-label="Pricing & Status">
@@ -336,10 +366,12 @@ const ManageAuctions: React.FC = () => {
                             </div>
                           )}
                           <span className={`auction-status ${auction.status}`}>
-                            {auction.status.charAt(0).toUpperCase() + auction.status.slice(1)}
+                            {auction.status.charAt(0).toUpperCase() +
+                              auction.status.slice(1)}
                           </span>
                           <div className="text-xs mt-1">
-                            Decrement: ₹{auction.decrementalValue.toLocaleString()}
+                            Decrement: ₹
+                            {auction.decrementalValue.toLocaleString()}
                           </div>
                         </div>
                       </td>
@@ -349,13 +381,15 @@ const ManageAuctions: React.FC = () => {
                             {auction.startDate}
                           </div>
                           <div className=" items-center">
-                            {auction.startTime} - {auction.endTime || 'N/A'}
+                            {auction.startTime} - {auction.endTime || "N/A"}
                           </div>
                         </div>
                       </td>
                       <td data-label="Participants">
                         <div className=" items-center">
-                          <span>Total Participants: {auction.total_participants}</span>
+                          <span>
+                            Total Participants: {auction.total_participants}
+                          </span>
                         </div>
                         <div className="text-xs mt-1">
                           Approved: {auction.joined_participants}
@@ -374,7 +408,7 @@ const ManageAuctions: React.FC = () => {
                             <Eye className="w-4 h-4" />
                           </button>
 
-                          {auction.status === 'pending' && (
+                          {auction.status === "pending" && (
                             <>
                               <button
                                 onClick={() => handleApproveAuction(auction.id)}
@@ -384,7 +418,12 @@ const ManageAuctions: React.FC = () => {
                                 <Check className="w-4 h-4" />
                               </button>
                               <button
-                                onClick={() => handleRejectAuction(auction.id, "Admin rejected")}
+                                onClick={() =>
+                                  handleRejectAuction(
+                                    auction.id,
+                                    "Admin rejected"
+                                  )
+                                }
                                 className="auction-btn reject"
                                 title="Reject Auction"
                               >
@@ -404,7 +443,18 @@ const ManageAuctions: React.FC = () => {
                     </tr>
                   ))}
                   {!filteredAuctions.length && !loading && (
-                    <tr><td colSpan={6} style={{ textAlign: 'center', padding: '1.5rem', color: '#666' }}>No auctions found.</td></tr>
+                    <tr>
+                      <td
+                        colSpan={6}
+                        style={{
+                          textAlign: "center",
+                          padding: "1.5rem",
+                          color: "#666",
+                        }}
+                      >
+                        No auctions found.
+                      </td>
+                    </tr>
                   )}
                 </tbody>
               </table>
@@ -423,8 +473,7 @@ const ManageAuctions: React.FC = () => {
         }}
       >
         <div style={{ fontSize: 14 }}>
-          Page {page} • Showing{" "}
-          {auctions.length ? (page - 1) * limit + 1 : 0}-
+          Page {page} • Showing {auctions.length ? (page - 1) * limit + 1 : 0}-
           {(page - 1) * limit + auctions.length}
         </div>
 
@@ -460,7 +509,11 @@ const ManageAuctions: React.FC = () => {
 
             <div className="auction-modal-content-wrapper">
               <div className="modal-content">
-                {detailLoading && <div style={{ padding: '0.5rem', fontSize: 14 }}>Loading details...</div>}
+                {detailLoading && (
+                  <div style={{ padding: "0.5rem", fontSize: 14 }}>
+                    Loading details...
+                  </div>
+                )}
 
                 {/* Basic Information */}
                 <div className="modal-section">
@@ -471,20 +524,30 @@ const ManageAuctions: React.FC = () => {
                   </div>
                   <div className="modal-row">
                     <span className="modal-label">Description:</span>
-                    <span className="modal-value">{selectedAuction.description}</span>
+                    <span className="modal-value">
+                      {selectedAuction.description}
+                    </span>
                   </div>
                   <div className="modal-row">
                     <span className="modal-label">Current Bid:</span>
-                    <span className="modal-value">{selectedAuction.currentBid > 0 ? formatCurrency(selectedAuction.currentBid) : 'No bids yet'}</span>
+                    <span className="modal-value">
+                      {selectedAuction.currentBid > 0
+                        ? formatCurrency(selectedAuction.currentBid)
+                        : "No bids yet"}
+                    </span>
                   </div>
                   <div className="modal-row">
                     <span className="modal-label">Decremental:</span>
-                    <span className="modal-value">₹{selectedAuction.decrementalValue.toLocaleString()}</span>
+                    <span className="modal-value">
+                      ₹{selectedAuction.decrementalValue.toLocaleString()}
+                    </span>
                   </div>
                   <div className="modal-row">
                     <span className="modal-label">Status:</span>
                     <span className="modal-value">
-                      <span className={`auction-status ${selectedAuction.status}`}>
+                      <span
+                        className={`auction-status ${selectedAuction.status}`}
+                      >
                         {selectedAuction.status}
                       </span>
                     </span>
@@ -496,11 +559,15 @@ const ManageAuctions: React.FC = () => {
                   <h3>Company & Auctioneer</h3>
                   <div className="modal-row">
                     <span className="modal-label">Company:</span>
-                    <span className="modal-value">{selectedAuction.companyName}</span>
+                    <span className="modal-value">
+                      {selectedAuction.companyName}
+                    </span>
                   </div>
                   <div className="modal-row">
                     <span className="modal-label">Auctioneer:</span>
-                    <span className="modal-value">{selectedAuction.auctioneerName}</span>
+                    <span className="modal-value">
+                      {selectedAuction.auctioneerName}
+                    </span>
                   </div>
                 </div>
 
@@ -509,22 +576,29 @@ const ManageAuctions: React.FC = () => {
                   <h3>Schedule</h3>
                   <div className="modal-row">
                     <span className="modal-label">Start:</span>
-                    <span className="modal-value">{selectedAuction.startDate} at {selectedAuction.startTime}</span>
+                    <span className="modal-value">
+                      {selectedAuction.startDate} at {selectedAuction.startTime}
+                    </span>
                   </div>
                   <div className="modal-row">
                     <span className="modal-label">End:</span>
-                    <span className="modal-value">{selectedAuction.endDate || 'N/A'} at {selectedAuction.endTime || 'N/A'}</span>
+                    <span className="modal-value">
+                      {selectedAuction.endDate || "N/A"} at{" "}
+                      {selectedAuction.endTime || "N/A"}
+                    </span>
                   </div>
                   <div className="modal-row">
                     <span className="modal-label">Auto Extension:</span>
-                    <span className="modal-value">{selectedAuction.autoExtension ? 'Yes' : 'No'}</span>
+                    <span className="modal-value">
+                      {selectedAuction.autoExtension ? "Yes" : "No"}
+                    </span>
                   </div>
                 </div>
 
                 {/* Participants */}
-                <div className="modal-section" style={{ gridColumn: '1 / -1' }}>
+                <div className="modal-section" style={{ gridColumn: "1 / -1" }}>
                   <h3>Participants ({selectedAuction.participants.length})</h3>
-                  <div style={{ overflowX: 'auto' }}>
+                  <div style={{ overflowX: "auto" }}>
                     <table className="participants-table">
                       <thead>
                         <tr>
@@ -540,25 +614,39 @@ const ManageAuctions: React.FC = () => {
                           <tr key={participant.id}>
                             <td>{participant.name}</td>
                             <td>{participant.company}</td>
-                            <td>{participant.phone || 'N/A'}</td>
+                            <td>{participant.phone || "N/A"}</td>
                             <td>
-                              <span className={`auction-status ${participant.status}`}>
+                              <span
+                                className={`auction-status ${participant.status}`}
+                              >
                                 {participant.status}
                               </span>
                             </td>
-                            <td style={{ display: 'flex', gap: 4 }}>
-                              {participant.status !== 'approved' && (
+                            <td style={{ display: "flex", gap: 4 }}>
+                              {participant.status !== "approved" && (
                                 <button
-                                  onClick={() => handleUpdateParticipantStatus(selectedAuction.id, participant.id, 'approved')}
+                                  onClick={() =>
+                                    handleUpdateParticipantStatus(
+                                      selectedAuction.id,
+                                      participant.id,
+                                      "approved"
+                                    )
+                                  }
                                   className="auction-btn approve"
                                   title="Approve Participant"
                                 >
                                   <Check className="w-4 h-4" />
                                 </button>
                               )}
-                              {participant.status !== 'rejected' && (
+                              {participant.status !== "rejected" && (
                                 <button
-                                  onClick={() => handleUpdateParticipantStatus(selectedAuction.id, participant.id, 'rejected')}
+                                  onClick={() =>
+                                    handleUpdateParticipantStatus(
+                                      selectedAuction.id,
+                                      participant.id,
+                                      "rejected"
+                                    )
+                                  }
                                   className="auction-btn reject"
                                   title="Reject Participant"
                                 >
@@ -578,26 +666,46 @@ const ManageAuctions: React.FC = () => {
                   <h3>Documents ({selectedAuction.documents.length})</h3>
                   <div className="modal-docs">
                     {selectedAuction.documents.map((doc, index) => (
-                      <div key={index} className="doc-item" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', border: '1px solid #e0e0e0', borderRadius: '4px', marginBottom: '4px' }}>
+                      <div
+                        key={index}
+                        className="doc-item"
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          padding: "8px",
+                          border: "1px solid #e0e0e0",
+                          borderRadius: "4px",
+                          marginBottom: "4px",
+                        }}
+                      >
                         <FileText className="w-4 h-4" />
                         <span style={{ flex: 1 }}>{doc.file_name}</span>
                         {doc.file_path && (
-                          <div style={{ display: 'flex', gap: '4px' }}>
+                          <div style={{ display: "flex", gap: "4px" }}>
                             <button
                               onClick={() => handleDocumentDownload(doc)}
                               className="auction-btn view"
                               title="Download Document"
-                              style={{ padding: '4px 8px', fontSize: '12px' }}
+                              style={{ padding: "4px 8px", fontSize: "12px" }}
                             >
                               <Download className="w-3 h-3" />
                             </button>
                             <a
-                              href={doc.file_path.startsWith('http') ? doc.file_path : `${BACKEND_URL}/${doc.file_path}`}
+                              href={
+                                doc.file_path.startsWith("http")
+                                  ? doc.file_path
+                                  : `${BACKEND_URL}/${doc.file_path}`
+                              }
                               target="_blank"
                               rel="noreferrer"
                               className="auction-btn view"
                               title="View Document"
-                              style={{ padding: '4px 8px', fontSize: '12px', textDecoration: 'none' }}
+                              style={{
+                                padding: "4px 8px",
+                                fontSize: "12px",
+                                textDecoration: "none",
+                              }}
                             >
                               <ExternalLink className="w-3 h-3" />
                             </a>
@@ -606,14 +714,26 @@ const ManageAuctions: React.FC = () => {
                       </div>
                     ))}
                     {selectedAuction.documents.length === 0 && (
-                      <div style={{ fontSize: 12, color: '#666', fontStyle: 'italic' }}>No documents uploaded</div>
+                      <div
+                        style={{
+                          fontSize: 12,
+                          color: "#666",
+                          fontStyle: "italic",
+                        }}
+                      >
+                        No documents uploaded
+                      </div>
                     )}
                   </div>
                 </div>
 
                 {/* Admin Notes */}
-                {(selectedAuction.adminNotes || selectedAuction.rejectionReason) && (
-                  <div className="modal-section" style={{ gridColumn: '1 / -1' }}>
+                {(selectedAuction.adminNotes ||
+                  selectedAuction.rejectionReason) && (
+                  <div
+                    className="modal-section"
+                    style={{ gridColumn: "1 / -1" }}
+                  >
                     <h3>
                       <AlertTriangle className="w-5 h-5 mr-2 text-orange-600 inline" />
                       Admin Notes
@@ -625,7 +745,8 @@ const ManageAuctions: React.FC = () => {
                     )}
                     {selectedAuction.rejectionReason && (
                       <div className="notes-box rejection">
-                        <strong>Rejection Reason:</strong> {selectedAuction.rejectionReason}
+                        <strong>Rejection Reason:</strong>{" "}
+                        {selectedAuction.rejectionReason}
                       </div>
                     )}
                   </div>
@@ -635,7 +756,7 @@ const ManageAuctions: React.FC = () => {
 
             {/* Modal Actions */}
             <div className="modal-actions">
-              {selectedAuction.status === 'pending' && (
+              {selectedAuction.status === "pending" && (
                 <>
                   <button
                     onClick={() => {
@@ -649,7 +770,7 @@ const ManageAuctions: React.FC = () => {
                   </button>
                   <button
                     onClick={() => {
-                      handleRejectAuction(selectedAuction.id, 'Admin rejected');
+                      handleRejectAuction(selectedAuction.id, "Admin rejected");
                       setSelectedAuction(null);
                     }}
                     className="reject"
@@ -659,16 +780,20 @@ const ManageAuctions: React.FC = () => {
                   </button>
                 </>
               )}
-              {selectedAuction.status !== 'rejected' && selectedAuction.status !== 'completed' && (
-                <button
-                  onClick={() => { handleCloseAuction(selectedAuction.id); setSelectedAuction(null); }}
-                  className="reject"
-                  title="Reject Auction (Admin)"
-                >
-                  <X className="w-4 h-4 mr-2" />
-                  Reject Auction
-                </button>
-              )}
+              {selectedAuction.status !== "rejected" &&
+                selectedAuction.status !== "completed" && (
+                  <button
+                    onClick={() => {
+                      handleCloseAuction(selectedAuction.id);
+                      setSelectedAuction(null);
+                    }}
+                    className="reject"
+                    title="Reject Auction (Admin)"
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    Reject Auction
+                  </button>
+                )}
               <button
                 onClick={() => setSelectedAuction(null)}
                 className="close"

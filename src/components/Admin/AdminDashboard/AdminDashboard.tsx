@@ -252,7 +252,7 @@ const AdminDashboard: React.FC = () => {
                 >Clear</button>
               </div>
               {/* Notifications */}
-              <button
+              {/* <button
                 className="admin-notification-btn"
                 aria-label={`Notifications: ${unreadCount || 0} unread`}
                 type="button"
@@ -261,7 +261,7 @@ const AdminDashboard: React.FC = () => {
                 {unreadCount > 0 && (
                   <span className="admin-notification-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>
                 )}
-              </button>
+              </button> */}
 
               {/* Admin indicator */}
               <div className="admin-user-indicator">

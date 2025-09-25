@@ -1561,6 +1561,8 @@ select:focus {
     font-size: 0.55rem;
     padding: 1px 6px;
     margin-top: 4px;
+    text-align: center;
+    width: 70px;
     display: inline-flex;
   }
 

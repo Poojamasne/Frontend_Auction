@@ -1,10 +1,26 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { BarChart, TrendingUp, IndianRupee, Users, Gavel, Calendar, Download, Filter, Eye, FileText, PieChart } from 'lucide-react';
-import './AdminReports.css';
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  BarChart,
+  TrendingUp,
+  IndianRupee,
+  Users,
+  Gavel,
+  Calendar,
+  Download,
+  Filter,
+  Eye,
+  FileText,
+  PieChart,
+} from "lucide-react";
+import "./AdminReports.css";
 
-type ReportType = 'overview' | 'auctions' | 'users' | 'revenue' | 'categories';
-import adminReportService, { AdminOverviewReport, AdminAuctionPerformanceItem, AdminUserActivityItem , MonthlyTrendItem } from '../../../services/adminReportService';
-
+type ReportType = "overview" | "auctions" | "users" | "revenue" | "categories";
+import adminReportService, {
+  AdminOverviewReport,
+  AdminAuctionPerformanceItem,
+  AdminUserActivityItem,
+  MonthlyTrendItem,
+} from "../../../services/adminReportService";
 
 interface ReportData {
   period: string;
@@ -48,38 +64,49 @@ interface UserReport {
   status: string;
 }
 
-
-
-
-
-
 const AdminReports: React.FC = () => {
-  const [selectedReport, setSelectedReport] = useState<ReportType>('overview');
+  const [selectedReport, setSelectedReport] = useState<ReportType>("overview");
   // Map UI options to API filter values
-  const [dateRange, setDateRange] = useState<'today' | 'week' | 'month' | 'quarter' | 'year'>('month');
-  const dateRangeToApiFilter = (range: typeof dateRange): 'today' | 'this_week' | 'this_month' | 'this_year' => {
+  const [dateRange, setDateRange] = useState<
+    "today" | "week" | "month" | "quarter" | "year"
+  >("month");
+  const dateRangeToApiFilter = (
+    range: typeof dateRange
+  ): "today" | "this_week" | "this_month" | "this_year" => {
     switch (range) {
-      case 'today': return 'today';
-      case 'week': return 'this_week';
-      case 'month': return 'this_month';
-      case 'year': return 'this_year';
-      default: return 'this_month'; // treat 'quarter' as 'this_month' for now
+      case "today":
+        return "today";
+      case "week":
+        return "this_week";
+      case "month":
+        return "this_month";
+      case "year":
+        return "this_year";
+      default:
+        return "this_month"; // treat 'quarter' as 'this_month' for now
     }
   };
-  const [exportFormat, setExportFormat] = useState<'pdf' | 'excel' | 'csv'>('pdf');
+  const [exportFormat, setExportFormat] = useState<"pdf" | "excel" | "csv">(
+    "pdf"
+  );
   const [overview, setOverview] = useState<AdminOverviewReport | null>(null);
-  const [auctionPerformance, setAuctionPerformance] = useState<AdminAuctionPerformanceItem[]>([]);
-  const [performanceFilter, setPerformanceFilter] = useState<'today' | 'this_week' | 'this_month' | 'this_year'>('this_month');
+  const [auctionPerformance, setAuctionPerformance] = useState<
+    AdminAuctionPerformanceItem[]
+  >([]);
+  const [performanceFilter, setPerformanceFilter] = useState<
+    "today" | "this_week" | "this_month" | "this_year"
+  >("this_month");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userActivity, setUserActivity] = useState<AdminUserActivityItem[]>([]);
-  const [userPeriod, setUserPeriod] = useState<'today' | 'this_week' | 'this_month' | 'this_year'>('this_month');
+  const [userPeriod, setUserPeriod] = useState<
+    "today" | "this_week" | "this_month" | "this_year"
+  >("this_month");
   const [monthlyTrends, setMonthlyTrends] = useState<MonthlyTrendItem[]>([]);
-
 
   // Mock data - In real app, this would come from API
   const overviewData: ReportData = {
-    period: 'January 2024',
+    period: "January 2024",
     totalAuctions: 45,
     completedAuctions: 32,
     cancelledAuctions: 3,
@@ -87,8 +114,8 @@ const AdminReports: React.FC = () => {
     newUsers: 156,
     totalRevenue: 12450000,
     averageBidValue: 85000,
-    topCategory: 'Machinery',
-    participationRate: 78.5
+    topCategory: "Machinery",
+    participationRate: 78.5,
   };
 
   // const fetchOverview = useCallback(async () => {
@@ -113,78 +140,96 @@ const AdminReports: React.FC = () => {
         setMonthlyTrends(trends);
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to load overview');
+      setError(err.message || "Failed to load overview");
     } finally {
       setLoading(false);
     }
   }, []);
 
-  const fetchAuctionPerformance = useCallback(async (filter: 'today' | 'this_week' | 'this_month' | 'this_year') => {
-    try {
-      setError(null);
-      setLoading(true);
-      const list = await adminReportService.getAuctionPerformance(filter);
-      setAuctionPerformance(list);
-    } catch (e: any) {
-      setError(e.message || 'Failed to load auction performance');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const fetchAuctionPerformance = useCallback(
+    async (filter: "today" | "this_week" | "this_month" | "this_year") => {
+      try {
+        setError(null);
+        setLoading(true);
+        const list = await adminReportService.getAuctionPerformance(filter);
+        setAuctionPerformance(list);
+      } catch (e: any) {
+        setError(e.message || "Failed to load auction performance");
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
 
-  useEffect(() => { if (selectedReport === 'overview') fetchOverview(); }, [selectedReport, fetchOverview]);
+  useEffect(() => {
+    if (selectedReport === "overview") fetchOverview();
+  }, [selectedReport, fetchOverview]);
   // Fetch auction performance when report is auctions or dateRange changes
   useEffect(() => {
-    if (selectedReport === 'auctions') {
+    if (selectedReport === "auctions") {
       fetchAuctionPerformance(dateRangeToApiFilter(dateRange));
     }
   }, [selectedReport, dateRange, fetchAuctionPerformance]);
-  useEffect(() => { if (selectedReport === 'users') { (async () => { try { setError(null); setLoading(true); const list = await adminReportService.getUserActivity(userPeriod); setUserActivity(list); } catch (e: any) { setError(e.message || 'Failed to load user activity'); } finally { setLoading(false); } })(); } }, [selectedReport, userPeriod]);
-  useEffect(() => { fetchOverview(); }, [fetchOverview]);
+  useEffect(() => {
+    if (selectedReport === "users") {
+      (async () => {
+        try {
+          setError(null);
+          setLoading(true);
+          const list = await adminReportService.getUserActivity(userPeriod);
+          setUserActivity(list);
+        } catch (e: any) {
+          setError(e.message || "Failed to load user activity");
+        } finally {
+          setLoading(false);
+        }
+      })();
+    }
+  }, [selectedReport, userPeriod]);
+  useEffect(() => {
+    fetchOverview();
+  }, [fetchOverview]);
 
+  const auctionReports: AuctionReport[] = [];
 
-  const auctionReports: AuctionReport[] = [
-
-  ];
-
-  const userReports: UserReport[] = [
-
-  ];
-
-  
+  const userReports: UserReport[] = [];
 
   const categoryData = [
-    { category: 'Machinery', auctions: 15, revenue: 4500000, percentage: 36 },
-    { category: 'Electronics', auctions: 12, revenue: 3200000, percentage: 26 },
-    { category: 'Vehicles', auctions: 8, revenue: 2800000, percentage: 22 },
-    { category: 'Furniture', auctions: 7, revenue: 1200000, percentage: 10 },
-    { category: 'Other', auctions: 3, revenue: 750000, percentage: 6 }
+    { category: "Machinery", auctions: 15, revenue: 4500000, percentage: 36 },
+    { category: "Electronics", auctions: 12, revenue: 3200000, percentage: 26 },
+    { category: "Vehicles", auctions: 8, revenue: 2800000, percentage: 22 },
+    { category: "Furniture", auctions: 7, revenue: 1200000, percentage: 10 },
+    { category: "Other", auctions: 3, revenue: 750000, percentage: 6 },
   ];
 
   // Removed duplicate monthlyTrends declaration to avoid redeclaration error.
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      minimumFractionDigits: 0
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      minimumFractionDigits: 0,
     }).format(amount);
   };
 
   const handleExportReport = () => {
-    console.log(`Exporting ${selectedReport} report as ${exportFormat} for ${dateRange}`);
+    console.log(
+      `Exporting ${selectedReport} report as ${exportFormat} for ${dateRange}`
+    );
     // In real app, this would generate and download the report
   };
 
-  
-
   // mapping select value -> API filter
-const periodToApiFilter: Record<string, 'today' | 'this_week' | 'this_month' | 'this_year'> = {
-  today: 'today',
-  week: 'this_week',
-  month: 'this_month',
-  year: 'this_year'
-};
+  const periodToApiFilter: Record<
+    string,
+    "today" | "this_week" | "this_month" | "this_year"
+  > = {
+    today: "today",
+    week: "this_week",
+    month: "this_month",
+    year: "this_year",
+  };
 
   return (
     <div className="space-y-6">
@@ -212,7 +257,10 @@ const periodToApiFilter: Record<string, 'today' | 'this_week' | 'this_month' | '
             <option value="excel">Excel</option>
             <option value="csv">CSV</option>
           </select>
-          <button onClick={handleExportReport} className="control-button control-button-primary">
+          <button
+            onClick={handleExportReport}
+            className="control-button control-button-primary"
+          >
             <Download className="control-button-icon" />
             Export Report
           </button>
@@ -224,22 +272,28 @@ const periodToApiFilter: Record<string, 'today' | 'this_week' | 'this_month' | '
         <div className="admin-card-body">
           <div className="nav-tabs">
             <button
-              onClick={() => setSelectedReport('overview')}
-              className={`nav-tab ${selectedReport === 'overview' ? 'nav-tab-active' : ''}`}
+              onClick={() => setSelectedReport("overview")}
+              className={`nav-tab ${
+                selectedReport === "overview" ? "nav-tab-active" : ""
+              }`}
             >
               <BarChart className="report-icon" />
               Overview
             </button>
             <button
-              onClick={() => setSelectedReport('auctions')}
-              className={`nav-tab ${selectedReport === 'auctions' ? 'nav-tab-active' : ''}`}
+              onClick={() => setSelectedReport("auctions")}
+              className={`nav-tab ${
+                selectedReport === "auctions" ? "nav-tab-active" : ""
+              }`}
             >
               <Gavel className="report-icon" />
               Auctions
             </button>
             <button
-              onClick={() => setSelectedReport('users')}
-              className={`nav-tab ${selectedReport === 'users' ? 'nav-tab-active' : ''}`}
+              onClick={() => setSelectedReport("users")}
+              className={`nav-tab ${
+                selectedReport === "users" ? "nav-tab-active" : ""
+              }`}
             >
               <Users className="report-icon" />
               Users
@@ -252,7 +306,6 @@ const periodToApiFilter: Record<string, 'today' | 'this_week' | 'this_month' | '
               <IndianRupee className="report-icon" />
               Revenue
             </button> */}
-
 
             {/* 
             <button
@@ -267,7 +320,7 @@ const periodToApiFilter: Record<string, 'today' | 'this_week' | 'this_month' | '
       </div>
 
       {/* Overview Report */}
-      {selectedReport === 'overview' && (
+      {selectedReport === "overview" && (
         <div className="reports-container">
           {/* Key Metrics */}
           <div className="reports-section">
@@ -277,8 +330,12 @@ const periodToApiFilter: Record<string, 'today' | 'this_week' | 'this_month' | '
                   <span className="metric-title">Total Auctions</span>
                   <Gavel className="metric-icon" />
                 </div>
-                <div className="metric-value">{overview ? overview.totalAuctions : '—'}</div>
-                <div className="metric-subtitle">Completed: {overview ? overview.completedAuctions : '—'}</div>
+                <div className="metric-value">
+                  {overview ? overview.totalAuctions : "—"}
+                </div>
+                <div className="metric-subtitle">
+                  Completed: {overview ? overview.completedAuctions : "—"}
+                </div>
               </div>
 
               <div className="metric-card hover-lift">
@@ -286,8 +343,12 @@ const periodToApiFilter: Record<string, 'today' | 'this_week' | 'this_month' | '
                   <span className="metric-title">Total Users</span>
                   <Users className="metric-icon" />
                 </div>
-                <div className="metric-value">{overview ? overview.totalUsers.toLocaleString() : '—'}</div>
-                <div className="metric-subtitle">New: {overview ? overview.newUsers : '—'}</div>
+                <div className="metric-value">
+                  {overview ? overview.totalUsers.toLocaleString() : "—"}
+                </div>
+                <div className="metric-subtitle">
+                  New: {overview ? overview.newUsers : "—"}
+                </div>
               </div>
 
               <div className="metric-card hover-lift">
@@ -295,8 +356,13 @@ const periodToApiFilter: Record<string, 'today' | 'this_week' | 'this_month' | '
                   <span className="metric-title">Total Revenue</span>
                   <IndianRupee className="metric-icon" />
                 </div>
-                <div className="metric-value">{overview ? formatCurrency(overview.totalRevenue) : '—'}</div>
-                <div className="metric-subtitle">Winning Bid: {overview ? formatCurrency(overview.averageBidValue) : '—'}</div>
+                <div className="metric-value">
+                  {overview ? formatCurrency(overview.totalRevenue) : "—"}
+                </div>
+                <div className="metric-subtitle">
+                  Winning Bid:{" "}
+                  {overview ? formatCurrency(overview.averageBidValue) : "—"}
+                </div>
               </div>
 
               <div className="metric-card hover-lift">
@@ -304,8 +370,12 @@ const periodToApiFilter: Record<string, 'today' | 'this_week' | 'this_month' | '
                   <span className="metric-title">Participation Rate</span>
                   <TrendingUp className="metric-icon" />
                 </div>
-                <div className="metric-value">{overview ? overview.participationRate : '—'}%</div>
-                <div className="metric-subtitle">Top: {overview ? overview.topCategory : '—'}</div>
+                <div className="metric-value">
+                  {overview ? overview.participationRate : "—"}%
+                </div>
+                <div className="metric-subtitle">
+                  Top: {overview ? overview.topCategory : "—"}
+                </div>
               </div>
             </div>
           </div>
@@ -322,14 +392,20 @@ const periodToApiFilter: Record<string, 'today' | 'this_week' | 'this_month' | '
                     <div className="trend-header">
                       <span className="text-heading">{month.month}</span>
                       <div className="text-metric">
-  <div className="text-value">{formatCurrency(month.revenue)}</div>
-</div>
+                        <div className="text-value">
+                          {formatCurrency(month.revenue)}
+                        </div>
+                      </div>
                     </div>
                     <div className="progress-bar">
                       <div
-  className="progress-fill"
-  style={{ width: `${(month.revenue / 12450000) * 100}%` }}
->&nbsp;</div>
+                        className="progress-fill"
+                        style={{
+                          width: `${(month.revenue / 12450000) * 100}%`,
+                        }}
+                      >
+                        &nbsp;
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -340,69 +416,160 @@ const periodToApiFilter: Record<string, 'today' | 'this_week' | 'this_month' | '
       )}
 
       {/* Auctions Report */}
-      {selectedReport === 'auctions' && (
+      {selectedReport === "auctions" && (
         <div className="admin-card">
-          <div className="admin-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
+          <div
+            className="admin-card-header"
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: "1rem",
+            }}
+          >
             <h2 className="admin-card-title">Auction Performance Report</h2>
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-              <select className="control-select" value={dateRange} onChange={e => setDateRange(e.target.value as any)}>
+            <div
+              style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}
+            >
+              <select
+                className="control-select"
+                value={dateRange}
+                onChange={(e) => setDateRange(e.target.value as any)}
+              >
                 <option value="today">Today</option>
                 <option value="week">This Week</option>
                 <option value="month">This Month</option>
                 <option value="quarter">This Quarter</option>
                 <option value="year">This Year</option>
               </select>
-              <button className="control-button" onClick={() => fetchAuctionPerformance(dateRangeToApiFilter(dateRange))}>Refresh</button>
+              <button
+                className="control-button"
+                onClick={() =>
+                  fetchAuctionPerformance(dateRangeToApiFilter(dateRange))
+                }
+              >
+                Refresh
+              </button>
             </div>
           </div>
           <div className="admin-card-body">
-            {loading && <div className="text-sm text-text-white">Loading...</div>}
+            {loading && (
+              <div className="text-sm text-text-white">Loading...</div>
+            )}
             {error && <div className="text-sm text-red-500">{error}</div>}
             <div className="table-container">
               <table className="admin-table responsive-table">
                 <thead className="bg--50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-text-white uppercase tracking-wider">Auction Details</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-text-white uppercase tracking-wider">Auctioneer</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-text-white uppercase tracking-wider">Financial Data</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-text-white uppercase tracking-wider">Participation</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-text-white uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-text-white uppercase tracking-wider">
+                      Auction Details
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-text-white uppercase tracking-wider">
+                      Auctioneer
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-text-white uppercase tracking-wider">
+                      Financial Data
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-text-white uppercase tracking-wider">
+                      Participation
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-text-white uppercase tracking-wider">
+                      Status
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {!loading && auctionPerformance.length === 0 && !error && (
-                    <tr><td colSpan={5} className="px-6 py-6 text-center text-sm text-text-white">No data for selected filter.</td></tr>
+                    <tr>
+                      <td
+                        colSpan={5}
+                        className="px-6 py-6 text-center text-sm text-text-white"
+                      >
+                        No data for selected filter.
+                      </td>
+                    </tr>
                   )}
-                  {auctionPerformance.map(auction => (
+                  {auctionPerformance.map((auction) => (
                     <tr key={auction.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4" data-label="Auction Details">
                         <div>
-                          <div className="text-sm font-medium text-primary">{auction.title}</div>
-                          <div className="text-sm text-text-white">Category: {auction.category}</div>
-                          <div className="text-sm text-text-white">{new Date(auction.startDate).toLocaleDateString()} - {new Date(auction.endDate).toLocaleDateString()}</div>
+                          <div className="text-sm font-medium text-primary">
+                            {auction.title}
+                          </div>
+                          <div className="text-sm text-text-white">
+                            Category: {auction.category}
+                          </div>
+                          <div className="text-sm text-text-white">
+                            {new Date(auction.startDate).toLocaleDateString()} -{" "}
+                            {new Date(auction.endDate).toLocaleDateString()}
+                          </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap" data-label="Auctioneer">
+                      <td
+                        className="px-6 py-4 whitespace-nowrap"
+                        data-label="Auctioneer"
+                      >
                         <div>
-                          <div className="text-sm font-medium text-text-primary">{auction.auctioneer}</div>
-                          <div className="text-sm text-text-white">{auction.company}</div>
+                          <div className="text-sm font-medium text-text-primary">
+                            {auction.auctioneer}
+                          </div>
+                          <div className="text-sm text-text-white">
+                            {auction.company}
+                          </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap" data-label="Financial Data">
+                      <td
+                        className="px-6 py-4 whitespace-nowrap"
+                        data-label="Financial Data"
+                      >
                         <div>
-                          <div className="text-sm text-text-white">Base: {formatCurrency(auction.basePrice)}</div>
-                          <div className="text-sm font-medium text-green-600">Final: {auction.finalPrice > 0 ? formatCurrency(auction.finalPrice) : 'N/A'}</div>
-                          <div className="text-sm text-primary">Revenue: {formatCurrency(auction.revenue)}</div>
+                          <div className="text-sm text-text-white">
+                            Base: {formatCurrency(auction.basePrice)}
+                          </div>
+                          <div className="text-sm font-medium text-green-600">
+                            Final:{" "}
+                            {auction.finalPrice > 0
+                              ? formatCurrency(auction.finalPrice)
+                              : "N/A"}
+                          </div>
+                          <div className="text-sm text-primary">
+                            Revenue: {formatCurrency(auction.revenue)}
+                          </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap" data-label="Participation">
+                      <td
+                        className="px-6 py-4 whitespace-nowrap"
+                        data-label="Participation"
+                      >
                         <div>
-                          <div className="text-sm text-text-white">Participants: {auction.participants}</div>
-                          <div className="text-sm text-text-white">Total Bids: {auction.totalBids}</div>
+                          <div className="text-sm text-text-white">
+                            Participants: {auction.participants}
+                          </div>
+                          <div className="text-sm text-text-white">
+                            Total Bids: {auction.totalBids}
+                          </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap" data-label="Status">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${['completed', 'Completed'].includes(auction.status) ? 'bg-green-100 text-green-800' : ['cancelled', 'Cancelled', 'rejected', 'Rejected'].includes(auction.status) ? 'bg-red-100 text-red-800' : 'bg-orange-100 text-orange-800'}`}>{auction.status}</span>
+                      <td
+                        className="px-6 py-4 whitespace-nowrap"
+                        data-label="Status"
+                      >
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            ["completed", "Completed"].includes(auction.status)
+                              ? "bg-green-100 text-green-800"
+                              : [
+                                  "cancelled",
+                                  "Cancelled",
+                                  "rejected",
+                                  "Rejected",
+                                ].includes(auction.status)
+                              ? "bg-red-100 text-red-800"
+                              : "bg-orange-100 text-orange-800"
+                          }`}
+                        >
+                          {auction.status}
+                        </span>
                       </td>
                     </tr>
                   ))}
@@ -414,25 +581,53 @@ const periodToApiFilter: Record<string, 'today' | 'this_week' | 'this_month' | '
       )}
 
       {/* Users Report */}
-      {selectedReport === 'users' && (
+      {selectedReport === "users" && (
         <div className="admin-card">
-          <div className="admin-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
+          <div
+            className="admin-card-header"
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: "1rem",
+            }}
+          >
             <h2 className="admin-card-title">User Activity Report</h2>
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-              <select className="control-select" value={userPeriod} onChange={e => setUserPeriod(e.target.value as any)}>
+            <div
+              style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}
+            >
+              <select
+                className="control-select"
+                value={userPeriod}
+                onChange={(e) => setUserPeriod(e.target.value as any)}
+              >
                 <option value="today">Today</option>
                 <option value="this_week">This Week</option>
                 <option value="this_month">This Month</option>
                 <option value="this_year">This Year</option>
               </select>
-              <button className="control-button" onClick={() => setUserPeriod(p => p)}>Refresh</button>
+              <button
+                className="control-button"
+                onClick={() => setUserPeriod((p) => p)}
+              >
+                Refresh
+              </button>
             </div>
           </div>
           <div className="admin-card-body">
-            {loading && <div className="text-sm text-text-white">Loading...</div>}
+            {loading && (
+              <div className="text-sm text-text-white">Loading...</div>
+            )}
             {error && <div className="text-sm text-red-500">{error}</div>}
-            <div className="table-container" style={{ overflowX: 'auto' }}>
-              <table className="admin-table responsive-table" style={{ width: '100%', tableLayout: 'auto', minWidth: '700px' }}>
+            <div className="table-container" style={{ overflowX: "auto" }}>
+              <table
+                className="admin-table responsive-table"
+                style={{
+                  width: "100%",
+                  tableLayout: "auto",
+                  minWidth: "700px",
+                }}
+              >
                 <thead>
                   <tr>
                     <th>User Details</th>
@@ -444,42 +639,94 @@ const periodToApiFilter: Record<string, 'today' | 'this_week' | 'this_month' | '
                 </thead>
                 <tbody>
                   {!loading && userActivity.length === 0 && !error && (
-                    <tr><td colSpan={5} className="px-6 py-6 text-center text-sm text-text-white">No user activity data.</td></tr>
+                    <tr>
+                      <td
+                        colSpan={5}
+                        className="px-6 py-6 text-center text-sm text-text-white"
+                      >
+                        No user activity data.
+                      </td>
+                    </tr>
                   )}
                   {userActivity.map((user, idx) => {
-                    const base = user.id && user.id.trim() !== '' ? user.id : `${user.name || 'user'}_${user.registrationDate || ''}`;
-                    const safeKey = `${base.replace(/\s+/g, '_')}_${idx}`;
+                    const base =
+                      user.id && user.id.trim() !== ""
+                        ? user.id
+                        : `${user.name || "user"}_${
+                            user.registrationDate || ""
+                          }`;
+                    const safeKey = `${base.replace(/\s+/g, "_")}_${idx}`;
                     return (
                       <tr key={safeKey} className="hover:bg-gray-50">
                         <td className="px-4 py-2" data-label="User Details">
                           <div>
-                            <div className="text-sm font-medium text-primary">{user.name}</div>
-                            <div className="text-sm text-text-white">{user.company}</div>
+                            <div className="text-sm font-medium text-primary">
+                              {user.name}
+                            </div>
+                            <div className="text-sm text-text-white">
+                              {user.company}
+                            </div>
                           </div>
                         </td>
-                        <td className="px-4 py-2" data-label="Role & Registration">
+                        <td
+                          className="px-4 py-2"
+                          data-label="Role & Registration"
+                        >
                           <div>
-                            <div className="text-sm text-text-primary capitalize">{user.role}</div>
-                            <div className="text-sm text-text-white">{user.registrationDate ? new Date(user.registrationDate).toLocaleDateString() : '—'}</div>
+                            <div className="text-sm text-text-primary capitalize">
+                              {user.role}
+                            </div>
+                            <div className="text-sm text-text-white">
+                              {user.registrationDate
+                                ? new Date(
+                                    user.registrationDate
+                                  ).toLocaleDateString()
+                                : "—"}
+                            </div>
                           </div>
                         </td>
                         <td className="px-4 py-2" data-label="Auction Activity">
                           <div>
-                            <div className="text-sm text-text-white">Auctions: {user.totalAuctions}</div>
-                            <div className="text-sm text-text-white">Bids: {user.totalBids}</div>
-                            <div className="text-sm text-text-white">Wins: {user.winningBids}</div>
+                            <div className="text-sm text-text-white">
+                              Auctions: {user.totalAuctions}
+                            </div>
+                            <div className="text-sm text-text-white">
+                              Bids: {user.totalBids}
+                            </div>
+                            <div className="text-sm text-text-white">
+                              Wins: {user.winningBids}
+                            </div>
                           </div>
                         </td>
                         <td className="px-4 py-2" data-label="Financial Data">
                           <div>
-                            <div className="text-sm font-medium text-primary">{user.totalSpent > 0 ? formatCurrency(user.totalSpent) : 'N/A'}</div>
+                            <div className="text-sm font-medium text-primary">
+                              {user.totalSpent > 0
+                                ? formatCurrency(user.totalSpent)
+                                : "N/A"}
+                            </div>
                             {user.winningBids > 0 && user.totalSpent > 0 && (
-                              <div className="text-sm text-text-white">Avg: {formatCurrency(user.totalSpent / user.winningBids)}</div>
+                              <div className="text-sm text-text-white">
+                                Avg:{" "}
+                                {formatCurrency(
+                                  user.totalSpent / user.winningBids
+                                )}
+                              </div>
                             )}
                           </div>
                         </td>
                         <td className="px-4 py-2" data-label="Status">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${['active', 'Active'].includes(user.status) ? 'bg-green-100 text-green-800' : ['pending', 'Pending'].includes(user.status) ? 'bg-orange-100 text-orange-800' : 'bg-red-100 text-red-800'}`}>{user.status}</span>
+                          <span
+                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                              ["active", "Active"].includes(user.status)
+                                ? "bg-green-100 text-green-800"
+                                : ["pending", "Pending"].includes(user.status)
+                                ? "bg-orange-100 text-orange-800"
+                                : "bg-red-100 text-red-800"
+                            }`}
+                          >
+                            {user.status}
+                          </span>
                         </td>
                       </tr>
                     );
@@ -590,5 +837,3 @@ const periodToApiFilter: Record<string, 'today' | 'this_week' | 'this_month' | '
 };
 
 export default AdminReports;
-
-

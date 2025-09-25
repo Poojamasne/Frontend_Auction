@@ -109,7 +109,9 @@ const SystemSettings: React.FC = () => {
             {/* Site Name */}
             <div className="col-span-1">
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Site Name <span className="text-red-500">*</span>
+                <span>
+                Site Name<span className="text-red-500">*</span>
+                </span>
               </label>
               <input
                 type="text"
@@ -146,7 +148,7 @@ const SystemSettings: React.FC = () => {
             {/* Contact Email */}
             <div className="col-span-1">
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Contact Email <span className="text-red-500">*</span>
+                Contact Email<span className="text-red-500">*</span>
               </label>
               <input
                 type="email"
@@ -176,7 +178,7 @@ const SystemSettings: React.FC = () => {
             {/* Contact Phone */}
             <div className="col-span-1">
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Contact Phone <span className="text-red-500">*</span>
+                Contact Phone<span className="text-red-500">*</span>
               </label>
               <input
                 type="tel"
@@ -219,7 +221,7 @@ const SystemSettings: React.FC = () => {
             {/* Timezone */}
             <div className="col-span-1">
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Timezone <span className="text-red-500">*</span>
+                Timezone<span className="text-red-500">*</span>
               </label>
               <select
                 className="w-full px-3 py-2 rounded-lg border border-gray-600 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -241,7 +243,7 @@ const SystemSettings: React.FC = () => {
             {/* Currency */}
             <div className="col-span-1">
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Currency <span className="text-red-500">*</span>
+                Currency<span className="text-red-500">*</span>
               </label>
               <select
                 className={`w-full px-3 py-2 rounded-lg border bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${
@@ -269,7 +271,7 @@ const SystemSettings: React.FC = () => {
             {/* Language */}
             <div className="col-span-1">
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Language <span className="text-red-500">*</span>
+                Language<span className="text-red-500">*</span>
               </label>
               <select
                 className="w-full px-3 py-2 rounded-lg border border-gray-600 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -291,7 +293,7 @@ const SystemSettings: React.FC = () => {
             {/* Site Description */}
             <div className="col-span-1 sm:col-span-2 lg:col-span-3">
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Site Description <span className="text-red-500">*</span>
+                Site Description<span className="text-red-500">*</span>
               </label>
               <textarea
                 rows={3}
@@ -330,7 +332,7 @@ const SystemSettings: React.FC = () => {
             {/* Address */}
             <div className="col-span-1 sm:col-span-2 lg:col-span-3">
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Address <span className="text-red-500">*</span>
+                Address<span className="text-red-500">*</span>
               </label>
               <textarea
                 rows={2}
@@ -382,12 +384,13 @@ const SystemSettings: React.FC = () => {
           <button
             type="submit"
             disabled={isLoading || !isDirty}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center w-full sm:w-auto"
+            className="px-6 py-2 text-black bg-black-600 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center w-full sm:w-auto"
+            // className="px-6 py-2 text-black rounded-lg  flex items-center justify-center w-full"
           >
             {isLoading ? (
               <>
                 <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                Saving...
+                Saving
               </>
             ) : (
               <>
