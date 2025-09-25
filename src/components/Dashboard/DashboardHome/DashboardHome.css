@@ -299,8 +299,8 @@
   padding: 2px;
   background: linear-gradient(
     135deg,
-    rgba(99, 102, 241, 0.5),
-    rgba(124, 58, 237, 0.5)
+    rgba(3, 230, 255, 0.5),
+    rgba(91, 0, 249, 0.5)
   );
   /*  applied shadow effect  */
   box-shadow: 0 4px 15px rgba(232, 13, 13, 0.1);
