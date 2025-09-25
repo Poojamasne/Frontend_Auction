@@ -385,14 +385,14 @@ const AdminHome: React.FC = () => {
           <h2 className="text-xl font-semibold">Quick Actions</h2>
         </div>
         <div className="card-body">
-          <div className="grid grid-cols-3 md:grid-cols-3 gap-4">
+          <div className="flex grid-cols-3 md:grid-cols-3 gap-4">
             <button className="btn btn-primary" onClick={() => navigate('/admin/users')}>
               <Users className="w-4 h-4 mr-2" />
               Manage Users
             </button>
             <button className="btn btn-primary" onClick={() => navigate('/admin/auctions')}>
               <Gavel className="w-4 h-4 mr-2" />
-              Review Auction Requests
+              Review Auction
             </button>
             <button className="btn btn-outline" onClick={() => navigate('/admin/reports')}>
               <BarChart3 className="w-4 h-4 mr-2" />

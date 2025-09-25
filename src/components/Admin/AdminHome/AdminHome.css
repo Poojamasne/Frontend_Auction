@@ -3,6 +3,7 @@
   display: flex !important;
 }
 
+
 .quick-actions-grid{
   display: grid !important;
     grid-template-columns: repeat(3, 1fr) !important;
@@ -41,6 +42,9 @@
 
 /* Prevent accidental horizontal scroll on mobile */
 @media (max-width: 768px) {
+  .gap-4{
+  gap: 4rem
+}
 
   .admin-home-wrapper,
   body,
@@ -54,12 +58,18 @@
 }
 
 @media (min-width: 768px) {
+
+
+
   .md\:grid-cols-2 {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (min-width: 1024px) {
+  .gap-4{
+  gap: 12rem
+}
   .lg\:grid-cols-4 {
     grid-template-columns: repeat(4, 1fr);
   }
@@ -228,6 +238,7 @@
 @media (max-width: 640px) {
 
 
+
   /* Two columns on small phones for better density */
   .stat-cards {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -336,6 +347,7 @@
 
 .btn-outline {
   background: rgba(255, 255, 255, 0.05);
+  /* background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.2)); */
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: rgba(255, 255, 255, 0.9);
 }
@@ -353,6 +365,7 @@
 }
 
 @media (max-width: 768px) {
+
   .btn {
     padding: 0.875rem 1.25rem;
     font-size: 0.875rem;
@@ -521,6 +534,9 @@
 }
 
 @media (max-width: 480px) {
+  .gap-4{
+  gap: 2rem
+}
   .card-body {
     padding: 0.85rem;
   }
@@ -528,4 +544,16 @@
   .card-header {
     padding: 0.85rem 0.9rem;
   }
+}
+
+@media screen and (min-width: 768px) {
+    .gap-4 {
+    gap: 3rem;
+}
+}
+
+@media screen and (min-width: 1028px) {
+    .gap-4 {
+    gap: 12rem;
+}
 }
