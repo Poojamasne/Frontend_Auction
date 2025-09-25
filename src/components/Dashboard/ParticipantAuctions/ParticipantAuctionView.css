@@ -643,6 +643,7 @@
 .pre-bid-btn {
   display: flex;
   align-items: center;
+  margin-bottom: 23px;
   justify-content: center;
   gap: 0.5rem;
   padding: 0.875rem 2rem;
