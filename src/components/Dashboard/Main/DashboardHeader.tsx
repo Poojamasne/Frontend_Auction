@@ -104,6 +104,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     if (hrs < 1) return `${mins}m ago`;
     if (days < 1) return `${hrs}h ago`;
     return `${days}d ago`;
+
   };
 
   return (
@@ -191,10 +192,10 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                               <span className="ap-notification-type">
                                 {n.type?.toUpperCase() ?? ''}
                               </span>
-                              <span className="ap-notification-time">
+                              {/* <span className="ap-notification-time">
                                 <Clock size={12} />
                                 {formatTime(n.created_at)}
-                              </span>
+                              </span> */}
                             </div>
                           </div>
 
