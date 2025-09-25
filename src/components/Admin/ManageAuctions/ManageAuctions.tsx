@@ -1,17 +1,51 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Search, Eye, Check, X, Gavel, Calendar, Clock, Users, Building, MapPin, FileText, Download, AlertTriangle, Trash2, RefreshCcw, ExternalLink } from 'lucide-react';
-import adminAuctionService, { NormalizedAuctionRecord, NormalizedAuctionParticipant, AuctionDocument } from '../../../services/adminAuctionService';
-import { API_BASE_URL } from '../../../services/apiConfig';
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  Search,
+  Eye,
+  Check,
+  X,
+  Gavel,
+  Calendar,
+  Clock,
+  Users,
+  Building,
+  MapPin,
+  FileText,
+  Download,
+  AlertTriangle,
+  Trash2,
+  RefreshCcw,
+  ExternalLink,
+} from "lucide-react";
+import adminAuctionService, {
+  NormalizedAuctionRecord,
+  NormalizedAuctionParticipant,
+  AuctionDocument,
+} from "../../../services/adminAuctionService";
+import { API_BASE_URL } from "../../../services/apiConfig";
+import toast from "react-hot-toast";
 
-import './ManageAuction.css';
+import "./ManageAuction.css";
 
 type Auction = NormalizedAuctionRecord;
-const BACKEND_URL = API_BASE_URL.replace('/api', '');
+const BACKEND_URL = API_BASE_URL.replace("/api", "");
 
 const ManageAuctions: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<'all' | 'draft' | 'upcoming' | 'live' | 'completed' | 'cancelled' | 'pending' | 'approved' | 'rejected'>('all');
-  const [filterCategory, setFilterCategory] = useState<'all' | 'electronics' | 'machinery' | 'vehicles' | 'furniture' | 'other'>('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState<
+    | "all"
+    | "draft"
+    | "upcoming"
+    | "live"
+    | "completed"
+    | "cancelled"
+    | "pending"
+    | "approved"
+    | "rejected"
+  >("all");
+  const [filterCategory, setFilterCategory] = useState<
+    "all" | "electronics" | "machinery" | "vehicles" | "furniture" | "other"
+  >("all");
   const [selectedAuction, setSelectedAuction] = useState<Auction | null>(null);
   const [auctions, setAuctions] = useState<Auction[]>([]);
   const [total, setTotal] = useState(0);
@@ -22,13 +56,15 @@ const ManageAuctions: React.FC = () => {
   const [refreshIndex, setRefreshIndex] = useState(0);
   const [detailLoading, setDetailLoading] = useState(false);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
-  const [recentlyRejected, setRecentlyRejected] = useState<Auction | null>(null);
+  const [recentlyRejected, setRecentlyRejected] = useState<Auction | null>(
+    null
+  );
 
   const statusMapForFilter = (status: string) => {
     const map: Record<string, string> = {
-      active: 'live',
-      approved: 'live',
-      pending: 'pending',
+      active: "live",
+      approved: "live",
+      pending: "pending",
     };
     return map[status] || status;
   };
@@ -40,18 +76,22 @@ const ManageAuctions: React.FC = () => {
       const list = await adminAuctionService.listAuctions({
         page,
         limit,
-        status: filterStatus === 'all' ? '' : statusMapForFilter(filterStatus),
+        status: filterStatus === "all" ? "" : statusMapForFilter(filterStatus),
         search: searchTerm.trim(),
       });
       setAuctions(list.auctions);
       setTotal(list.total);
 
-      if (filterStatus === 'rejected' && list.auctions.length === 0 && recentlyRejected) {
+      if (
+        filterStatus === "rejected" &&
+        list.auctions.length === 0 &&
+        recentlyRejected
+      ) {
         setAuctions([recentlyRejected]);
         setTotal(1);
       }
     } catch (e: any) {
-      setError(e.message || 'Failed to load auctions');
+      setError(e.message || "Failed to load auctions");
     } finally {
       setLoading(false);
     }
@@ -63,9 +103,9 @@ const ManageAuctions: React.FC = () => {
 
   // Helper functions
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
       minimumFractionDigits: 0,
     }).format(amount);
   };
@@ -73,20 +113,20 @@ const ManageAuctions: React.FC = () => {
   // Document download helper
   const handleDocumentDownload = (doc: AuctionDocument) => {
     if (!doc.file_path) {
-      alert('Document path not available');
+      alert("Document path not available");
       return;
     }
 
     // Construct the full URL for the document
-    const downloadUrl = doc.file_path.startsWith('http')
+    const downloadUrl = doc.file_path.startsWith("http")
       ? doc.file_path
       : `${BACKEND_URL}/${doc.file_path}`;
 
     // Create a temporary link element to trigger download
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = downloadUrl;
-    link.download = doc.file_name || 'document';
-    link.target = '_blank'; // Open in new tab as fallback
+    link.download = doc.file_name || "document";
+    link.target = "_blank"; // Open in new tab as fallback
 
     // Add to DOM, click, then remove
     document.body.appendChild(link);
@@ -102,16 +142,33 @@ const ManageAuctions: React.FC = () => {
     }
 
     const headers = [
-      "Title", "Description", "Auctioneer Name", "Auctioneer Phone", "Company Name",
-      "Base Price (INR)", "Current Bid (INR)", "Decremental Value (INR)", "Status", "Category",
-      "Start Date", "Start Time", "End Date", "End Time", "Location", "Auto Extension",
-      "Extension Time (min)", "Total Participants", "Approved Participants", "Pending Participants",
-      "Rejected Participants", "Created At"
+      "Title",
+      "Description",
+      "Auctioneer Name",
+      "Auctioneer Phone",
+      "Company Name",
+      "Base Price (INR)",
+      "Current Bid (INR)",
+      "Decremental Value (INR)",
+      "Status",
+      "Category",
+      "Start Date",
+      "Start Time",
+      "End Date",
+      "End Time",
+      "Location",
+      "Auto Extension",
+      "Extension Time (min)",
+      "Total Participants",
+      "Approved Participants",
+      "Pending Participants",
+      "Rejected Participants",
+      "Created At",
     ];
 
-    const rows = auctions.map(auction => [
+    const rows = auctions.map((auction) => [
       auction.title,
-      auction.description.replace(/,/g, ';'),
+      auction.description.replace(/,/g, ";"),
       auction.auctioneerName,
       auction.auctioneer_phone,
       auction.companyName,
@@ -124,23 +181,29 @@ const ManageAuctions: React.FC = () => {
       auction.startTime,
       auction.endDate,
       auction.endTime,
-      auction.location ? auction.location.replace(/,/g, ';') : '',
-      auction.autoExtension ? 'Yes' : 'No',
-      auction.extensionTime || '',
+      auction.location ? auction.location.replace(/,/g, ";") : "",
+      auction.autoExtension ? "Yes" : "No",
+      auction.extensionTime || "",
       auction.participants.length,
-      auction.participants.filter(p => p.status === 'approved').length,
-      auction.participants.filter(p => p.status === 'pending').length,
-      auction.participants.filter(p => p.status === 'rejected').length,
-      new Date(auction.createdAt).toLocaleString()
+      auction.participants.filter((p) => p.status === "approved").length,
+      auction.participants.filter((p) => p.status === "pending").length,
+      auction.participants.filter((p) => p.status === "rejected").length,
+      new Date(auction.createdAt).toLocaleString(),
     ]);
 
-    const csvContent = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
-    const dataUrl = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvContent);
+    const csvContent = [
+      headers.join(","),
+      ...rows.map((r) => r.join(",")),
+    ].join("\n");
+    const dataUrl =
+      "data:text/csv;charset=utf-8," + encodeURIComponent(csvContent);
 
     const link = document.createElement("a");
     link.href = dataUrl;
-    link.download = `auctions_export_${new Date().toISOString().split('T')[0]}.csv`;
-    link.style.display = 'none';
+    link.download = `auctions_export_${
+      new Date().toISOString().split("T")[0]
+    }.csv`;
+    link.style.display = "none";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -161,80 +224,109 @@ const ManageAuctions: React.FC = () => {
   const handleApproveAuction = async (auctionId: string) => {
     try {
       setActionMessage(null);
-      await adminAuctionService.updateAuctionStatus(auctionId, 'live');
-      setActionMessage('Auction approved');
-      setRefreshIndex(i => i + 1);
+      await adminAuctionService.updateAuctionStatus(auctionId, "live");
+      setActionMessage("Auction approved");
+      setRefreshIndex((i) => i + 1);
     } catch (e: any) {
-      setActionMessage(e.message || 'Failed to approve');
+      setActionMessage(e.message || "Failed to approve");
     }
   };
 
   const handleRejectAuction = async (auctionId: string, reason: string) => {
     try {
       setActionMessage(null);
-      await adminAuctionService.updateAuctionStatus(auctionId, 'rejected', reason);
-      setActionMessage('Auction rejected');
-      setRefreshIndex(i => i + 1);
+      await adminAuctionService.updateAuctionStatus(
+        auctionId,
+        "rejected",
+        reason
+      );
+      setActionMessage("Auction rejected");
+      setRefreshIndex((i) => i + 1);
     } catch (e: any) {
-      setActionMessage(e.message || 'Failed to reject');
+      setActionMessage(e.message || "Failed to reject");
     }
   };
 
   const handleCloseAuction = async (auctionId: string) => {
-    if (!window.confirm('Reject this auction? Users will see it was rejected by Admin.')) return;
+    if (
+      !window.confirm(
+        "Reject this auction? Users will see it was rejected by Admin."
+      )
+    )
+      return;
     try {
       setActionMessage(null);
-      const updated = await adminAuctionService.updateAuctionStatus(auctionId, 'rejected', 'Admin rejected');
-      setActionMessage('Auction rejected by Admin');
+      const updated = await adminAuctionService.updateAuctionStatus(
+        auctionId,
+        "rejected",
+        "Admin rejected"
+      );
+      setActionMessage("Auction rejected by Admin");
 
-      setAuctions(prev => {
-        const exists = prev.some(a => a.id === updated.id);
-        const next = exists ? prev.map(a => a.id === updated.id ? updated : a) : [...prev, updated];
+      setAuctions((prev) => {
+        const exists = prev.some((a) => a.id === updated.id);
+        const next = exists
+          ? prev.map((a) => (a.id === updated.id ? updated : a))
+          : [...prev, updated];
         return next;
       });
       setRecentlyRejected(updated);
 
-      if (filterStatus !== 'rejected') {
-        setRefreshIndex(i => i + 1);
+      if (filterStatus !== "rejected") {
+        setRefreshIndex((i) => i + 1);
       } else {
-        setTotal(t => (auctions.length ? t : 1));
+        setTotal((t) => (auctions.length ? t : 1));
       }
     } catch (e: any) {
-      setActionMessage(e.message || 'Failed to reject auction');
+      setActionMessage(e.message || "Failed to reject auction");
     }
   };
 
   const handleDeleteAuction = async (auctionId: string) => {
-    if (!window.confirm('Delete this auction?')) return;
+    if (!window.confirm("Delete this auction?")) return;
+
     try {
       setActionMessage(null);
       await adminAuctionService.deleteAuction(auctionId);
-      setActionMessage('Auction deleted');
-      setRefreshIndex(i => i + 1);
+      setActionMessage("Auction deleted");
+      setRefreshIndex((i) => i + 1);
     } catch (e: any) {
-      setActionMessage(e.message || 'Delete failed');
+      setActionMessage(e.message || "Delete failed");
     }
   };
 
-  const handleUpdateParticipantStatus = async (auctionId: string, participantId: string, status: string) => {
+  const handleUpdateParticipantStatus = async (
+    auctionId: string,
+    participantId: string,
+    status: string
+  ) => {
     try {
       setActionMessage(null);
-      const updated = await adminAuctionService.updateParticipantStatus(auctionId, participantId, status);
+      const updated = await adminAuctionService.updateParticipantStatus(
+        auctionId,
+        participantId,
+        status
+      );
       setSelectedAuction(updated);
-      setActionMessage('Participant status updated');
+      setActionMessage("Participant status updated");
     } catch (e: any) {
-      setActionMessage(e.message || 'Failed to update participant');
+      setActionMessage(e.message || "Failed to update participant");
     }
   };
 
   // Filter auctions
-  const filteredAuctions = auctions.filter(auction => {
-    const matchesSearch = auction.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  const filteredAuctions = auctions.filter((auction) => {
+    const matchesSearch =
+      auction.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       auction.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       auction.auctioneerName.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesStatus = filterStatus === 'all' || auction.status === filterStatus || statusMapForFilter(filterStatus) === auction.status;
-    const matchesCategory = filterCategory === 'all' || auction.category === filterCategory;
+    const matchesStatus =
+      filterStatus === "all" ||
+      auction.status === filterStatus ||
+      statusMapForFilter(filterStatus) === auction.status;
+    const matchesCategory =
+      filterCategory === "all" || auction.category === filterCategory;
 
     return matchesSearch && matchesStatus && matchesCategory;
   });
@@ -272,7 +364,7 @@ const ManageAuctions: React.FC = () => {
         >
           <option value="all">All Status</option>
           <option value="upcoming">Upcoming</option>
-          <option value="active">Active</option>
+          <option value="active">Live</option>
           <option value="completed">Completed</option>
           <option value="rejected">Rejected</option>
         </select>

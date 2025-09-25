@@ -132,8 +132,7 @@ const AdminDashboard: React.FC = () => {
         {/* ─── Sidebar Footer (patched) ─── */}
 <div className="admin-sidebar-footer">
   <div className="admin-user-card">
-    <div className="admin-user-info">
-      <Shield className="admin-user-icon" />
+    <div className="admin-user-info">      
       {/*  coloured role badge  */}
       <span className="ap-role-badge ap-role-admin">System Administrator</span>
     </div>
@@ -146,12 +145,7 @@ const AdminDashboard: React.FC = () => {
     </div>
   </div>
 
-  <div className="admin-switch-panel">
-    <Link to="/dashboard" className="admin-switch-link" onClick={() => setIsSidebarOpen(false)}>
-      <User className="admin-icon" />
-      Switch to User Panel
-    </Link>
-  </div>
+  
 
   <button onClick={handleLogout} className="admin-logout-btn" type="button">
     <LogOut className="admin-logout-icon" />
