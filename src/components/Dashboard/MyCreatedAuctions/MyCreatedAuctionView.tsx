@@ -696,7 +696,7 @@ if (auctionData && auctionData.status === 'upcoming') {
             </div>
           </div>
           <div className="info-item">
-            <label className="info-label">Email Address</label>
+            <label className="info-label">Mail Id</label>
             <div className="info-value">
               {userDetails?.email ||
                 backendMeta?.user?.email ||
