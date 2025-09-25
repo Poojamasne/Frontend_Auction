@@ -107,6 +107,11 @@
 
 .card-body {
   padding: 1.25rem;
+  /* max-height: 926px; */
+  max-height: 600px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.1)
 }
 
 /* Text Styles */
@@ -164,7 +169,7 @@
 
 .bg-gray-50 {
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1); 
   border-radius: 0.5rem;
   transition: all 0.3s ease;
 }
@@ -236,6 +241,7 @@
 }
 
 @media (max-width: 640px) {
+
 
 
 
