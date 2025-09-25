@@ -469,24 +469,34 @@ const ParticipantAuctionSession: React.FC = () => {
               <span className="detail-value">
                 {(() => {
                   const [y, m, d] = auction.auction_date.split("-");
-                  return `${d}/${m}/${y.slice(-2)}`;
+                  return `${d}/${m}/${y}`;
                 })()}
               </span>
             </div>
             <div className="detail-row">
               <span className="detail-label">Start Time:</span>
               <span className="detail-value">
-                {new Date(
+                {/* {new Date(
                   `${auction.auction_date}T${auction.start_time}`
-                ).toLocaleTimeString()}
+                ).toLocaleTimeString()} */}
+                {/* {auction.start_time} */}
+                {(() => {
+                  const [hours, minutes] = auction.start_time.split(":");
+                  return `${hours}:${minutes}`;
+                })()}
+
               </span>
             </div>
             <div className="detail-row">
               <span className="detail-label">End Time:</span>
               <span className="detail-value">
-                {new Date(
+                {/* {new Date(
                   `${auction.auction_date}T${auction.end_time}`
-                ).toLocaleTimeString()}
+                ).toLocaleTimeString()} */}
+                {(() => {
+                  const [hours, minutes] = auction.end_time.split(":");
+                  return `${hours}:${minutes}`;
+                })()}
               </span>
             </div>
             <div className="detail-row">
