@@ -96,6 +96,12 @@ export default function Registration() {
     if (form.name && form.name.trim().length < 4)
       newErrors.name = "Enter at Least 4-5 Characters";
 
+    if (!form.companyProductService.trim())
+      newErrors.companyProductService = "Required";
+    else if (form.companyProductService.trim().length < 4)
+      newErrors.companyProductService = "Enter at least 4-5 characters";
+    
+
     setErrors(newErrors);
     return !Object.keys(newErrors).length;
   };
@@ -252,7 +258,10 @@ export default function Registration() {
             {/* Company Product / Service */}
             <div className="ap-reg-field ap-reg-field--full">
               <label htmlFor="companyProductService" className="ap-reg-label">
-                Company Product/Service 
+                <span>
+                  Company Product/Service
+                  <span className="ap-reg-required">*</span>
+                </span>
               </label>
               <input
                 id="companyProductService"
@@ -269,16 +278,19 @@ export default function Registration() {
                 onChange={handleChange}
                 title="Describe your products or services"
               />
-              {/* {errors.companyProductService && (
+              {errors.companyProductService && (
                 <span className="ap-reg-error">
                   {errors.companyProductService}
                 </span>
               )}
               {!errors.companyProductService && (
+                <small className="ap-reg-hint">It is mandatory</small>
+              )}
+              {!errors.companyProductService && (
                 <small className="ap-reg-hint">
                   What does your company sell or provide?
                 </small>
-              )} */}
+              )}
             </div>
 
             {/* Company Address */}
@@ -293,7 +305,9 @@ export default function Registration() {
                 autoComplete="street-address"
                 maxLength={200}
                 pattern="[a-zA-Z0-9\s\-.,#/]{0,200}"
-                className={`ap-reg-input ${errors.companyAddress ? "error" : ""}`}
+                className={`ap-reg-input ${
+                  errors.companyAddress ? "error" : ""
+                }`}
                 placeholder="123 Business Street, City, State"
                 value={form.companyAddress}
                 onChange={handleChange}
@@ -310,9 +324,7 @@ export default function Registration() {
             <button
               type="submit"
               className="ap-reg-btn"
-              disabled={
-                submitting || !form.phone || !form.companyName 
-              }
+              disabled={submitting || !form.phone || !form.companyName}
             >
               {submitting ? "Registering…" : "Register"}
             </button>
