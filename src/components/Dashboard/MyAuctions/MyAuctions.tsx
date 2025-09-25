@@ -1253,12 +1253,12 @@ const getDerivedStatus = (auction: BaseAuction, nowMs: number): BaseAuction['sta
   className={`ap-myauctions-filter-btn ${isFetching ? 'opacity-75' : ''}`}
   onClick={handleManualRefresh} 
   disabled={isFetching}
-  title={isFetching ? 'Refreshing data...' : 'Click to refresh'}
+  title={isFetching ? 'Refreshing data' : 'Click to refresh'}
 >
   
   <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
   <span className="ml-1">
-    {isFetching ? 'Refreshing...' : 'Refresh'}
+    {isFetching ? 'Refreshing' : 'Refresh'}
   </span>
 </button>
             {/* Debug button - remove in production */}

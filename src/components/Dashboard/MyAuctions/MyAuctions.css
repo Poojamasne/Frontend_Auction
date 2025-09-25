@@ -238,7 +238,8 @@
 }
 
 .ap-myauctions-search-input {
-  width: 100%;
+  /* width: 100%; */
+  width: 94%;
   padding: 0.875rem 1rem 0.875rem 3rem;
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -291,6 +292,7 @@
 }
 
 .ap-myauctions-filter-btn {
+  /* width: 100%; */
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -505,10 +507,10 @@
   border-color: rgba(34, 197, 94, 0.3);
 }
 
-@keyframes pulse {
+/* @keyframes pulse {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.05); }
-}
+} */
  
 /* Add to your CSS file */
 @keyframes spin {
@@ -520,11 +522,13 @@
 }
 }
 
-.animate-spin {
-  animation: spin 1s linear infinite;
-}
+  /* .animate-spin {
+    animation: spin 1s linear infinite;
+  } */
 
+  
 .ap-myauctions-filter-btn {
+ font-size: 0.7rem;
   display: flex;
   align-items: center;
   gap: 0.25rem;
