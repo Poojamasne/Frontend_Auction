@@ -701,12 +701,13 @@
       rgba(15, 23, 42, 0.9));
   backdrop-filter: blur(20px);
   border-radius: 16px;
+  margin-left: 146px;
   box-shadow:
     0 25px 50px -12px rgba(0, 0, 0, 0.5),
     0 0 0 1px rgba(148, 163, 184, 0.2);
   padding: 2rem;
   max-width: 90vw;
-  width: 800px;
+  width: 954px;
   max-height: 90vh;
   overflow-y: auto;
   border: 1px solid rgba(148, 163, 184, 0.3);
@@ -860,7 +861,7 @@
   box-shadow:
     0 4px 6px -1px rgba(0, 0, 0, 0.1),
     0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  position: sticky;
+  /* position: sticky; */
   top: 0;
   z-index: 10;
   backdrop-filter: blur(8px);
@@ -1709,6 +1710,8 @@
   }
 
   .user-modal .user-info-section {
+    display: flex;
+    flex-direction: column;
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(148, 163, 184, 0.16);
     border-radius: 10px;

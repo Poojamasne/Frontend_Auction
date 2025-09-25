@@ -260,8 +260,9 @@ const ManageUsers: React.FC = () => {
         <div className="filters-group">
           <div className="filter-group">
             <label>Status</label>
-            <div className="select-wrapper"> {/* Add this wrapper */}
-
+            <div className="select-wrapper">
+              {" "}
+              {/* Add this wrapper */}
               <select
                 className="input"
                 value={filterStatus}
@@ -272,17 +273,11 @@ const ManageUsers: React.FC = () => {
                 <option value="inactive">Blocked</option>
               </select>
               <ChevronDown className="dropdown-icon" /> {/* Add this icon */}
-
-
             </div>
           </div>
           <div className="filter-group">
             <label>Role&nbsp;&nbsp;&nbsp;</label>
-            <select
-              className="input"
-              value="all"
-              disabled
-            >
+            <select className="input" value="all" disabled>
               <option value="all">All Users</option>
             </select>
           </div>
@@ -292,18 +287,30 @@ const ManageUsers: React.FC = () => {
       <div className="users-table-container">
         <div className="table-header">
           <h2 className="table-title">
-            <UsersIcon className="btn-icon" />
-            Users
+            <span>
+              <UsersIcon className="btn-icon" /> Users
+            </span>
           </h2>
         </div>
         <div className="table-wrapper">
           {error && (
-            <div className="error-banner" style={{ padding: '0.75rem', background: '#fee2e2', color: '#b91c1c', borderRadius: 4, marginBottom: '0.5rem' }}>
+            <div
+              className="error-banner"
+              style={{
+                padding: "0.75rem",
+                background: "#fee2e2",
+                color: "#b91c1c",
+                borderRadius: 4,
+                marginBottom: "0.5rem",
+              }}
+            >
               {error}
             </div>
           )}
           {loading ? (
-            <div style={{ padding: '2rem', textAlign: 'center' }}>Loading users...</div>
+            <div style={{ padding: "2rem", textAlign: "center" }}>
+              Loading users...
+            </div>
           ) : (
             <table className="users-table">
               <thead>
@@ -324,41 +331,46 @@ const ManageUsers: React.FC = () => {
                         <div className="user-contact">
                           {formatPhoneNumber(user.phoneNumber)}
                         </div>
-                        <div className="user-contact">
-                          {user.email}
-                        </div>
+                        <div className="user-contact">{user.email}</div>
                       </div>
                     </td>
                     <td data-label="Company Info">
                       <div className="company-info">
-                        <div className="company-name">
-                          {user.companyName}
-                        </div>
+                        <div className="company-name">{user.companyName}</div>
                       </div>
                     </td>
                     <td data-label="Status">
                       <div className="status-container">
                         <span className={`user-status ${user.status}`}>
-                          {user.status === 'inactive' ? 'Blocked' : 'Active'}
+                          {user.status === "inactive" ? "Blocked" : "Active"}
                         </span>
                         <div className="user-info-row">
                           <div className="user-info-label">Role</div>
-                          <div className="user-info-value">{user.role === 'participant' ? 'User' : user.role}</div>                        </div>
+                          <div className="user-info-value">
+                            {user.role === "participant" ? "User" : user.role}
+                          </div>{" "}
+                        </div>
                       </div>
                     </td>
                     <td data-label="Activity">
                       <div className="user-info-section">
                         <div className="user-info-row">
                           <div className="user-info-label">Auctions</div>
-                          <div className="user-info-value">{user.totalAuctions}</div>
+                          <div className="user-info-value">
+                            {user.totalAuctions}
+                          </div>
                         </div>
                         <div className="user-info-row">
                           <div className="user-info-label">Bids</div>
-                          <div className="user-info-value">{user.totalBids}</div>
+                          <div className="user-info-value">
+                            {user.totalBids}
+                          </div>
                         </div>
                         <div className="user-info-row">
                           <div className="user-info-label">Wins</div>
-                          <div className="user-info-value">{user.winningBids}</div>
+                          <div className="user-info-value">
+                            {user.winningBids}
+                          </div>
                         </div>
                       </div>
                     </td>
@@ -371,8 +383,6 @@ const ManageUsers: React.FC = () => {
                         >
                           <Eye className="btn-icon" />
                         </button>
-
-
 
                         {user.status !== "blocked" && (
                           <button
@@ -389,7 +399,14 @@ const ManageUsers: React.FC = () => {
                 ))}
                 {!displayUsers.length && !loading && (
                   <tr>
-                    <td colSpan={5} style={{ textAlign: 'center', padding: '1.5rem', color: '#666' }}>
+                    <td
+                      colSpan={5}
+                      style={{
+                        textAlign: "center",
+                        padding: "1.5rem",
+                        color: "#666",
+                      }}
+                    >
                       No users found.
                     </td>
                   </tr>
@@ -400,19 +417,31 @@ const ManageUsers: React.FC = () => {
         </div>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginTop: "1rem",
+        }}
+      >
         <div style={{ fontSize: 14 }}>
-          Page {page} • Showing {users.length ? ((page - 1) * limit + 1) : 0}-{(page - 1) * limit + users.length}
+          Page {page} • Showing {users.length ? (page - 1) * limit + 1 : 0}-
+          {(page - 1) * limit + users.length}
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <div style={{ display: "flex", gap: "0.5rem" }}>
           <button
-            onClick={() => setPage(p => Math.max(1, p - 1))}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
             className="btn btn-outline"
-          >Prev</button>
+          >
+            Prev
+          </button>
           <button
-            onClick={() => setPage(p => p + 1)}
+            onClick={() => setPage((p) => p + 1)}
             className="btn btn-outline"
-          >Next</button>
+          >
+            Next
+          </button>
         </div>
       </div>
 
@@ -430,7 +459,11 @@ const ManageUsers: React.FC = () => {
               </button>
             </div>
             <div className="confirm-modal-content">
-              <p>Are you sure you want to block <strong>{confirmBlockUser.name}</strong>? This action will prevent the user from accessing their account.</p>
+              <p>
+                Are you sure you want to block{" "}
+                <strong>{confirmBlockUser.name}</strong>? This action will
+                prevent the user from accessing their account.
+              </p>
             </div>
             <div className="confirm-modal-actions">
               <button
@@ -467,7 +500,11 @@ const ManageUsers: React.FC = () => {
               </button>
             </div>
             <div className="confirm-modal-content">
-              <p>Are you sure you want to approve <strong>{confirmApproveUser.name}</strong>? This will give the user full access to the platform.</p>
+              <p>
+                Are you sure you want to approve{" "}
+                <strong>{confirmApproveUser.name}</strong>? This will give the
+                user full access to the platform.
+              </p>
             </div>
             <div className="confirm-modal-actions">
               <button
@@ -476,7 +513,6 @@ const ManageUsers: React.FC = () => {
               >
                 Cancel
               </button>
-
             </div>
           </div>
         </div>
@@ -503,7 +539,9 @@ const ManageUsers: React.FC = () => {
                 <h4>Company Information</h4>
                 <div className="user-info-row">
                   <div className="user-info-label">Company</div>
-                  <div className="user-info-value">{selectedUser.companyName}</div>
+                  <div className="user-info-value">
+                    {selectedUser.companyName}
+                  </div>
                 </div>
               </div>
 
@@ -511,7 +549,9 @@ const ManageUsers: React.FC = () => {
                 <h4>Address Information</h4>
                 <div className="user-info-row">
                   <div className="user-info-label">City</div>
-                  <div className="user-info-value">{selectedUser.companyAddress}</div>
+                  <div className="user-info-value">
+                    {selectedUser.companyAddress}
+                  </div>
                 </div>
               </div>
 
@@ -519,25 +559,26 @@ const ManageUsers: React.FC = () => {
                 <h4>Activity Information</h4>
                 <div className="user-info-row">
                   <div className="user-info-label">Auctions</div>
-                  <div className="user-info-value">{selectedUser.totalAuctions}</div>
+                  <div className="user-info-value">
+                    {selectedUser.totalAuctions}
+                  </div>
                 </div>
                 <div className="user-info-row">
                   <div className="user-info-label">Total Bids</div>
-                  <div className="user-info-value">{selectedUser.totalBids}</div>
+                  <div className="user-info-value">
+                    {selectedUser.totalBids}
+                  </div>
                 </div>
                 <div className="user-info-row">
                   <div className="user-info-label">Winning Bids</div>
-                  <div className="user-info-value">{selectedUser.winningBids}</div>
+                  <div className="user-info-value">
+                    {selectedUser.winningBids}
+                  </div>
                 </div>
-
               </div>
-
-
             </div>
 
             <div className="user-modal-actions">
-
-
               {selectedUser.status !== "blocked" && (
                 <button
                   onClick={() => {

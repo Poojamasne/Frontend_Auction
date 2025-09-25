@@ -4,6 +4,7 @@ import { User, Phone, School, Mail, MapPin } from "lucide-react";
 import { useAuth } from "../../../contexts/AuthContext";
 import toast from "react-hot-toast";
 import "./MyProfile.css";
+import BusinessIcon from "@mui/icons-material/Business";
 
 interface ProfileForm {
   phoneNumber: string;
@@ -68,7 +69,6 @@ const MyProfile: React.FC = () => {
         <div className="card-body">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              
               {/* Phone Number – read-only */}
               <div className="form-group">
                 <label htmlFor="phoneNumber" className="form-label">
@@ -147,7 +147,7 @@ const MyProfile: React.FC = () => {
               {/* Company Name */}
               <div className="form-group">
                 <label htmlFor="companyName" className="form-label">
-                  <School className="w-4 h-4 inline mr-2" />
+                  <BusinessIcon className="w-4 h-4 inline mr-2" />
                   <span>
                     Company Name<span className="text-red-500">*</span>
                   </span>
