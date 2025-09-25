@@ -25,11 +25,8 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../../contexts/AuthContext";
 import "./AuctioneerLiveView.css";
-// Import the API utility for updating decrement value
-// import { updateAuctionDecrement } from "../../../services/apiDecrementValue";
 import apiDencrimentValue from "../../../services/apiDencrimentValue";
 
-// Define interfaces for the API response structure
 interface AuctionCreator {
   company_name: string;
   person_name: string;
@@ -79,7 +76,7 @@ interface Auction {
   creator_info: AuctionCreator;
   participants: AuctionParticipant[];
   bids: Bid[];
-  documents: any[]; // Define if needed
+  documents: any[];
   statistics: {
     total_participants: number;
     total_bids: number;
@@ -108,10 +105,11 @@ const AuctioneerLiveView: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const [newDecrementValue, setNewDecrementValue] = useState<number | string>(
-      ""
-    );
+    ""
+  );
   const [updatingDecrement, setUpdatingDecrement] = useState(false);
   const [isEditDecrementOpen, setIsEditDecrementOpen] = useState(false);
+  const [rejectingBidId, setRejectingBidId] = useState<number | null>(null);
 
   const fetchAuctionData = async () => {
     if (!id) return;
@@ -119,15 +117,12 @@ const AuctioneerLiveView: React.FC = () => {
     try {
       const token =
         localStorage.getItem("authToken") || localStorage.getItem("token");
-      const response = await fetch(
-        `${API_BASE_URL}/auction/${id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-          },
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/auction/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      });
 
       if (!response.ok) {
         throw new Error("Failed to fetch auction data.");
@@ -150,12 +145,8 @@ const AuctioneerLiveView: React.FC = () => {
     }
   };
 
-  
-
-
   useEffect(() => {
     fetchAuctionData();
-    // Set up polling to refresh data every 15 seconds
     const interval = setInterval(fetchAuctionData, 15000);
     return () => clearInterval(interval);
   }, [id]);
@@ -198,6 +189,7 @@ const AuctioneerLiveView: React.FC = () => {
   }, [auction, isPaused]);
 
   const handlePauseAuction = () => setIsPaused(!isPaused);
+
   const handleEndAuction = async () => {
     if (!id || !window.confirm("Are you sure you want to end this auction?")) {
       return;
@@ -207,17 +199,14 @@ const AuctioneerLiveView: React.FC = () => {
     try {
       const token =
         localStorage.getItem("authToken") || localStorage.getItem("token");
-      const response = await fetch(
-        `${API_BASE_URL}/auction/${id}/close`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/auction/${id}/close`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      });
 
       const result = await response.json();
 
@@ -229,7 +218,7 @@ const AuctioneerLiveView: React.FC = () => {
             icon: "🛑",
           }
         );
-        fetchAuctionData(); // Refresh data to get final state
+        fetchAuctionData();
       } else {
         throw new Error(result.message || "Failed to end the auction.");
       }
@@ -248,18 +237,15 @@ const AuctioneerLiveView: React.FC = () => {
     try {
       const token =
         localStorage.getItem("authToken") || localStorage.getItem("token");
-      const response = await fetch(
-        `${API_BASE_URL}/auction/${id}/extend`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          body: JSON.stringify({ additional_minutes: 3 }),
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/auction/${id}/extend`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({ additional_minutes: 3 }),
+      });
 
       const result = await response.json();
 
@@ -267,7 +253,7 @@ const AuctioneerLiveView: React.FC = () => {
         toast.success(
           result.message || "Time extended successfully by 3 minutes!"
         );
-        fetchAuctionData(); // Refresh data to get updated end time
+        fetchAuctionData();
       } else {
         throw new Error(result.message || "Failed to extend time.");
       }
@@ -279,19 +265,24 @@ const AuctioneerLiveView: React.FC = () => {
     }
   };
 
-  // Add reject participant function with the correct API endpoint
-  const handleRejectParticipant = async (userId: number) => {
-    if (!id || !window.confirm("Are you sure you want to reject this participant?")) {
+  // Updated reject bid function - using bid ID instead of auction ID
+  const handleRejectBid = async (bidId: number) => {
+    if (
+      !window.confirm(
+        "Are you sure you want to reject this bid? This action cannot be undone."
+      )
+    ) {
       return;
     }
 
+    setRejectingBidId(bidId);
     try {
       const token =
         localStorage.getItem("authToken") || localStorage.getItem("token");
-      
-      // Use the correct API endpoint for rejecting a participant
+
+      // Correct API endpoint - using bid ID instead of auction ID
       const response = await fetch(
-        `https://auction-development.onrender.com/api/auction/prebid/${id}/reject`,
+        `${API_BASE_URL}/auction/prebid/${bidId}/reject`,
         {
           method: "POST",
           headers: {
@@ -299,23 +290,25 @@ const AuctioneerLiveView: React.FC = () => {
             "Content-Type": "application/json",
             Accept: "application/json",
           },
-          body: JSON.stringify({ user_id: userId }),
+          body: JSON.stringify({
+            bid_id: bidId,
+          }),
         }
       );
 
       const result = await response.json();
 
       if (response.ok && result.success) {
-        toast.success(
-          result.message || "Participant has been rejected successfully."
-        );
-        fetchAuctionData(); // Refresh data to update the participant list
+        toast.success(result.message || "Bid has been rejected successfully.");
+        fetchAuctionData(); // Refresh data to update the bids list
       } else {
-        throw new Error(result.message || "Failed to reject participant.");
+        throw new Error(result.message || "Failed to reject bid.");
       }
     } catch (err: any) {
       toast.error(err.message);
-      console.error("Failed to reject participant:", err);
+      console.error("Failed to reject bid:", err);
+    } finally {
+      setRejectingBidId(null);
     }
   };
 
@@ -345,7 +338,6 @@ const AuctioneerLiveView: React.FC = () => {
     );
   }
 
-  
   if (!auction) {
     return (
       <div className="alv-error">
@@ -389,28 +381,13 @@ const AuctioneerLiveView: React.FC = () => {
           </div>
         </div>
       </div>
+      {/* none nojonne */}
 
       <div className="alv-control-panel">
         <div className="alv-control-header">
           <h3>Auction Controls</h3>
         </div>
         <div className="alv-control-actions">
-
-{/*           <button
-
-          {/* <button
-
-            onClick={handlePauseAuction}
-            className="alv-control-btn alv-pause-btn"
-            disabled={auction.status !== "live"}
-          >
-            {isPaused ? (
-              <Play className="w-4 h-4" />
-            ) : (
-              <Pause className="w-4 h-4" />
-            )}
-            {isPaused ? "Resume Auction" : "Pause Auction"}
-          </button> */}
           <button
             onClick={handleExtendTime}
             className="alv-control-btn alv-extend-btn"
@@ -485,75 +462,76 @@ const AuctioneerLiveView: React.FC = () => {
                 <Edit className="w-4 h-4" /> Edit Decrement
               </button>
             </div>
-
           </div>
         </div>
 
         {isEditDecrementOpen && (
-                <div className="prebuild-modal-overlay" role="dialog" aria-modal="true">
-                  <div className="prebuild-modal">
-                    <h3 className="prebuild-modal-title">Edit Decrement Value</h3>
-                    <div style={{ marginTop: 8 }}>
-                      <label className="modal-label">
-                        Value ({auction?.currency || "₹"})
-                      </label>
-                      <input
-                        type="number"
-                        className="prebuild-input"
-                        value={String(newDecrementValue)}
-                        onChange={(e) => setNewDecrementValue(e.target.value)}
-                        disabled={updatingDecrement}
-                      />
-                    </div>
-                    <div className="prebuild-modal-actions">
-                      <button
-                        className="btn btn-secondary"
-                        onClick={() => setIsEditDecrementOpen(false)}
-                        disabled={updatingDecrement}
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        className="btn btn-primary"
-                        onClick={async () => {
-                          // validation
-                          const num = Number(newDecrementValue);
-                          if (Number.isNaN(num) || num <= 0) {
-                            toast.error("Please enter a valid positive number");
-                            return;
-                          }
-                          setUpdatingDecrement(true);
-                          try {
-                            const resp = await apiDencrimentValue.updateAuctionDecrement(
-                              id || "",
-                              num
-                            );
-                            if (resp && resp.success) {
-                              toast.success("Decrement value updated");
-                              // refresh auction details
-                              await fetchAuctionData();
-                              setIsEditDecrementOpen(false);
-                            } else {
-                              toast.error(
-                                resp?.message || "Failed to update decrement"
-                              );
-                            }
-                          } catch (err: any) {
-                            console.error("Update decrement error", err);
-                            toast.error(err?.message || "Failed to update decrement");
-                          } finally {
-                            setUpdatingDecrement(false);
-                          }
-                        }}
-                        disabled={updatingDecrement}
-                      >
-                        {updatingDecrement ? "Updating..." : "Save"}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
+          <div
+            className="prebuild-modal-overlay"
+            role="dialog"
+            aria-modal="true"
+          >
+            <div className="prebuild-modal">
+              <h3 className="prebuild-modal-title">Edit Decrement Value</h3>
+              <div style={{ marginTop: 8 }}>
+                <label className="modal-label">
+                  Value ({auction?.currency || "₹"})
+                </label>
+                <input
+                  type="number"
+                  className="prebuild-input"
+                  value={String(newDecrementValue)}
+                  onChange={(e) => setNewDecrementValue(e.target.value)}
+                  disabled={updatingDecrement}
+                />
+              </div>
+              <div className="prebuild-modal-actions">
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setIsEditDecrementOpen(false)}
+                  disabled={updatingDecrement}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn btn-primary"
+                  onClick={async () => {
+                    const num = Number(newDecrementValue);
+                    if (Number.isNaN(num) || num <= 0) {
+                      toast.error("Please enter a valid positive number");
+                      return;
+                    }
+                    setUpdatingDecrement(true);
+                    try {
+                      const resp =
+                        await apiDencrimentValue.updateAuctionDecrement(
+                          id || "",
+                          num
+                        );
+                      if (resp && resp.success) {
+                        toast.success("Decrement value updated");
+                        await fetchAuctionData();
+                        setIsEditDecrementOpen(false);
+                      } else {
+                        toast.error(
+                          resp?.message || "Failed to update decrement"
+                        );
+                      }
+                    } catch (err: any) {
+                      console.error("Update decrement error", err);
+                      toast.error(err?.message || "Failed to update decrement");
+                    } finally {
+                      setUpdatingDecrement(false);
+                    }
+                  }}
+                  disabled={updatingDecrement}
+                >
+                  {updatingDecrement ? "Updating..." : "Save"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="alv-countdown-card">
           <div className="alv-countdown-header">
@@ -670,10 +648,10 @@ const AuctioneerLiveView: React.FC = () => {
                     <div className="alv-bid-time">
                       <Clock className="w-4 h-4" />
                       <span>
-                        {/* {new Date(bid.created_at).toLocaleTimeString()} */}
-                        {new Date(
-                          `${auction.auction_date}T${auction.end_time}`
-                        ).toLocaleDateString()}
+                        {new Date(bid.created_at).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
                       </span>
                     </div>
                   </div>
@@ -693,15 +671,16 @@ const AuctioneerLiveView: React.FC = () => {
                   </div>
 
                   <div>
-                    {/* Reject button for rejecting user from Bid */}
                     <button
                       className="btn btn-danger"
-                      onClick={() => handleRejectParticipant(bid.user_id)}
+                      onClick={() => handleRejectBid(bid.id)}
+                      disabled={rejectingBidId === bid.id}
                     >
-                      Reject
-                    </button> 
+                      {rejectingBidId === bid.id
+                        ? "Rejecting..."
+                        : "Reject Bid"}
+                    </button>
                   </div>
-
                 </div>
               ))
             ) : (
