@@ -95,6 +95,7 @@ export default function Registration() {
 
     if (form.name && form.name.trim().length < 4)
       newErrors.name = "Enter at Least 4-5 Characters";
+    else if (!form.name.trim()) newErrors.name = "Required";
 
     if (!form.companyProductService.trim())
       newErrors.companyProductService = "Required";
@@ -151,7 +152,7 @@ export default function Registration() {
             {/* Phone */}
             <div className="ap-reg-field">
               <label htmlFor="phone" className="ap-reg-label">
-                Phone Number <span className="ap-reg-required">*</span>
+                Phone Number<span className="ap-reg-required">*</span>
               </label>
               <input
                 id="phone"
@@ -206,7 +207,7 @@ export default function Registration() {
             {/* Name */}
             <div className="ap-reg-field">
               <label htmlFor="name" className="ap-reg-label">
-                Person Name
+                Person Name<span className="ap-reg-required">*</span>
               </label>
               <input
                 id="name"
@@ -225,12 +226,15 @@ export default function Registration() {
               {errors.name && (
                 <span className="ap-reg-error">{errors.name}</span>
               )}
+              {!errors.phone && (
+                <small className="ap-reg-hint">Enter Name</small>
+              )}
             </div>
 
             {/* Company Name */}
             <div className="ap-reg-field ap-reg-field--full">
               <label htmlFor="companyName" className="ap-reg-label">
-                Company Name <span className="ap-reg-required">*</span>
+                Company Name<span className="ap-reg-required">*</span>
               </label>
               <input
                 id="companyName"
@@ -259,8 +263,7 @@ export default function Registration() {
             <div className="ap-reg-field ap-reg-field--full">
               <label htmlFor="companyProductService" className="ap-reg-label">
                 <span>
-                  Company Product/Service
-                  <span className="ap-reg-required">*</span>
+                  Company Product/Service<span className="ap-reg-required">*</span>
                 </span>
               </label>
               <input
@@ -273,7 +276,7 @@ export default function Registration() {
                 className={`ap-reg-input ${
                   errors.companyProductService ? "error" : ""
                 }`}
-                placeholder="e.g., Construction Materials, IT Services"
+                placeholder="e.g., Construction Materials,IT Service"
                 value={form.companyProductService}
                 onChange={handleChange}
                 title="Describe your products or services"

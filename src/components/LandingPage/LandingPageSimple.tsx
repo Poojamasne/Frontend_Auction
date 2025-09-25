@@ -505,7 +505,7 @@ const LandingPage: React.FC = () => {
                 <div className="footer-logo-icon">
                   <Gavel className="w-6 h-6" />
                 </div>
-                <span className="footer-logo-text">Quickauction</span>
+                <span className="footer-logo-text">Quick Auction</span>
               </div>
               <p>
                 Professional auction platform for modern businesses. Streamline

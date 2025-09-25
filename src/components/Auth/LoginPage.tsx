@@ -91,7 +91,7 @@ const LoginPage: React.FC = () => {
             <form onSubmit={onSubmit} className="ap-login-form">
               <div className="ap-login-form-group">
                 <label htmlFor="phoneNumber" className="ap-login-label">
-                  Phone No. <span style={{ color: "red" }}>*</span>
+                  Phone No<span style={{ color: "red" }}>*</span>
                 </label>
 
                 <div className="ap-login-input-wrapper">
