@@ -655,7 +655,7 @@ if (auctionData && auctionData.status === 'upcoming') {
       <div className="view-auction-header">
         <div>
           <h1 className="auction-title">
-            My Created Auction: {auction.auctionNo}
+             {auction.title}: {auction.auctionNo} 
           </h1>
           <p className="auction-subtitle">
             Manage your auction details and monitor participants
