@@ -47,7 +47,7 @@ const MyAuctions: React.FC = () => {
       }
       
       const data = await res.json();
-      console.log(`[MyAuctions] Participants API response for auction ${auctionId}:`, data);
+      
       return data;
     } catch (err) {
       console.error(`[MyAuctions] Error fetching participants for auction ${auctionId}:`, err);
@@ -75,11 +75,11 @@ const MyAuctions: React.FC = () => {
                 p && (typeof p === 'string' ? p.trim() !== '' : true)
               );
               counts[auctionId] = validParticipants.length;
-              console.log(`[MyAuctions] Fetched participant count for auction ${auctionId}: ${validParticipants.length}`);
+              // console.log(`[MyAuctions] Fetched participant count for auction ${auctionId}: ${validParticipants.length}`);
             } else {
               // Fallback to auction.participants count if API returns invalid data
               counts[auctionId] = auction.participants?.length || 0;
-              console.log(`[MyAuctions] Using fallback participant count for auction ${auctionId}: ${counts[auctionId]}`);
+              // console.log(`[MyAuctions] Using fallback participant count for auction ${auctionId}: ${counts[auctionId]}`);
             }
           } catch (error) {
             console.error(`[MyAuctions] Error fetching participant count for auction ${auctionId}:`, error);
@@ -95,7 +95,7 @@ const MyAuctions: React.FC = () => {
       }
     }
     
-    console.log(`[MyAuctions] Participant counts fetched for ${Object.keys(counts).length} auctions:`, counts);
+    // console.log(`[MyAuctions] Participant counts fetched for ${Object.keys(counts).length} auctions:`, counts);
     setParticipantCounts(counts);
   };
 
@@ -173,19 +173,19 @@ const MyAuctions: React.FC = () => {
   const isCreatedByUser = (auction: BaseAuction) => {
     if (!user) return false;
     
-    console.log(`[MyAuctions] Checking if user created auction ${auction.id}:`, {
-      userInfo: {
-        id: user.id,
-        companyName: user.companyName,
-        phoneNumber: user.phoneNumber
-      },
-      auctionInfo: {
-        createdBy: auction.createdBy,
-        userId: auction.userId,
-        auctioneerCompany: auction.auctioneerCompany,
-        auctioneerPhone: (auction as any).auctioneerPhone
-      }
-    });
+    // console.log(`[MyAuctions] Checking if user created auction ${auction.id}:`, {
+    //   userInfo: {
+    //     id: user.id,
+    //     companyName: user.companyName,
+    //     phoneNumber: user.phoneNumber
+    //   },
+    //   auctionInfo: {
+    //     createdBy: auction.createdBy,
+    //     userId: auction.userId,
+    //     auctioneerCompany: auction.auctioneerCompany,
+    //     auctioneerPhone: (auction as any).auctioneerPhone
+    //   }
+    // });
     
     const isCreated = (
       auction.createdBy === user.id ||
@@ -195,7 +195,7 @@ const MyAuctions: React.FC = () => {
       (auction as any).auctioneerPhone === user.phoneNumber
     );
     
-    console.log(`[MyAuctions] Auction ${auction.id} created by user: ${isCreated}`);
+    // console.log(`[MyAuctions] Auction ${auction.id} created by user: ${isCreated}`);
     return isCreated;
   };
 
@@ -203,13 +203,13 @@ const MyAuctions: React.FC = () => {
   const checkDetailedParticipation = (auction: any, user: any) => {
     if (!user) return false;
 
-    console.log(`[MyAuctions] Checking detailed participation:`, {
-      userPhone: user.phoneNumber,
-      userId: user.id,
-      auctionParticipants: auction.participants,
-      auctionParticipantsList: auction.participantsList,
-      allAuctionKeys: Object.keys(auction)
-    });
+    // console.log(`[MyAuctions] Checking detailed participation:`, {
+    //   userPhone: user.phoneNumber,
+    //   userId: user.id,
+    //   auctionParticipants: auction.participants,
+    //   auctionParticipantsList: auction.participantsList,
+    //   allAuctionKeys: Object.keys(auction)
+    // });
 
     // Check all possible participant arrays and fields
     const participantFields = [
@@ -252,7 +252,7 @@ const MyAuctions: React.FC = () => {
         });
         
         if (found) {
-          console.log(`[MyAuctions] Found user in detailed participant field`);
+          // console.log(`[MyAuctions] Found user in detailed participant field`);
           return true;
         }
       }
@@ -263,7 +263,7 @@ const MyAuctions: React.FC = () => {
       if (key.toLowerCase().includes('participant') && typeof value === 'object' && value !== null) {
         const nestedFound = JSON.stringify(value).includes(user.phoneNumber);
         if (nestedFound) {
-          console.log(`[MyAuctions] Found user in nested field ${key}`);
+          // console.log(`[MyAuctions] Found user in nested field ${key}`);
           return true;
         }
       }
@@ -314,10 +314,10 @@ const MyAuctions: React.FC = () => {
         return false;
       });
 
-      console.log(`[MyAuctions] API check for auction ${auctionId}: participant = ${isParticipant}`);
+      // console.log(`[MyAuctions] API check for auction ${auctionId}: participant = ${isParticipant}`);
       return isParticipant;
     } catch (error) {
-      console.error(`[MyAuctions] Error in API participant check for auction ${auctionId}:`, error);
+      // console.error(`[MyAuctions] Error in API participant check for auction ${auctionId}:`, error);
       return false;
     }
   };
@@ -329,31 +329,31 @@ const MyAuctions: React.FC = () => {
     // CRITICAL: If user created this auction, they should NEVER appear in participated auctions
     // This ensures clear separation between "My Created Auctions" and "My Participated Auctions"
     if (isCreatedByUser(auction)) {
-      console.log(`[MyAuctions] Auction ${auction.id} was created by user - excluding from participated auctions`);
+      // console.log(`[MyAuctions] Auction ${auction.id} was created by user - excluding from participated auctions`);
       return false;
     }
 
-    console.log(`[MyAuctions] Checking participation for auction ${auction.id} (${auction.title}):`, {
-      userPhone: user.phoneNumber,
-      userId: user.id,
-      userEmail: user.email,
-      auctionParticipants: auction.participants,
-      backendParticipants: (auction as any).backend?.participantsList,
-      allAuctionFields: Object.keys(auction as any)
-    });
+    // console.log(`[MyAuctions] Checking participation for auction ${auction.id} (${auction.title}):`, {
+    //   userPhone: user.phoneNumber,
+    //   userId: user.id,
+    //   userEmail: user.email,
+    //   auctionParticipants: auction.participants,
+    //   backendParticipants: (auction as any).backend?.participantsList,
+    //   allAuctionFields: Object.keys(auction as any)
+    // });
 
     // Check if user's phone number is in participants array
     if (auction.participants && Array.isArray(auction.participants)) {
-      console.log(`[MyAuctions] Raw participants array:`, auction.participants);
+      // console.log(`[MyAuctions] Raw participants array:`, auction.participants);
       
       // Filter out empty strings, null, undefined values
       const cleanParticipants = auction.participants.filter(p => p && typeof p === 'string' && p.trim() !== '');
-      console.log(`[MyAuctions] Cleaned participants:`, cleanParticipants);
+      // console.log(`[MyAuctions] Cleaned participants:`, cleanParticipants);
       
       // Check for exact phone number match
       const hasUserPhone = cleanParticipants.includes(user.phoneNumber);
       if (hasUserPhone) {
-        console.log(`[MyAuctions] ✅ Found user phone number in participants array`);
+        // console.log(`[MyAuctions] ✅ Found user phone number in participants array`);
         return true;
       }
 
@@ -365,11 +365,11 @@ const MyAuctions: React.FC = () => {
         '+91' + user.phoneNumber.replace(/^\+?91?/, '')          // +919327437170 (normalized)
       ];
       
-      console.log(`[MyAuctions] Checking phone variations:`, userPhoneVariations);
+      // console.log(`[MyAuctions] Checking phone variations:`, userPhoneVariations);
       
       const hasPhoneVariation = cleanParticipants.some(p => userPhoneVariations.includes(p));
       if (hasPhoneVariation) {
-        console.log(`[MyAuctions] ✅ Found user phone variation in participants`);
+        // console.log(`[MyAuctions] ✅ Found user phone variation in participants`);
         return true;
       }
     }
@@ -377,7 +377,7 @@ const MyAuctions: React.FC = () => {
     // Check backend participantsList with multiple possible field names
     const backendList: any[] | undefined = (auction as any).backend?.participantsList;
     if (Array.isArray(backendList)) {
-      console.log(`[MyAuctions] Checking backend participantsList:`, backendList);
+      // console.log(`[MyAuctions] Checking backend participantsList:`, backendList);
       
       const isParticipant = backendList.some(p => {
         const phoneFields = [
@@ -407,12 +407,12 @@ const MyAuctions: React.FC = () => {
         const emailMatch = user.email ? emailFields.includes(user.email) : false;
 
         if (phoneMatch || idMatch || emailMatch) {
-          console.log(`[MyAuctions] ✅ Found user in backend participants:`, {
-            phoneMatch,
-            idMatch,
-            emailMatch,
-            participant: p
-          });
+          // console.log(`[MyAuctions] ✅ Found user in backend participants:`, {
+          //   phoneMatch,
+          //   idMatch,
+          //   emailMatch,
+          //   participant: p
+          // });
           return true;
         }
         return false;
@@ -424,7 +424,7 @@ const MyAuctions: React.FC = () => {
     // Check other possible participant data structures
     const participantsList = (auction as any).participantsList;
     if (Array.isArray(participantsList)) {
-      console.log(`[MyAuctions] Checking participantsList:`, participantsList);
+      // console.log(`[MyAuctions] Checking participantsList:`, participantsList);
       
       const isInList = participantsList.some(p => {
         if (typeof p === 'string') {
@@ -445,7 +445,7 @@ const MyAuctions: React.FC = () => {
       });
       
       if (isInList) {
-        console.log(`[MyAuctions] ✅ Found user in participantsList`);
+        // console.log(`[MyAuctions] ✅ Found user in participantsList`);
         return true;
       }
     }
@@ -454,7 +454,7 @@ const MyAuctions: React.FC = () => {
     const allFields = Object.entries(auction as any);
     for (const [key, value] of allFields) {
       if (key.toLowerCase().includes('participant') || key.toLowerCase().includes('user')) {
-        console.log(`[MyAuctions] Checking field ${key}:`, value);
+        // console.log(`[MyAuctions] Checking field ${key}:`, value);
         
         if (Array.isArray(value)) {
           const found = value.some(v => {
@@ -485,14 +485,14 @@ const MyAuctions: React.FC = () => {
           });
           
           if (found) {
-            console.log(`[MyAuctions] ✅ Found user in field ${key}`);
+            // console.log(`[MyAuctions] ✅ Found user in field ${key}`);
             return true;
           }
         }
       }
     }
 
-    console.log(`[MyAuctions] ❌ User NOT found as participant in auction ${auction.id}`);
+    // console.log(`[MyAuctions] ❌ User NOT found as participant in auction ${auction.id}`);
     return false;
   };
 
@@ -502,13 +502,13 @@ const MyAuctions: React.FC = () => {
 
 
     if (activeTab === 'auctioneer') {
-      console.log(`[MyAuctions] 🏗️ FETCHING CREATED AUCTIONS - Only auctions created by user ${user?.phoneNumber}`);
+      // console.log(`[MyAuctions] 🏗️ FETCHING CREATED AUCTIONS - Only auctions created by user ${user?.phoneNumber}`);
       
       // Fetch auctions created by user
       if (!debouncedSearch) {
         try {
           data = await apiService.fetchMyAuctions(statusFilter === 'all' ? undefined : statusFilter, signal);
-          console.log(`[MyAuctions] Fetched ${data.length} auctions from my-auctions endpoint`);
+          // console.log(`[MyAuctions] Fetched ${data.length} auctions from my-auctions endpoint`);
         } catch (e) {
           console.warn('[MyAuctions] fetchMyAuctions failed, falling back', e);
         }
@@ -523,13 +523,13 @@ const MyAuctions: React.FC = () => {
           signal,
         };
         data = await apiService.fetchFilteredAuctions(params);
-        console.log(`[MyAuctions] Fallback: Fetched ${data.length} auctions from filtered endpoint`);
+        // console.log(`[MyAuctions] Fallback: Fetched ${data.length} auctions from filtered endpoint`);
 
         // Filter to only auctions created by current user
         if (data.length > 0 && user?.id) {
           const beforeFilter = data.length;
           data = data.filter(isCreatedByUser);
-          console.log(`[MyAuctions] ✅ Filtered to show only USER CREATED auctions: ${beforeFilter} → ${data.length}`);
+          // console.log(`[MyAuctions] ✅ Filtered to show only USER CREATED auctions: ${beforeFilter} → ${data.length}`);
         }
       }
       
@@ -542,33 +542,33 @@ const MyAuctions: React.FC = () => {
       
       // Update auctioneer count
       setAuctioneerCount(data.length);
-      console.log(`[MyAuctions] 🏗️ FINAL CREATED AUCTIONS RESULT: ${data.length} auctions`);
+      // console.log(`[MyAuctions] 🏗️ FINAL CREATED AUCTIONS RESULT: ${data.length} auctions`);
     }
     else if (activeTab === 'participant') {
-      console.log(`[MyAuctions] 👥 FETCHING PARTICIPATED AUCTIONS - Only auctions where ${user?.phoneNumber} was added as participant (NOT created by user)`);
+      // console.log(`[MyAuctions] 👥 FETCHING PARTICIPATED AUCTIONS - Only auctions where ${user?.phoneNumber} was added as participant (NOT created by user)`);
       
-      console.log(`[MyAuctions] User details for participation check:`, {
-        userId: user?.id,
-        userPhone: user?.phoneNumber,
-        userEmail: user?.email,
-        userCompany: user?.companyName
-      });
+      // console.log(`[MyAuctions] User details for participation check:`, {
+      //   userId: user?.id,
+      //   userPhone: user?.phoneNumber,
+      //   userEmail: user?.email,
+      //   userCompany: user?.companyName
+      // });
 
 
       // Strategy 1: Try direct my-auctions endpoint first (most reliable)
       try {
-        console.log(`[MyAuctions] Strategy 1: Trying my-auctions endpoint for participated auctions`);
+        // console.log(`[MyAuctions] Strategy 1: Trying my-auctions endpoint for participated auctions`);
         const myAuctions = await apiService.fetchMyAuctions(statusFilter === 'all' ? undefined : statusFilter, signal);
-        console.log(`[MyAuctions] Fetched ${myAuctions.length} auctions from my-auctions endpoint`);
+        // console.log(`[MyAuctions] Fetched ${myAuctions.length} auctions from my-auctions endpoint`);
         
         // Filter for participated auctions (excluding created ones)
         const participated = myAuctions.filter(auction => !isCreatedByUser(auction) && isUserParticipant(auction));
 
-        console.log(`[MyAuctions] Found ${participated.length} non-created auctions from my-auctions`);
+        // console.log(`[MyAuctions] Found ${participated.length} non-created auctions from my-auctions`);
         
         if (participated.length > 0) {
           data = participated;
-          console.log(`[MyAuctions] Strategy 1 successful: ${data.length} participated auctions`);
+          // console.log(`[MyAuctions] Strategy 1 successful: ${data.length} participated auctions`);
         }
       } catch (myAuctionsErr) {
         console.warn('[MyAuctions] Strategy 1 (my-auctions) failed:', myAuctionsErr);
@@ -577,7 +577,7 @@ const MyAuctions: React.FC = () => {
       // Strategy 2: Try participated endpoint if Strategy 1 failed or returned empty
       if (data.length === 0) {
         try {
-          console.log(`[MyAuctions] Strategy 2: Trying participated endpoint`);
+          // console.log(`[MyAuctions] Strategy 2: Trying participated endpoint`);
           const params = {
             status: statusFilter === 'all' ? undefined : statusFilter,
             type: 'participated',
@@ -586,13 +586,13 @@ const MyAuctions: React.FC = () => {
           };
           
           data = await apiService.fetchFilteredAuctions(params);
-          console.log(`[MyAuctions] Strategy 2: Fetched ${data.length} auctions from participated endpoint`);
+          // console.log(`[MyAuctions] Strategy 2: Fetched ${data.length} auctions from participated endpoint`);
           
           // Still filter to ensure we only get actual participated auctions
           if (data.length > 0) {
             const beforeFilter = data.length;
             data = data.filter(isUserParticipant);
-            console.log(`[MyAuctions] Strategy 2: Filtered participated auctions from ${beforeFilter} to ${data.length}`);
+            // console.log(`[MyAuctions] Strategy 2: Filtered participated auctions from ${beforeFilter} to ${data.length}`);
           }
         } catch (participatedErr) {
           console.warn('[MyAuctions] Strategy 2 (participated endpoint) failed:', participatedErr);
@@ -603,7 +603,7 @@ const MyAuctions: React.FC = () => {
       // Strategy 3: Use API to check each auction individually for participation
       if (data.length === 0) {
         try {
-          console.log(`[MyAuctions] Strategy 3: Using participants API to check each auction`);
+          // console.log(`[MyAuctions] Strategy 3: Using participants API to check each auction`);
           const params = {
             status: statusFilter === 'all' ? undefined : statusFilter,
             search: debouncedSearch,
@@ -611,11 +611,11 @@ const MyAuctions: React.FC = () => {
           };
 
           const allAuctions = await apiService.fetchFilteredAuctions(params);
-          console.log(`[MyAuctions] Strategy 3: Fetched ${allAuctions.length} total auctions for API check`);
+          // console.log(`[MyAuctions] Strategy 3: Fetched ${allAuctions.length} total auctions for API check`);
 
           // Get auctions that user did NOT create
           const nonCreatedAuctions = allAuctions.filter(auction => !isCreatedByUser(auction));
-          console.log(`[MyAuctions] Strategy 3: ${nonCreatedAuctions.length} auctions not created by user`);
+          // console.log(`[MyAuctions] Strategy 3: ${nonCreatedAuctions.length} auctions not created by user`);
 
           // Check each auction via API for participation
           const participatedAuctions: BaseAuction[] = [];
@@ -623,11 +623,11 @@ const MyAuctions: React.FC = () => {
 
           for (let i = 0; i < maxToCheck; i++) {
             const auction = nonCreatedAuctions[i];
-            console.log(`[MyAuctions] Strategy 3: Checking API participation for auction ${auction.id} (${auction.title})`);
+            // console.log(`[MyAuctions] Strategy 3: Checking API participation for auction ${auction.id} (${auction.title})`);
             
             const isParticipant = await isUserParticipantViaAPI(auction);
             if (isParticipant) {
-              console.log(`[MyAuctions] ✅ Strategy 3: Found participation in auction ${auction.id} via API`);
+              // console.log(`[MyAuctions] ✅ Strategy 3: Found participation in auction ${auction.id} via API`);
               participatedAuctions.push(auction);
             }
 
@@ -637,7 +637,7 @@ const MyAuctions: React.FC = () => {
             }
           }
 
-          console.log(`[MyAuctions] Strategy 3: Found ${participatedAuctions.length} participated auctions via API`);
+          // console.log(`[MyAuctions] Strategy 3: Found ${participatedAuctions.length} participated auctions via API`);
           data = participatedAuctions;
           
         } catch (fallbackErr: any) {
@@ -649,7 +649,7 @@ const MyAuctions: React.FC = () => {
       // Strategy 4: Emergency fallback - if all else fails, show auctions with participant indicators
       if (data.length === 0) {
         try {
-          console.log(`[MyAuctions] Strategy 4: Emergency fallback - non-created auctions with participants`);
+          // console.log(`[MyAuctions] Strategy 4: Emergency fallback - non-created auctions with participants`);
           const params = {
             status: statusFilter === 'all' ? undefined : statusFilter,
             search: debouncedSearch,
@@ -668,19 +668,19 @@ const MyAuctions: React.FC = () => {
             const hasAnyParticipantData = hasParticipants || hasParticipantsList || hasParticipantCount;
             
             if (notCreatedByUser && hasAnyParticipantData) {
-              console.log(`[MyAuctions] Strategy 4: Potential participation in auction ${auction.id} (${auction.title})`);
+              // console.log(`[MyAuctions] Strategy 4: Potential participation in auction ${auction.id} (${auction.title})`);
               return true;
             }
             
             return false;
           });
           
-          console.log(`[MyAuctions] Strategy 4: Found ${potentialParticipations.length} potential participated auctions`);
+          // console.log(`[MyAuctions] Strategy 4: Found ${potentialParticipations.length} potential participated auctions`);
           
           // Use this fallback if reasonable number
           if (potentialParticipations.length > 0 && potentialParticipations.length <= 15) {
             data = potentialParticipations;
-            console.log(`[MyAuctions] Strategy 4: Using emergency fallback with ${data.length} auctions`);
+            // console.log(`[MyAuctions] Strategy 4: Using emergency fallback with ${data.length} auctions`);
           }
           
         } catch (emergencyErr: any) {
@@ -703,21 +703,21 @@ const MyAuctions: React.FC = () => {
         
         // Triple-check: Make sure all auctions are actually participated by user
         const actuallyParticipated = data.filter(isUserParticipant).length;
-        console.log(`[MyAuctions] 👥 PARTICIPATION VERIFICATION: ${actuallyParticipated}/${data.length} auctions verified as participated`);
+        // console.log(`[MyAuctions] 👥 PARTICIPATION VERIFICATION: ${actuallyParticipated}/${data.length} auctions verified as participated`);
         
       } else {
         // Show a helpful message if no strategies worked
-        console.log('[MyAuctions] ❌ All strategies failed to find participated auctions');
+        // console.log('[MyAuctions] ❌ All strategies failed to find participated auctions');
         setParticipantBackendFiltered(false);
         setEnrichedFromDetails(false);
       }
       
       // Update participant count
       setParticipantCount(data.length);
-      console.log(`[MyAuctions] 👥 FINAL PARTICIPATED AUCTIONS RESULT: ${data.length} auctions where user is participant (NOT creator)`);
+      // console.log(`[MyAuctions] 👥 FINAL PARTICIPATED AUCTIONS RESULT: ${data.length} auctions where user is participant (NOT creator)`);
     }
 
-    console.log(`[MyAuctions] Final result: ${data.length} auctions for ${activeTab} tab`);
+    // console.log(`[MyAuctions] Final result: ${data.length} auctions for ${activeTab} tab`);
     setAuctions(data);
     
     // Fetch participant counts for all auctions
@@ -782,13 +782,13 @@ const formatAuctionTime = (time24: string) => {
   
   const durMs = durationInMinutes * 60 * 1000; // Convert minutes to milliseconds
   
-  console.log(`[MyAuctions] Auction ${auction.id} duration calculation:`, {
-    originalDuration: auction.duration,
-    durationInMinutes,
-    durationInMs: durMs,
-    startTime: new Date(start).toISOString(),
-    endTime: new Date(start + durMs).toISOString()
-  });
+  // console.log(`[MyAuctions] Auction ${auction.id} duration calculation:`, {
+  //   originalDuration: auction.duration,
+  //   durationInMinutes,
+  //   durationInMs: durMs,
+  //   startTime: new Date(start).toISOString(),
+  //   endTime: new Date(start + durMs).toISOString()
+  // });
   
   return new Date(start + durMs);
 };
@@ -877,20 +877,20 @@ const getDerivedStatus = (auction: BaseAuction, nowMs: number): BaseAuction['sta
       );
       
       if (isSignificantTransition) {
-        console.log(`[MyAuctions] Significant status transition detected for auction ${auction.id}:`, {
-          from: currentStatus,
-          to: derivedStatus,
-          now: new Date(currentTime).toISOString(),
-          start: new Date(start).toISOString(),
-          end: new Date(end).toISOString()
-        });
+        // console.log(`[MyAuctions] Significant status transition detected for auction ${auction.id}:`, {
+        //   from: currentStatus,
+        //   to: derivedStatus,
+        //   now: new Date(currentTime).toISOString(),
+        //   start: new Date(start).toISOString(),
+        //   end: new Date(end).toISOString()
+        // });
       }
       
       return isSignificantTransition;
     });
     
     if (shouldRefresh) {
-      console.log('[MyAuctions] Status change detected, refreshing auction data');
+      // console.log('[MyAuctions] Status change detected, refreshing auction data');
       fetchAuctions();
     }
   }, 1000); // FIXED: Check every 5 seconds instead of every second to reduce load
@@ -1373,13 +1373,13 @@ const getDerivedStatus = (auction: BaseAuction, nowMs: number): BaseAuction['sta
                         <button
                           onClick={async (e) => {
                             e.preventDefault();
-                            console.log('[MyAuctions] Join as Participant clicked for auction:', auction);
+                            // console.log('[MyAuctions] Join as Participant clicked for auction:', auction);
                             if (!auction.backendId && !auction.id) {
                               console.error('[MyAuctions] No auction ID found');
                               return;
                             }
                             const targetId = auction.backendId || auction.id;
-                            console.log('[MyAuctions] Using auction ID:', targetId);
+                            // console.log('[MyAuctions] Using auction ID:', targetId);
                             try {
                               const button = e.currentTarget as HTMLButtonElement;
                               if (button) {
@@ -1388,7 +1388,7 @@ const getDerivedStatus = (auction: BaseAuction, nowMs: number): BaseAuction['sta
                               }
                               const { default: newAuctionService } = await import('../../../services/newAuctionService');
                               const { joinParticipant } = await import('../../../services/apiAuctionService');
-                              console.log('[MyAuctions] Trying new join API with ID:', targetId);
+                              // console.log('[MyAuctions] Trying new join API with ID:', targetId);
                               let joined = false;
                               try {
                                 const numId = Number(targetId);
@@ -1397,18 +1397,18 @@ const getDerivedStatus = (auction: BaseAuction, nowMs: number): BaseAuction['sta
                                     auction_id: numId,
                                     phone_number: user.phoneNumber,
                                   });
-                                  console.log('[MyAuctions] new joinAuction result:', result);
+                                  // console.log('[MyAuctions] new joinAuction result:', result);
                                   joined = !!result?.success;
                                 }
                               } catch (newErr) {
                                 console.warn('[MyAuctions] new join API failed, will try legacy', newErr);
                               }
                               if (!joined) {
-                                console.log('[MyAuctions] Falling back to legacy joinParticipant with ID:', targetId);
+                                // console.log('[MyAuctions] Falling back to legacy joinParticipant with ID:', targetId);
                                 const legacy = await joinParticipant(targetId);
-                                console.log('[MyAuctions] legacy joinParticipant result:', legacy);
+                                // console.log('[MyAuctions] legacy joinParticipant result:', legacy);
                               }
-                              console.log('[MyAuctions] Navigating to participant session:', `/dashboard/participant-auction/${targetId}`);
+                              // console.log('[MyAuctions] Navigating to participant session:', `/dashboard/participant-auction/${targetId}`);
                               navigate(`/dashboard/participant-auction/${targetId}`);
                             } catch (err: any) {
                               console.error('[MyAuctions] joinParticipant failed:', err);

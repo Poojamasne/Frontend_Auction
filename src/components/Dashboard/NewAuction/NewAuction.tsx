@@ -381,7 +381,7 @@ const NewAuction: React.FC = () => {
                 </select>
               </div>
 
-              <div className="form-group">
+              <div className="form-group md:col-span-2">
                 <label className="flex items-center gap-2">
                   <input
                     type="checkbox"
