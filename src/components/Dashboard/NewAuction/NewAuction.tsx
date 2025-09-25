@@ -432,7 +432,9 @@ const NewAuction: React.FC = () => {
               <div className="form-group">
                 <label className="form-label">
                   <ArrowDown className="w-4 h-4 inline mr-2" />
-                  Decremental Value
+                  <span>
+                      Decremental Value<span className="required">*</span>
+                  </span>
                 </label>
                 <input
                   type="number"
