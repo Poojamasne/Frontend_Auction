@@ -116,7 +116,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               </span>
             ) : user?.role === 'auctioneer' ? (
               <span className="ap-role-badge ap-role-auctioneer">
-                Auctioneer
+                User
               </span>
             ) : (
               <span className="ap-role-badge ap-role-participant">User</span>
