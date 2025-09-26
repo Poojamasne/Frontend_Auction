@@ -202,6 +202,9 @@ export default function Registration() {
                   Only .com, .in, or .org domains allowed
                 </small>
               )}
+              {!errors.email && (
+                <small className="ap-reg-hint">Enter Your Email</small>
+              )}
             </div>
 
             {/* Name */}
@@ -227,7 +230,7 @@ export default function Registration() {
                 <span className="ap-reg-error">{errors.name}</span>
               )}
               {!errors.phone && (
-                <small className="ap-reg-hint">Enter Name</small>
+                <small className="ap-reg-hint">Enter Your Full Name</small>
               )}
             </div>
 
@@ -254,16 +257,17 @@ export default function Registration() {
               {errors.companyName && (
                 <span className="ap-reg-error">{errors.companyName}</span>
               )}
-              /* {!errors.companyName && (
-                <small className="ap-reg-hint">It is mandatory</small>
-              )} */
+              {!errors.companyName && (
+                <small className="ap-reg-hint">Enter Your Company Name</small>
+              )}
             </div>
 
             {/* Company Product / Service */}
             <div className="ap-reg-field ap-reg-field--full">
               <label htmlFor="companyProductService" className="ap-reg-label">
                 <span>
-                  Company Product/Service<span className="ap-reg-required">*</span>
+                  Company Product/Service
+                  <span className="ap-reg-required">*</span>
                 </span>
               </label>
               <input
@@ -315,6 +319,9 @@ export default function Registration() {
               />
               {errors.companyAddress && (
                 <span className="ap-reg-error">{errors.companyAddress}</span>
+              )}
+              {!errors.phone && (
+                <small className="ap-reg-hint">Enter Your Company Name</small>
               )}
             </div>
           </div>
