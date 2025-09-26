@@ -129,23 +129,37 @@ const NewAuction: React.FC = () => {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
-    const tooBig = files.find((f) => f.size > MAX_FILE_MB * 1024 * 1024);
-    if (tooBig) {
-      toast.error(`"${tooBig.name}" exceeds ${MAX_FILE_MB} MB`);
-      return;
-    }
-    const dedup = files.filter(
-      (f) => !uploadedFiles.some((u) => u.name === u.name && u.size === f.size)
+
+    // Filter out files exceeding size
+    const validFiles = files.filter((f) => {
+      if (f.size > MAX_FILE_MB * 1024 * 1024) {
+        toast.error(`"${f.name}" exceeds ${MAX_FILE_MB} MB`);
+        return false;
+      }
+      return true;
+    });
+
+    // Deduplicate based on name + size
+    const dedup = validFiles.filter(
+      (f) => !uploadedFiles.some((u) => u.name === f.name && u.size === f.size)
     );
+
+    // Check file count limit
     if (uploadedFiles.length + dedup.length > MAX_FILES) {
       toast.error(`Max ${MAX_FILES} files allowed`);
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
-    if (dedup.length) {
-      setUploadedFiles((p) => [...p, ...dedup]);
-      toast.success(`${dedup.length} file(s) uploaded`);
+
+    // Update state if valid files found
+    if (dedup.length > 0) {
+      setUploadedFiles((prev) => [...prev, ...dedup]);
+      toast.success(`${dedup.length} file(s) uploaded successfully`);
+    } else {
+      toast.error("No new valid files to upload");
     }
+
+    // Reset input so user can re-select the same file again
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -433,7 +447,7 @@ const NewAuction: React.FC = () => {
                 <label className="form-label">
                   <ArrowDown className="w-4 h-4 inline mr-2" />
                   <span>
-                      Decremental Value<span className="required">*</span>
+                    Decremental Value<span className="required">*</span>
                   </span>
                 </label>
                 <input
@@ -463,8 +477,7 @@ const NewAuction: React.FC = () => {
                 Auction Documents
               </h2>
               <p className="text-text-secondary">
-                Optional – max {MAX_FILES} files
-                {/* Optional – max {MAX_FILES} files, {MAX_FILE_MB} MB each */}
+                Optional – up to {MAX_FILES} files, {MAX_FILE_MB} MB each
               </p>
             </div>
             <div className="card-body">
