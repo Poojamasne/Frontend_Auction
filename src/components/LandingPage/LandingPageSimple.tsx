@@ -517,19 +517,19 @@ const LandingPage: React.FC = () => {
               <h3>Platform</h3>
               <ul>
                 <li>
-                  <a href="#features">Create Auction</a>
+                  <a href="#none">Create Auction</a>
                 </li>
                 <li>
-                  <a href="#features">Join Auction</a>
+                  <a href="#none">Join Auction</a>
                 </li>
                 <li>
-                  <a href="#features">Reports & Analytics</a>
+                  <a href="#none">Reports & Analytics</a>
                 </li>
                 <li>
-                  <a href="#features">Admin Panel</a>
+                  <a href="#none">Admin Panel</a>
                 </li>
                 <li>
-                  <a href="#features">API Documentation</a>
+                  <a href="#none">API Documentation</a>
                 </li>
               </ul>
             </div>

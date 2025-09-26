@@ -397,7 +397,7 @@ const AuctionReports: React.FC = () => {
                       <th>Rank</th>
                       <th>Participant Company Name</th>
                       <th>Pre Bid Offer</th>
-                      <th>Final Bid Offer</th>
+                      {/* <th>Final Bid Offer</th> */}
                     </tr>
                   </thead>
                   <tbody>
@@ -410,9 +410,9 @@ const AuctionReports: React.FC = () => {
                         <td data-label="Pre Bid">
                           {p.preBidOffer ? `${selectedAuction.currency} ${p.preBidOffer.toLocaleString()}` : 'N/A'}
                         </td>
-                        <td data-label="Final Bid">
+                        {/* <td data-label="Final Bid">
                           {p.finalBid != null ? `${selectedAuction.currency} ${p.finalBid.toLocaleString()}` : 'N/A'}
-                        </td>
+                        </td> */}
                       </tr>
                     ))}
                   </tbody>

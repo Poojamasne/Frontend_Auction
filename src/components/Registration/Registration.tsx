@@ -287,9 +287,6 @@ export default function Registration() {
                 </span>
               )}
               {!errors.companyProductService && (
-                <small className="ap-reg-hint">It is mandatory</small>
-              )}
-              {!errors.companyProductService && (
                 <small className="ap-reg-hint">
                   What does your company sell or provide?
                 </small>
