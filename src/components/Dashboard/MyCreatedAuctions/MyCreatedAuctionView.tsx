@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "./MyCreatedAuctionView.css";
+ import BusinessIcon from "@mui/icons-material/Business";
 import {
   Calendar,
   Clock,
@@ -655,7 +656,7 @@ if (auctionData && auctionData.status === 'upcoming') {
       <div className="view-auction-header">
         <div>
           <h1 className="auction-title">
-             {auction.title}: {auction.auctionNo} 
+            {auction.title}: {auction.auctionNo}
           </h1>
           <p className="auction-subtitle">
             Manage your auction details and monitor participants
@@ -669,7 +670,7 @@ if (auctionData && auctionData.status === 'upcoming') {
       {/* Company Details */}
       <div className="auction-details-card">
         <h2 className="card-title">
-          <Building className="w-5 h-5" />
+          <BusinessIcon className="w-5 h-5" />
           Your Company Details
         </h2>
         <div className="auction-info-grid">

@@ -688,7 +688,7 @@ const NewAuction: React.FC = () => {
 
           {/* Actions */}
           <div className="card">
-            <div className="card-body flex items-center justify-end gap-4">
+            <div className="card-body flex items-center justify-end gap-2">
               <button
                 type="button"
                 onClick={() => {
