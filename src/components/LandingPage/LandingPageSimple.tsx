@@ -93,8 +93,7 @@ const LandingPage: React.FC = () => {
         "Detailed reports, bid summaries, and performance analytics for better decision making.",
       // image:
       //   "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3&s=9e8d7c6b5a4f3e2d1c0b9a8f7e6d5c4b",
-      image:
-        "https://cdn.corporatefinanceinstitute.com/assets/auction.jpeg",
+      image: "https://cdn.corporatefinanceinstitute.com/assets/auction.jpeg",
       gradient: "linear-gradient(135deg, #a8edea 0%, #f54c82ff 100%)",
     },
   ];
@@ -575,7 +574,7 @@ const LandingPage: React.FC = () => {
 
           <div className="footer-bottom">
             <p>
-              &copy; 2025 Quickauction. All rights reserved. Built with for
+              &copy; 2025 Quick Auction. All rights reserved. Built with for
               modern auctions.
             </p>
           </div>
