@@ -254,9 +254,9 @@ export default function Registration() {
               {errors.companyName && (
                 <span className="ap-reg-error">{errors.companyName}</span>
               )}
-              {!errors.companyName && (
+              /* {!errors.companyName && (
                 <small className="ap-reg-hint">It is mandatory</small>
-              )}
+              )} */
             </div>
 
             {/* Company Product / Service */}
