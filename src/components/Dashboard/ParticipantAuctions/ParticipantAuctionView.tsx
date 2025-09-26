@@ -605,7 +605,7 @@ const ParticipantAuctionView: React.FC = () => {
           <p className="auction-subtitle">#{auction.auction_number}</p>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-          {/* <button
+          <button
             onClick={() => loadAuctionDetails(true)}
             className="btn btn-secondary"
             disabled={refreshing}
@@ -622,7 +622,7 @@ const ParticipantAuctionView: React.FC = () => {
             <RefreshCw
               className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`}
             />
-          </button> */}
+          </button>
           <div
             className={`auction-status-badge ${
               auction.status === "upcoming"
@@ -753,7 +753,7 @@ const ParticipantAuctionView: React.FC = () => {
             {auction.documents.map((doc, index) => (
               <div key={index} className="document-card">
                 <div className="document-icon">
-                  <FileText className="w-5 h-5" />
+                  <FileText className="w-8 h-8" />
                 </div>
                 <div className="document-details">
                   <div className="document-info">
@@ -761,7 +761,6 @@ const ParticipantAuctionView: React.FC = () => {
                     <p>{doc.file_type || "PDF Document"}</p>
                   </div>
                 </div>
-
                 <button
                   onClick={() => handleDownloadDocument(doc)}
                   className="btn btn-primary download-btn"
