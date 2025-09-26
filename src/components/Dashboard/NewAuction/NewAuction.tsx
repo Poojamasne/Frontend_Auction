@@ -477,7 +477,7 @@ const NewAuction: React.FC = () => {
                 Auction Documents
               </h2>
               <p className="text-text-secondary">
-                Optional – up to {MAX_FILES} files, {MAX_FILE_MB} MB each (E.g Pdf And Images)
+                Optional – up to {MAX_FILES} files, {MAX_FILE_MB} MB each
               </p>
             </div>
             <div className="card-body">
