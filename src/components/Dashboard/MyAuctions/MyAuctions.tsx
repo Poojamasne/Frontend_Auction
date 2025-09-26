@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './MyAuctions.css';
 import { Link, useNavigate } from 'react-router-dom';
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 import {
   Calendar,
   Clock,
@@ -949,67 +951,81 @@ const getDerivedStatus = (auction: BaseAuction, nowMs: number): BaseAuction['sta
   };
 
   // Generate and download a simple auction report (mirrors internal implementation)
-  const downloadAuctionReport = async (auction: BaseAuction) => {
+const downloadAuctionReport = async (auction: BaseAuction) => {
   try {
     /* 1.  fetch complete auction object */
-    const token = localStorage.getItem('token') || localStorage.getItem('authToken');
-    const res = await fetch(`${API_BASE_URL}/auction/${auction.backendId || auction.id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!res.ok) throw new Error('Could not fetch auction detail');
+    const token =
+      localStorage.getItem("token") || localStorage.getItem("authToken");
+    const res = await fetch(
+      `${API_BASE_URL}/auction/${auction.backendId || auction.id}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    if (!res.ok) throw new Error("Could not fetch auction detail");
     const json = await res.json();
     const full = json.auction;
-    if (!full) throw new Error('Empty auction detail');
+    if (!full) throw new Error("Empty auction detail");
 
-    /* 2.  participants */
+    /* 2.  build HTML string (A4-safe) */
     const participants = full.participants.map((p: any) => ({
       userId: p.user_id,
-      companyName: p.company_name || '—',
-      personName: p.person_name || '—',
+      companyName: p.company_name || "—",
+      personName: p.person_name || "—",
       phoneNumber: p.phone_number,
-      mailId: p.email || '—',          // ← will show once backend adds it
-      companyAddress: '—',
+      mailId: p.email || "—",
+      companyAddress: "—",
       bidAmount: 0,
-      lastBidTime: '',
+      lastBidTime: "",
       status: p.status,
       invitedAt: p.invited_at,
       joinedAt: p.joined_at,
     }));
 
-    /* 3.  winner */
     const winnerBid = full.winner_info
       ? participants.find((x: any) => x.userId === full.winner_info.user_id)
       : null;
 
-    /* 4.  documents */
     const docRows =
-      full.documents?.map(
-        (d: any) =>
-          `<tr>
+      full.documents
+        ?.map(
+          (d: any) =>
+            `<tr>
              <td>${d.file_name}</td>
-             <td><a href="${d.file_url}" target="_blank" rel="noreferrer">Download</a></td>
+             <td><a href="${
+               d.file_url
+             }" target="_blank" rel="noreferrer">Download</a></td>
              <td>${d.file_type}</td>
              <td>${new Date(d.uploaded_at).toLocaleString()}</td>
            </tr>`
-      ).join('') || '<tr><td colspan="4">No documents</td></tr>';
+        )
+        .join("") || '<tr><td colspan="4">No documents</td></tr>';
 
-    /* 5.  HTML report */
-    const html = `<!DOCTYPE html>
-<html>handleManualRefresh
+    const html = `
+<!DOCTYPE html>
+<html>
 <head>
   <meta charset="utf-8"/>
   <title>Auction Report – ${full.auction_no}</title>
   <style>
-    body{font-family:Arial,Helvetica,sans-serif;margin:24px;color:#333}
-    h1{margin:0 0 8px;font-size:24px;color:#4f46e5}
-    h2{font-size:18px;margin:24px 0 8px;color:#4f46e5}
-    .section{border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin-top:16px}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;font-size:14px}
-    .label{font-weight:600;color:#555}
-    table{border-collapse:collapse;width:100%;margin-top:8px}
-    th,td{border:1px solid #ddd;padding:6px 8px;font-size:12px;text-align:left}
-    th{background:#f3f4f6}
-    .badge{color:#0d9488;font-weight:600}
+    @page { size: A4 portrait; margin: 10mm; }
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      margin: 0;
+      padding: 0;
+      max-width: 190mm;
+      font-size: 10pt;
+      color: #333;
+    }
+    h1 { margin: 0 0 8px; font-size: 20px; color: #4f46e5; }
+    h2 { font-size: 16px; margin: 20px 0 6px; color: #4f46e5; }
+    .section { border: 1px solid #e5e7eb; border-radius: 6px; padding: 12px; margin-top: 12px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; font-size: 9pt; }
+    .label { font-weight: 600; color: #555; }
+    table { border-collapse: collapse; width: 100%; margin-top: 6px; font-size: 8pt; }
+    th, td { border: 1px solid #ddd; padding: 4px 6px; text-align: left; }
+    th { background: #f3f4f6; }
+    .badge { color: #0d9488; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -1022,30 +1038,62 @@ const getDerivedStatus = (auction: BaseAuction, nowMs: number): BaseAuction['sta
       <div><span class="label">Auction No:</span> ${full.auction_no}</div>
       <div><span class="label">Status:</span> <span class="badge">${full.status.toUpperCase()}</span></div>
       <div><span class="label">Date:</span> ${full.auction_date}</div>
-      <div><span class="label">Time:</span> ${full.formatted_start_time} – ${full.formatted_end_time || '—'}</div>
+      <div><span class="label">Time:</span> ${full.formatted_start_time} – ${
+      full.formatted_end_time || "—"
+    }</div>
       <div><span class="label">Duration:</span> ${full.duration} min</div>
       <div><span class="label">Currency:</span> ${full.currency}</div>
-      <div><span class="label">Starting / Current Price:</span> ${full.currency} ${Number(full.current_price).toLocaleString()}</div>
-      <div><span class="label">Reserve Price:</span> ${full.currency} ${Number(full.reserve_price || 0).toLocaleString()}</div>
-      <div><span class="label">Decremental Value:</span> ${full.currency} ${Number(full.decremental_value).toLocaleString()}</div>
-      <div><span class="label">Pre-bid Allowed:</span> ${full.pre_bid_allowed ? 'Yes' : 'No'}</div>
-      <div><span class="label">Open to All:</span> ${full.open_to_all ? 'Yes' : 'No'}</div>
-      <div><span class="label">Total Bids:</span> ${full.statistics?.total_bids || 0}</div>
-      <div><span class="label">Total Participants:</span> ${full.statistics?.total_participants || 0}</div>
-      <div><span class="label">Active Participants:</span> ${full.statistics?.active_participants || 0}</div>
-      <div><span class="label">Highest Bid:</span> ${full.currency} ${Number(full.statistics?.highest_bid || 0).toLocaleString()}</div>
-      <div><span class="label">Lowest Bid:</span> ${full.currency} ${Number(full.statistics?.lowest_bid || 0).toLocaleString()}</div>
+      <div><span class="label">Starting / Current Price:</span> ${
+        full.currency
+      } ${Number(full.current_price).toLocaleString()}</div>
+      <div><span class="label">Reserve Price:</span> ${full.currency} ${Number(
+      full.reserve_price || 0
+    ).toLocaleString()}</div>
+      <div><span class="label">Decremental Value:</span> ${
+        full.currency
+      } ${Number(full.decremental_value).toLocaleString()}</div>
+      <div><span class="label">Pre-bid Allowed:</span> ${
+        full.pre_bid_allowed ? "Yes" : "No"
+      }</div>
+      <div><span class="label">Open to All:</span> ${
+        full.open_to_all ? "Yes" : "No"
+      }</div>
+      <div><span class="label">Total Bids:</span> ${
+        full.statistics?.total_bids || 0
+      }</div>
+      <div><span class="label">Total Participants:</span> ${
+        full.statistics?.total_participants || 0
+      }</div>
+      <div><span class="label">Active Participants:</span> ${
+        full.statistics?.active_participants || 0
+      }</div>
+      <div><span class="label">Highest Bid:</span> ${full.currency} ${Number(
+      full.statistics?.highest_bid || 0
+    ).toLocaleString()}</div>
+      <div><span class="label">Lowest Bid:</span> ${full.currency} ${Number(
+      full.statistics?.lowest_bid || 0
+    ).toLocaleString()}</div>
     </div>
-    <div style="margin-top:8px"><span class="label">Description:</span> ${full.description || '—'}</div>
+    <div style="margin-top:8px"><span class="label">Description:</span> ${
+      full.description || "—"
+    }</div>
   </div>
 
   <div class="section">
     <h2>Auctioneer</h2>
     <div class="grid">
-      <div><span class="label">Company:</span> ${full.creator_info?.company_name || '—'}</div>
-      <div><span class="label">Contact Person:</span> ${full.creator_info?.person_name || '—'}</div>
-      <div><span class="label">Email:</span> ${full.creator_info?.email || full.auctioneer_email || '—'}</div>
-      <div><span class="label">Phone:</span> ${full.creator_info?.phone || '—'}</div>
+      <div><span class="label">Company:</span> ${
+        full.creator_info?.company_name || "—"
+      }</div>
+      <div><span class="label">Contact Person:</span> ${
+        full.creator_info?.person_name || "—"
+      }</div>
+      <div><span class="label">Email:</span> ${
+        full.creator_info?.email || full.auctioneer_email || "—"
+      }</div>
+      <div><span class="label">Phone:</span> ${
+        full.creator_info?.phone || "—"
+      }</div>
     </div>
   </div>
 
@@ -1054,13 +1102,21 @@ const getDerivedStatus = (auction: BaseAuction, nowMs: number): BaseAuction['sta
       ? `<div class="section">
            <h2>Winning Bid</h2>
            <div class="grid">
-             <div><span class="label">Company:</span> ${winnerBid.companyName}</div>
-             <div><span class="label">Amount:</span> ${full.currency} ${winnerBid.bidAmount.toLocaleString()}</div>
-             <div><span class="label">Contact:</span> ${winnerBid.personName}</div>
-             <div><span class="label">Phone:</span> ${winnerBid.phoneNumber}</div>
+             <div><span class="label">Company:</span> ${
+               winnerBid.companyName
+             }</div>
+             <div><span class="label">Amount:</span> ${
+               full.currency
+             } ${winnerBid.bidAmount.toLocaleString()}</div>
+             <div><span class="label">Contact:</span> ${
+               winnerBid.personName
+             }</div>
+             <div><span class="label">Phone:</span> ${
+               winnerBid.phoneNumber
+             }</div>
            </div>
          </div>`
-      : ''
+      : ""
   }
 
   <div class="section">
@@ -1082,13 +1138,15 @@ const getDerivedStatus = (auction: BaseAuction, nowMs: number): BaseAuction['sta
                         <td>${p.phoneNumber}</td>
                         <td>${p.status}</td>
                         <td>${new Date(p.invitedAt).toLocaleString()}</td>
-                        <td>${p.joinedAt ? new Date(p.joinedAt).toLocaleString() : '—'}</td>
+                        <td>${
+                          p.joinedAt
+                            ? new Date(p.joinedAt).toLocaleString()
+                            : "—"
+                        }</td>
                       </tr>`
                  )
-                 .join('')}
-             </tbody>
-           </table>`
-        : '<div>No participants.</div>'
+                 .join("")}`
+        : "<div>No participants.</div>"
     }
   </div>
 
@@ -1099,36 +1157,46 @@ const getDerivedStatus = (auction: BaseAuction, nowMs: number): BaseAuction['sta
       <tbody>${docRows}</tbody>
     </table>
   </div>
-
-  <div style="margin-top:32px;font-size:11px;text-align:center;color:#666">
-    Generated by Auction Platform
-  </div>
 </body>
 </html>`;
 
-    /* 6.  open / print */
-    const w = window.open('', '_blank');
-    if (w) {
-      w.document.write(html);
-      w.document.close();
-      w.onload = () => setTimeout(() => {
-        w.print();
-        w.close();
-      }, 400);
-    } else {
-      const blob = new Blob([html], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Auction_Report_${full.auction_no}.html`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+    /* ---------- 3.  HTML → canvas → PDF (A4) ---------- */
+    const container = document.createElement("div");
+    container.innerHTML = html;
+    container.style.position = "absolute";
+    container.style.left = "-9999px";
+    document.body.appendChild(container);
+
+    const canvas = await html2canvas(container, { scale: 2, useCORS: true });
+    const imgData = canvas.toDataURL("image/png");
+
+    const pdfW = 210; // A4 width mm
+    const pdfH = 297; // A4 height mm
+    const pdf = new jsPDF("p", "mm", "a4");
+
+    const imgWidth = pdfW - 20; // 10 mm margin each side
+    const pageHeight = pdfH - 20;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    let heightLeft = imgHeight;
+    let position = 10;
+
+    pdf.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+
+    while (heightLeft >= 0) {
+      position = heightLeft - imgHeight + 10;
+      pdf.addPage();
+      pdf.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
     }
+
+    document.body.removeChild(container);
+
+    /* ---------- 4.  auto-download PDF ---------- */
+    pdf.save(`Auction_Report_${full.auction_no}.pdf`);
   } catch (e) {
-    console.error('Failed to generate report', e);
-    alert('Could not create report. Please try again.');
+    console.error("Failed to generate PDF", e);
+    alert("Could not create PDF report. Please try again.");
   }
 };
 
