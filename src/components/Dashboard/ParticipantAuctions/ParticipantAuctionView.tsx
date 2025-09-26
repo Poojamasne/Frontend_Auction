@@ -238,57 +238,58 @@
       };
 
       const handleDownloadDocument = async (doc: {
-        name: string;
-        url: string;
-      }) => {
-        try {
-          const token = getAuthToken();
-          // Try authenticated fetch first (in case the file is protected)
-          const response = await fetch(doc.url, {
-            headers: token
-              ? {
-                  Authorization: `Bearer ${token}`,
-                }
-              : undefined,
-          });
+  file_name?: string;
+  file_url?: string;
+  file_type?: string;
+  name?: string;
+  url?: string;
+}) => {
+  try {
+    const token = getAuthToken();
+    
+    // Use the correct field names from your API response
+    const documentUrl = doc.file_url || doc.url;
+    const filename = doc.file_name || doc.name || "document";
+    
+    if (!documentUrl) {
+      toast.error("Document URL not available");
+      return;
+    }
 
-          if (!response.ok) {
-            // Fallback: open in new tab if direct download fails
-            window.open(doc.url, "_blank");
-            return;
-          }
+    // Force download for all file types
+    const response = await fetch(documentUrl, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
 
-          const blob = await response.blob();
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
-          // Try to infer filename from headers; fallback to provided name
-          const disposition = response.headers.get("content-disposition");
-          let filename = doc.name || "download";
-          if (disposition) {
-            const match = disposition.match(
-              /filename\*=UTF-8''([^;]+)|filename="?([^";]+)"?/i
-            );
-            const extracted = match?.[1] || match?.[2];
-            if (extracted) {
-              filename = decodeURIComponent(extracted);
-            }
-          }
-
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = filename;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          window.URL.revokeObjectURL(url);
-          toast.success(`Downloading ${filename}`);
-        } catch (error) {
-          console.error("[handleDownloadDocument] Failed to download:", error);
-          // Final fallback: try opening the URL
-          window.open(doc.url, "_blank");
-          toast.error("Unable to download file. Opened in a new tab instead.");
-        }
-      };
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+    
+    toast.success(`Downloading ${filename}`);
+  } catch (error) {
+    console.error("[handleDownloadDocument] Failed to download:", error);
+    
+    // Fallback: open in new tab
+    const documentUrl = doc.file_url || doc.url;
+    if (documentUrl) {
+      window.open(documentUrl, '_blank');
+      toast.error("Unable to download file directly. Opened in new tab instead.");
+    } else {
+      toast.error("Unable to access document");
+    }
+  }
+};
 
       const handleJoinAuction = async () => {
         if (!auction || !user) return;
