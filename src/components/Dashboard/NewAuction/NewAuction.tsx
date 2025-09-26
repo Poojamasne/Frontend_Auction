@@ -477,7 +477,7 @@ const NewAuction: React.FC = () => {
                 Auction Documents
               </h2>
               <p className="text-text-secondary">
-                Optional – up to {MAX_FILES} files, {MAX_FILE_MB} MB each
+                Optional – up to {MAX_FILES} files, {MAX_FILE_MB} MB each (E.g Pdf And Images)
               </p>
             </div>
             <div className="card-body">
@@ -751,7 +751,7 @@ const NewAuction: React.FC = () => {
                 <textarea
                   rows={6}
                   className="form-input w-full"
-                  placeholder="Enter phone numbers here eg. +919876543210, 9876543210"
+                  placeholder="Enter phone numbers "
                   value={bulkText}
                   onChange={(e) => setBulkText(e.target.value)}
                 />

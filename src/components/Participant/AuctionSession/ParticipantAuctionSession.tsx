@@ -595,7 +595,7 @@ const ParticipantAuctionSession: React.FC = () => {
                   <label htmlFor="bidAmount">
                     Your Bid Price ({auction.currency})
                   </label>
-                  <input
+                  {/* <input
                     type="text"
                     id="bidAmount"
                     value={bidAmount}
@@ -622,7 +622,35 @@ const ParticipantAuctionSession: React.FC = () => {
                     step="0.01"
                     min="0"
                     placeholder="Enter Your Bid Amount"
-                  />
+                  /> */}
+                  <input
+  type="text"
+  id="bidAmount"
+  value={bidAmount}
+  onChange={(e) => {
+    const value = e.target.value;
+    // Allow only numbers and decimal point
+    if (value === "" || /^\d*\.?\d*$/.test(value)) {
+      setBidAmount(value); // just set value
+    }
+  }}
+  onBlur={() => {
+    if (bidAmount && !isNaN(parseFloat(bidAmount))) {
+      // Validate here, not onChange
+      const error = validateBidAmount(bidAmount);
+      if (error) {
+        toast.error(error);
+      } else {
+        // Format number if needed
+        setBidAmount(parseFloat(bidAmount).toString());
+      }
+    }
+  }}
+  className="bid-input"
+  step="0.01"
+  min="0"
+  placeholder="Enter Your Bid Amount"
+/>
                 </div>
               </div>
               <div className="bid-buttons">

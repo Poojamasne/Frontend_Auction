@@ -344,7 +344,7 @@
 }
 
 .slider-content {
-    text-align: center;
+    /* text-align: center; */
     color: white;
     padding: 2rem;
     margin: 5%;
@@ -1107,6 +1107,7 @@
     }
 
     .slider-image-wrap {
+        margin-left: 8px;
         height: 120px;
         margin-bottom: 6px;
     }

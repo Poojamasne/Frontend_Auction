@@ -7,6 +7,39 @@
   background: linear-gradient(135deg, #202122 0%, #1a036e 100%);
   min-height: 100vh;
 }
+.documents-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(580px, 1fr));
+  /* gap: 1rem; */
+  margin-top: 1rem;
+}
+.document-details{
+  flex: 1;
+  margin-left: 1rem;
+}
+
+/* each card inside grid */
+.document-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+/* optional hover effect */
+.document-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
 
 .participant-auction-loading,
 .participant-auction-error {
@@ -841,6 +874,32 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
+
+  .documents-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  /* gap: 1rem; */
+  margin-top: 1rem;
+}
+
+  .document-card {
+  display: flex;
+  flex-direction: column;
+
+  align-items: start;
+  justify-content: space-between;
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+
   .loading-text {
     margin-left: 0px;
     color: white;
@@ -889,3 +948,5 @@
     justify-content: space-between;
   }
 }
+
+
