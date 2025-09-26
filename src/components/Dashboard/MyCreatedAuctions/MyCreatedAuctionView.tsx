@@ -1256,7 +1256,7 @@ if (auctionData && auctionData.status === 'upcoming') {
             className="btn btn-secondary"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to My Auctions
+            Back to Auctions
           </button>
 
           {/*           {auction.status === "live" && (

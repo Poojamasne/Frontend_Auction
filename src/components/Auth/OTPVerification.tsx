@@ -122,7 +122,7 @@ const OTPVerification: React.FC = () => {
             <form onSubmit={onSubmit} className="ap-otp-form">
               <div className="ap-otp-form-group">
                 <label htmlFor="otp" className="ap-otp-label">
-                  OTP Code <span style={{ color: 'red' }}>*</span>
+                  OTP Code<span style={{ color: 'red' }}>*</span>
                 </label>
                 <div style={{ position: 'relative' }}>
                   <input
