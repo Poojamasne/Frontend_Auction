@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { Link, Navigate } from "react-router-dom";
 import {
   Calendar,
   Users,
@@ -10,26 +10,68 @@ import {
   ArrowRight,
   Activity,
 } from "lucide-react";
-import { useAuth } from '../../../contexts/AuthContext';
-import AuctionService from '../../../services/auctionService';
-import dashboardService, { FullDashboardApiResponse, DashboardUpcomingAuctionApi, DashboardRecentActivityApi } from '../../../services/dashboardService';
-import apiAuctionService from '../../../services/apiAuctionService';
-import { BaseAuction } from '../../../types/auction';
-import './DashboardHome.css';
-import { Tag, UserPlus, PlusCircle, User, CheckCircle, BarChart, Search, Gavel } from 'lucide-react';
+import { useAuth } from "../../../contexts/AuthContext";
+import AuctionService from "../../../services/auctionService";
+import dashboardService, {
+  FullDashboardApiResponse,
+  DashboardUpcomingAuctionApi,
+  DashboardRecentActivityApi,
+} from "../../../services/dashboardService";
+import apiAuctionService from "../../../services/apiAuctionService";
+import { BaseAuction } from "../../../types/auction";
+import "./DashboardHome.css";
+import {
+  Tag,
+  UserPlus,
+  PlusCircle,
+  User,
+  CheckCircle,
+  BarChart,
+  Search,
+  Gavel,
+} from "lucide-react";
+
+/* ----------  format helpers  ---------- */
+const fmtDate = (d: string | Date) => {
+  const date = new Date(d);
+  const pad = (n: number) => n.toString().padStart(2, "0");
+  return `${pad(date.getDate())}-${pad(
+    date.getMonth() + 1
+  )}-${date.getFullYear()}`;
+};
+
+const fmtTime = (d: string | Date) =>
+  new Date(d).toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+/* -------------------------------------- */
 
 const DashboardHome: React.FC = () => {
   const { user } = useAuth();
   const [myAuctions, setMyAuctions] = useState<BaseAuction[]>([]); // fallback/local
-  const [participatedAuctions, setParticipatedAuctions] = useState<BaseAuction[]>([]); // fallback/local
+  const [participatedAuctions, setParticipatedAuctions] = useState<
+    BaseAuction[]
+  >([]); // fallback/local
   const [loading, setLoading] = useState(true);
   const [useRemote, setUseRemote] = useState(false);
-  const [welcomeMessage, setWelcomeMessage] = useState("Here's what's happening with your auctions today.");
-  const [remoteStats, setRemoteStats] = useState<FullDashboardApiResponse['dashboard']['stats'] | null>(null);
-  const [remoteUpcoming, setRemoteUpcoming] = useState<DashboardUpcomingAuctionApi[]>([]);
-  const [remoteActivities, setRemoteActivities] = useState<DashboardRecentActivityApi[]>([]);
+  const [welcomeMessage, setWelcomeMessage] = useState(
+    "Here's what's happening with your auctions today."
+  );
+  const [remoteStats, setRemoteStats] = useState<
+    FullDashboardApiResponse["dashboard"]["stats"] | null
+  >(null);
+  const [remoteUpcoming, setRemoteUpcoming] = useState<
+    DashboardUpcomingAuctionApi[]
+  >([]);
+  const [remoteActivities, setRemoteActivities] = useState<
+    DashboardRecentActivityApi[]
+  >([]);
   const [error, setError] = useState<string | null>(null);
-  const [participatedOverride, setParticipatedOverride] = useState<number | null>(null); // authoritative user-specific participated count
+  const [participatedOverride, setParticipatedOverride] = useState<
+    number | null
+  >(null); // authoritative user-specific participated count
   const [createdOverride, setCreatedOverride] = useState<number | null>(null); // authoritative user-specific created count
   const iconMap: Record<string, JSX.Element> = {
     bid: <Tag className="w-5 h-5 text-indigo-500" />,
@@ -38,8 +80,6 @@ const DashboardHome: React.FC = () => {
     profile: <User className="w-5 h-5 text-yellow-500" />,
     default: <CheckCircle className="w-5 h-5 text-gray-500" />,
   };
-
-
 
   interface ActivityItem {
     type: string;
@@ -50,14 +90,18 @@ const DashboardHome: React.FC = () => {
   // Initialize data and load auctions
   useEffect(() => {
     if (!user) return;
-    console.log(`[DashboardHome] Loading dashboard for user:`, { id: user.id, phone: user.phoneNumber, role: user.role });
+    console.log(`[DashboardHome] Loading dashboard for user:`, {
+      id: user.id,
+      phone: user.phoneNumber,
+      role: user.role,
+    });
     let cancelled = false;
     const load = async () => {
       setLoading(true);
       setError(null);
       try {
         // Attempt remote fetch first
-        const token = localStorage.getItem('authToken') || undefined; // supply auth token if present
+        const token = localStorage.getItem("authToken") || undefined; // supply auth token if present
         const remote = await dashboardService.fetchFullDashboard(token);
         if (!cancelled && remote.success) {
           setUseRemote(true);
@@ -71,55 +115,74 @@ const DashboardHome: React.FC = () => {
           // Always compute authoritative user-specific counts (backend stats may be aggregate or incorrect per user)
           try {
             const [participatedRaw, createdRaw] = await Promise.all([
-              apiAuctionService.fetchFilteredAuctions({ status: 'all', type: 'participated' }),
+              apiAuctionService.fetchFilteredAuctions({
+                status: "all",
+                type: "participated",
+              }),
               // use dedicated my-auctions endpoint; if it fails fallback to filtered created
-              apiAuctionService.fetchMyAuctions('all').catch(async () =>
-                apiAuctionService.fetchFilteredAuctions({ status: 'all', type: 'created' })
-              )
+              apiAuctionService
+                .fetchMyAuctions("all")
+                .catch(async () =>
+                  apiAuctionService.fetchFilteredAuctions({
+                    status: "all",
+                    type: "created",
+                  })
+                ),
             ]);
 
             const userPhone = user?.phoneNumber;
             const userId = user?.id;
 
-            const participatedUser = participatedRaw.filter(a => a.participants?.includes(userPhone || ''));
-            const createdUser = createdRaw.filter(a => (
-              a.createdBy === userId ||
-              a.userId === userId ||
-              a.createdBy === user?.companyName ||
-              a.auctioneerCompany === user?.companyName
-            ));
+            const participatedUser = participatedRaw.filter((a) =>
+              a.participants?.includes(userPhone || "")
+            );
+            const createdUser = createdRaw.filter(
+              (a) =>
+                a.createdBy === userId ||
+                a.userId === userId ||
+                a.createdBy === user?.companyName ||
+                a.auctioneerCompany === user?.companyName
+            );
             if (!cancelled) {
               setParticipatedOverride(participatedUser.length);
               setCreatedOverride(createdUser.length);
-              console.log('[DashboardHome] User-specific overrides', {
-                backendParticipated: remote.dashboard.stats?.participated_auctions,
+              console.log("[DashboardHome] User-specific overrides", {
+                backendParticipated:
+                  remote.dashboard.stats?.participated_auctions,
                 actualParticipated: participatedUser.length,
                 backendCreated: remote.dashboard.stats?.total_created,
-                actualCreated: createdUser.length
+                actualCreated: createdUser.length,
               });
             }
           } catch (recalcErr) {
-            console.warn('[DashboardHome] authoritative recount failed', recalcErr);
+            console.warn(
+              "[DashboardHome] authoritative recount failed",
+              recalcErr
+            );
           }
         }
       } catch (e: any) {
-        console.warn('Remote dashboard fetch failed, falling back to local data', e);
+        console.warn(
+          "Remote dashboard fetch failed, falling back to local data",
+          e
+        );
         if (!cancelled) {
           setUseRemote(false);
           setError(
-            (e instanceof Error && e.message)
+            e instanceof Error && e.message
               ? `${e.message}. Showing local data`
-              : 'Live dashboard unavailable, showing local data'
+              : "Live dashboard unavailable, showing local data"
           );
           // Fallback local
           try {
             AuctionService.initializeData();
             const createdAuctions = AuctionService.getAuctionsByUser(user.id);
             setMyAuctions(createdAuctions);
-            const participationAuctions = AuctionService.getAuctionsForParticipant(user.id);
+            const participationAuctions =
+              AuctionService.getAuctionsForParticipant(user.id);
             setParticipatedAuctions(participationAuctions);
           } catch (err) {
-            console.error('Error loading local fallback dashboard data:', err);
+            console.error("Error loading local fallback dashboard data:", err);
           }
         }
       } finally {
@@ -127,89 +190,79 @@ const DashboardHome: React.FC = () => {
       }
     };
     load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [user]);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   // Calculate dynamic stats
   const getStats = () => {
     if (useRemote && remoteStats) {
-      const participatedCount = participatedOverride ?? remoteStats.participated_auctions;
+      const participatedCount =
+        participatedOverride ?? remoteStats.participated_auctions;
       const createdCount = createdOverride ?? remoteStats.total_created;
       return [
         {
-          title: 'My Active Auctions',
+          title: "My Active Auctions",
           value: remoteStats.active_auctions.toString(),
-          change: `${createdCount} total created${createdOverride !== null ? ' (verified)' : ''}`,
+          change: `${createdCount} total created${
+            createdOverride !== null ? " (verified)" : ""
+          }`,
           icon: Gavel,
-          color: 'bg-blue-500',
+          color: "bg-blue-500",
         },
         {
-          title: 'Participated Auctions',
+          title: "Participated Auctions",
           value: participatedCount.toString(),
-          change: `${remoteStats.live_auctions} live now${participatedOverride !== null ? ' (verified)' : ''}`,
+          change: `${remoteStats.live_auctions} live now${
+            participatedOverride !== null ? " (verified)" : ""
+          }`,
           icon: Users,
-          color: 'bg-green-500',
+          color: "bg-green-500",
         },
         {
-          title: 'Total Bids Placed',
+          title: "Total Bids Placed",
           value: remoteStats.total_bids.toString(),
           change: `${remoteStats.winning_bids} winning`,
           icon: TrendingUp,
-          color: 'bg-purple-500',
+          color: "bg-purple-500",
         },
-
       ];
     }
     // Local fallback
-    const activeAuctions = myAuctions.filter(a => a.status === 'live' || a.status === 'upcoming');
+    const activeAuctions = myAuctions.filter(
+      (a) => a.status === "live" || a.status === "upcoming"
+    );
     const totalParticipated = participatedAuctions.length;
     let totalBids = 0;
-    participatedAuctions.forEach(auction => {
+    participatedAuctions.forEach((auction) => {
       const bids = AuctionService.getBidsByAuction(auction.id);
-      totalBids += bids.filter(bid => bid.userId === user?.id).length;
+      totalBids += bids.filter((bid) => bid.userId === user?.id).length;
     });
     return [
       {
-        title: 'My Active Auctions',
+        title: "My Active Auctions",
         value: activeAuctions.length.toString(),
         change: `${myAuctions.length} total created`,
         icon: Calendar,
-        color: 'bg-blue-500',
+        color: "bg-blue-500",
       },
       {
-        title: 'Participated Auctions',
+        title: "Participated Auctions",
         value: totalParticipated.toString(),
-        change: `${participatedAuctions.filter(a => a.status === 'live').length} live now`,
+        change: `${
+          participatedAuctions.filter((a) => a.status === "live").length
+        } live now`,
         icon: Users,
-        color: 'bg-green-500',
+        color: "bg-green-500",
       },
       {
-        title: 'Total Bids Placed',
+        title: "Total Bids Placed",
         value: totalBids.toString(),
         change: `across ${totalParticipated} auctions`,
         icon: TrendingUp,
-        color: 'bg-purple-500', 
+        color: "bg-purple-500",
       },
-
     ];
   };
 
@@ -218,33 +271,58 @@ const DashboardHome: React.FC = () => {
     if (useRemote) {
       return remoteUpcoming.slice(0, 5); // already prioritized by API
     }
-    const allUpcoming: Array<BaseAuction & { role: 'auctioneer' | 'participant' }> = [];
+    const allUpcoming: Array<
+      BaseAuction & { role: "auctioneer" | "participant" }
+    > = [];
     myAuctions
-      .filter(a => a.status === 'upcoming' || a.status === 'live')
+      .filter((a) => a.status === "upcoming" || a.status === "live")
       .slice(0, 2)
-      .forEach(auction => { allUpcoming.push({ ...auction, role: 'auctioneer' }); });
+      .forEach((auction) => {
+        allUpcoming.push({ ...auction, role: "auctioneer" });
+      });
     participatedAuctions
-      .filter(a => a.status === 'upcoming' || a.status === 'live')
+      .filter((a) => a.status === "upcoming" || a.status === "live")
       .slice(0, 3 - allUpcoming.length)
-      .forEach(auction => { allUpcoming.push({ ...auction, role: 'participant' }); });
+      .forEach((auction) => {
+        allUpcoming.push({ ...auction, role: "participant" });
+      });
     return allUpcoming.slice(0, 3);
   };
 
   // Get recent activity
   const getRecentActivity = () => {
     if (useRemote) {
-      return remoteActivities.map(a => ({
-        action: a.message,
-        time: a.timestamp,
-        type: a.type,
-        // force icon mapping here instead of trusting backend
-        icon: iconMap[a.type] || iconMap.default
-      })).slice(0, 8);
+      return remoteActivities
+        .map((a) => ({
+          action: a.message,
+          time: a.timestamp,
+          type: a.type,
+          // force icon mapping here instead of trusting backend
+          icon: iconMap[a.type] || iconMap.default,
+        }))
+        .slice(0, 8);
     }
 
-    const activities: Array<{ action: string; time: string; type: string; icon?: string }> = [];
-    myAuctions.slice(0, 2).forEach(auction => { activities.push({ action: `Created auction "${auction.title}"`, time: 'Recently', type: 'create' }); });
-    participatedAuctions.slice(0, 2).forEach(auction => { activities.push({ action: `Joined auction "${auction.title}"`, time: 'Recently', type: 'join' }); });
+    const activities: Array<{
+      action: string;
+      time: string;
+      type: string;
+      icon?: string;
+    }> = [];
+    myAuctions.slice(0, 2).forEach((auction) => {
+      activities.push({
+        action: `Created auction "${auction.title}"`,
+        time: "Recently",
+        type: "create",
+      });
+    });
+    participatedAuctions.slice(0, 2).forEach((auction) => {
+      activities.push({
+        action: `Joined auction "${auction.title}"`,
+        time: "Recently",
+        type: "join",
+      });
+    });
     return activities.slice(0, 4);
   };
 
@@ -259,14 +337,13 @@ const DashboardHome: React.FC = () => {
           <div className="loading-spinner" />
           <p>Loading dashboard...</p>
         </div> */}
-                <div className="spinner-container">
-  <div className="loading-spinner"></div>
-  <div className="loading-text">Loading auction data...</div>
-</div>
+        <div className="spinner-container">
+          <div className="loading-spinner"></div>
+          <div className="loading-text">Loading auction data...</div>
+        </div>
       </div>
     );
   }
-  
 
   return (
     <div className="ap-dashboard-home-wrapper">
@@ -388,14 +465,13 @@ const DashboardHome: React.FC = () => {
                             </span>
                           </div>
                           <div className="ap-dashboard-home-auction-meta">
-                          <span>
-                            
-                            <Calendar /> 
-                            </span>
-                            {a.auction_date} at {a.start_time}
                             <span>
+                            <Calendar  />   {fmtDate(a.auction_date)} at{" "}{fmtTime(`${a.auction_date} ${a.start_time}`)}
+                          </span>
+                          <span>
+
                               <User /> {a.participant_count} participants
-                            </span>
+                          </span>
                           </div>
                         </div>
                         <Link
@@ -435,11 +511,13 @@ const DashboardHome: React.FC = () => {
                           </div>
                           <div className="ap-dashboard-home-auction-meta">
                             <span>
-                              📅 {auction.auctionDate} at{" "}
+                              📅
+                              {auction.auctionDate} at{" "}
                               {auction.auctionStartTime}
                             </span>
+
                             <span>
-                              👥{" "}
+                              <span>👥 </span>
                               {
                                 AuctionService.getParticipantsByAuction(
                                   auction.id
@@ -601,31 +679,3 @@ const DashboardHome: React.FC = () => {
 };
 
 export default DashboardHome;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
