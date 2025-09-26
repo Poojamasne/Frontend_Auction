@@ -218,7 +218,7 @@ const LandingPage: React.FC = () => {
             <div className="nav-logo-icon">
               <Gavel className="w-6 h-6" />
             </div>
-            <span className="nav-logo-text">Quick Auction</span>
+            <span className="nav-logo-text">EasyEAuction</span>
           </div>
 
           <ul className="nav-menu">
@@ -504,7 +504,7 @@ const LandingPage: React.FC = () => {
                 <div className="footer-logo-icon">
                   <Gavel className="w-6 h-6" />
                 </div>
-                <span className="footer-logo-text">Quick Auction</span>
+                <span className="footer-logo-text">EasyEAuction</span>
               </div>
               <p>
                 Professional auction platform for modern businesses. Streamline
@@ -574,7 +574,7 @@ const LandingPage: React.FC = () => {
 
           <div className="footer-bottom">
             <p>
-              &copy; 2025 Quick Auction. All rights reserved. Built with for
+              &copy; 2025 EasyEAuction. All rights reserved. Built with for
               modern auctions.
             </p>
           </div>

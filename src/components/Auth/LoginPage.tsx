@@ -69,7 +69,7 @@ const LoginPage: React.FC = () => {
               <Gavel className="ap-login-logo-icon" />
             </div>
             <div>
-              <div className="ap-login-brand-title">Quickauction</div>
+              <div className="ap-login-brand-title">EasyEAuction</div>
               <div className="ap-login-brand-sub">Welcome back! Please log in to continue</div>
             </div>
           </div>

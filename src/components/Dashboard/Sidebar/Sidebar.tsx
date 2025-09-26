@@ -47,7 +47,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             <Gavel className="ap-sidebar-logo-icon" />
           </div>
           <span className="ap-sidebar-brand-title" id="setsidebar">
-            Quick Auction
+            EasyEAuction
           </span>
         </div>
         {/* Close Button */}
