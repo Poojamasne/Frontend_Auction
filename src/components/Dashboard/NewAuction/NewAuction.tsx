@@ -524,7 +524,7 @@ const NewAuction: React.FC = () => {
                   <p className="text-text-secondary mt-2">
                     Phone number is the primary identifier.
                     {watchOpenToAll
-                      ? " Invitations are optional (auction is open)."
+                      ? " Invitations are optional "
                       : " Only invited participants can join."}
                   </p>
                 </div>
