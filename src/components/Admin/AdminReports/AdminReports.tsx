@@ -248,7 +248,7 @@ const AdminReports: React.FC = () => {
             <option value="quarter">This Quarter</option>
             <option value="year">This Year</option>
           </select>
-          <select
+          {/* <select
             className="control-select"
             value={exportFormat}
             onChange={(e) => setExportFormat(e.target.value as any)}
@@ -263,7 +263,7 @@ const AdminReports: React.FC = () => {
           >
             <Download className="control-button-icon" />
             Export Report
-          </button>
+          </button> */}
         </div>
       </div>
 
