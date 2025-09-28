@@ -24,7 +24,6 @@ import adminAuctionService, {
 } from "../../../services/adminAuctionService";
 import { API_BASE_URL } from "../../../services/apiConfig";
 import toast from "react-hot-toast";
-
 import "./ManageAuction.css";
 
 type Auction = NormalizedAuctionRecord;
