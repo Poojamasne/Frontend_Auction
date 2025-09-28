@@ -1890,9 +1890,13 @@ select:focus {
 
   .auctions-table.responsive-table .auction-status {
     font-size: 0.5rem;
-    padding: 2px 5px;
+    padding: 2px 5px;  
+    padding-left: 25px;
   }
 }
+
+
+
 
 /* -------------------------------------------------- */
 /* Auction Details Modal Mobile Redesign (<=640px)    */
