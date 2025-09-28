@@ -40,32 +40,67 @@ export interface AuctionDocument {
 }
 
 export interface RawAuctionRecord {
-  id?: string; _id?: string; auction_id?: string;
-  title?: string; auction_title?: string;
-  description?: string; details?: string; auctionDetails?: string;
-  companyName?: string; company_name?: string; auctioneerCompany?: string;
-  auctioneerName?: string; auctioneer_name?: string; auctioneer?: string;
-  auctioneerPhone?: string; auctioneer_phone?: string; phone?: string;
+  id?: string;
+  _id?: string;
+  auction_id?: string;
+  title?: string;
+  auction_title?: string;
+  description?: string;
+  details?: string;
+  auctionDetails?: string;
+  companyName?: string;
+  company_name?: string;
+  auctioneerCompany?: string;
+  auctioneerName?: string;
+  auctioneer_name?: string;
+  auctioneer?: string;
+  auctioneerPhone?: string;
+  auctioneer_phone?: string;
+  phone?: string;
   category?: string;
-  basePrice?: number; starting_price?: number; startingPrice?: number;
-  currentBid?: number; current_bid?: number;
+  basePrice?: number;
+  starting_price?: number;
+  startingPrice?: number;
+  currentBid?: number;
+  current_bid?: number;
   status?: string;
-  startDate?: string; auctionDate?: string; start_date?: string;
+  startDate?: string;
+  auctionDate?: string;
+
+  start_date?: string;
+  endDate?: string;
+  end_date?: string;
+
   startTime?: string; auctionStartTime?: string; start_time?: string;
-  endDate?: string; end_date?: string;
+
   endTime?: string; auctionEndTime?: string; end_time?: string;
-  autoExtension?: boolean; auto_extension?: boolean;
-  extensionTime?: number; extension_time?: number;
-  decrementalValue?: number; decremental_value?: number;
-  location?: string; address?: string;
-  city?: string; state?: string; pincode?: string;
-  participants?: RawAuctionParticipant[]; auction_participants?: RawAuctionParticipant[];
+  
+
+  autoExtension?: boolean;
+  auto_extension?: boolean;
+  extensionTime?: number;
+  extension_time?: number;
+  decrementalValue?: number;
+  decremental_value?: number;
+  location?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
+  participants?: RawAuctionParticipant[];
+  auction_participants?: RawAuctionParticipant[];
   documents?: (string | AuctionDocument)[]; // Updated type
   images?: string[];
-  termsAndConditions?: string; terms?: string;
-  createdAt?: string; created_at?: string;
-  updatedAt?: string; updated_at?: string; lastModified?: string;
-  adminNotes?: string; rejectionReason?: string; rejection_reason?: string;
+  termsAndConditions?: string;
+  terms?: string;
+  createdAt?: string;
+  created_at?: string;
+  updatedAt?: string;
+  updated_at?: string;
+  lastModified?: string;
+  adminNotes?: string;
+  rejectionReason?: string;
+  rejection_reason?: string;
   [k: string]: any;
 }
 
@@ -84,6 +119,11 @@ export interface NormalizedAuctionRecord {
   startTime: string;
   endDate: string;
   endTime: string;
+
+  auctionDate: string;
+  auctionStartTime: string;
+  auctionEndTime?: string;
+
   autoExtension: boolean;
   extensionTime: number;
   decrementalValue: number;
@@ -220,6 +260,11 @@ class AdminAuctionService {
       status: raw.status || 'draft',
       startDate,
       startTime,
+
+      auctionDate: raw.auctionDate || raw.start_date || '—',
+      auctionStartTime: raw.auctionStartTime || raw.start_time || '—',
+      auctionEndTime: raw.auctionEndTime || raw.end_time || calculatedEndTime || 'N/A',
+
       endDate: calculatedEndDate,
       endTime: calculatedEndTime,
       autoExtension: Boolean(raw.autoExtension ?? raw.auto_extension ?? false),

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import jsPDF from "jspdf";
 import {
   Search,
   Eye,
@@ -22,6 +23,7 @@ import adminAuctionService, {
   NormalizedAuctionParticipant,
   AuctionDocument,
 } from "../../../services/adminAuctionService";
+
 import { API_BASE_URL } from "../../../services/apiConfig";
 import toast from "react-hot-toast";
 
@@ -47,12 +49,14 @@ const ManageAuctions: React.FC = () => {
     "all" | "electronics" | "machinery" | "vehicles" | "furniture" | "other"
   >("all");
   const [selectedAuction, setSelectedAuction] = useState<Auction | null>(null);
+  const [endTime, setEndTime] = useState<string | null>(null);
   const [auctions, setAuctions] = useState<Auction[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // const [auction, setAuction] = useState<BaseAuction | null>(null);
   const [refreshIndex, setRefreshIndex] = useState(0);
   const [detailLoading, setDetailLoading] = useState(false);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
@@ -82,7 +86,7 @@ const ManageAuctions: React.FC = () => {
       setAuctions(list.auctions);
       setTotal(list.total);
 
-      if (
+      if (          
         filterStatus === "rejected" &&
         list.auctions.length === 0 &&
         recentlyRejected
@@ -112,10 +116,12 @@ const ManageAuctions: React.FC = () => {
 
   // Document download helper
   const handleDocumentDownload = (doc: AuctionDocument) => {
-    if (!doc.file_path) {
-      alert("Document path not available");
+    if (!doc.file_path) { 
+      toast.error("No file available for download");
       return;
+
     }
+
 
     // Construct the full URL for the document
     const downloadUrl = doc.file_path.startsWith("http")
@@ -483,8 +489,45 @@ const ManageAuctions: React.FC = () => {
                           <div className="mt-2 mr-2 items-center">
                             {auction.startDate}
                           </div>
-                          <div className="text-xs mt-1">
+                          {/* <div className="text-xs mt-1">
                             {auction.startTime} - {auction.endTime || "N/A"}
+                          </div> */}
+                          <div className="text-xs mt-1">
+                            {/* {auction.auctionStartTime} -{" "}
+                            {auction.auctionEndTime || "N/A"} */}
+
+                            {auction.auctionStartTime
+                              ? (() => {
+                                  const time = auction.auctionStartTime;
+                                  const [hourStr, minuteStr] = time.split(":");
+                                  const hour = parseInt(hourStr, 10);
+                                  const minute = parseInt(minuteStr, 10);
+                                  const isPM = hour >= 12;
+                                  const adjustedHour = hour % 12 || 12;
+                                  const formattedTime = `${adjustedHour}:${minuteStr} ${
+                                    isPM ? "PM" : "AM"
+                                  }`;
+                                  return formattedTime;
+                                })()
+                              : "N/A"}
+                            {" - "}
+                            {/* when auction is Upcommig then end time is not true make it all status true */}
+                            {auction.auctionEndTime 
+                              ? (() => {
+                                  const time = auction.auctionEndTime;
+                                  const [hourStr, minuteStr] = time.split(":");
+                                  const hour = parseInt(hourStr, 10);
+                                  const minute = parseInt(minuteStr, 10);
+                                  const isPM = hour >= 12;
+                                  const adjustedHour = hour % 12 || 12;
+                                  const formattedTime = `${adjustedHour}:${minuteStr} ${
+                                    isPM ? "PM" : "AM"
+                                  }`;
+                                  return formattedTime;
+                                })()
+                              : "N/A"
+                            }
+                            
                           </div>
                         </div>
                       </td>
@@ -680,14 +723,43 @@ const ManageAuctions: React.FC = () => {
                   <div className="modal-row">
                     <span className="modal-label">Start:</span>
                     <span className="modal-value">
-                      {selectedAuction.startDate} at {selectedAuction.startTime}
+                      {selectedAuction.startDate} at{" "}
+                      {/* {selectedAuction.startTime} */}
+                      {selectedAuction.auctionStartTime
+                        ? (() => {
+                            const time = selectedAuction.auctionStartTime;
+                            const [hourStr, minuteStr] = time.split(":");
+                            const hour = parseInt(hourStr, 10);
+                            const minute = parseInt(minuteStr, 10);
+                            const isPM = hour >= 12;
+                            const adjustedHour = hour % 12 || 12;
+                            const formattedTime = `${adjustedHour}:${minuteStr} ${
+                              isPM ? "PM" : "AM"
+                            }`;
+                            return formattedTime;
+                          })()
+                        : "N/A"}
                     </span>
                   </div>
                   <div className="modal-row">
                     <span className="modal-label">End:</span>
                     <span className="modal-value">
                       {selectedAuction.endDate || "N/A"} at{" "}
-                      {selectedAuction.endTime || "N/A"}
+                      {/* {selectedAuction.endTime || "N/A"} */}
+                      {selectedAuction.auctionEndTime
+                        ? (() => {
+                            const time = selectedAuction.auctionEndTime;
+                            const [hourStr, minuteStr] = time.split(":");
+                            const hour = parseInt(hourStr, 10);
+                            const minute = parseInt(minuteStr, 10);
+                            const isPM = hour >= 12;
+                            const adjustedHour = hour % 12 || 12;
+                            const formattedTime = `${adjustedHour}:${minuteStr} ${
+                              isPM ? "PM" : "AM"
+                            }`;
+                            return formattedTime;
+                          })()
+                        : "N/A"}
                     </span>
                   </div>
                   <div className="modal-row">
