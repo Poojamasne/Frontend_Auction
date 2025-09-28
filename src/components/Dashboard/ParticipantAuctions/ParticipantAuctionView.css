@@ -193,6 +193,7 @@
 .auction-status.live {
   background: rgba(34, 197, 94, 0.2);
   color: #bbf7d0;
+  /* margin-left: 30px; */
   border: 1px solid rgba(34, 197, 94, 0.3);
   width: 100px;
 }
