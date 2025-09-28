@@ -24,6 +24,7 @@ import adminAuctionService, {
 } from "../../../services/adminAuctionService";
 import { API_BASE_URL } from "../../../services/apiConfig";
 import toast from "react-hot-toast";
+
 import "./ManageAuction.css";
 
 type Auction = NormalizedAuctionRecord;
@@ -445,7 +446,18 @@ const ManageAuctions: React.FC = () => {
                             {auction.auctioneerName}
                           </div>
                           <div className="text-sm">
-                            {auction.auctioneer_phone}
+                            {/* {auction.auctioneer_phone} */}
+                            {(() => {
+                              const phone = auction.auctioneer_phone;
+                              if (phone.length > 3) {
+                                const space =
+                                  phone.slice(0, 3) +
+                                  " " +
+                                  phone.slice(3, phone.length);
+                                return space;
+                              }
+                              return phone;
+                            })()}
                           </div>
                         </div>
                       </td>
@@ -471,7 +483,7 @@ const ManageAuctions: React.FC = () => {
                           <div className="mt-2 mr-2 items-center">
                             {auction.startDate}
                           </div>
-                          <div className=" items-center">
+                          <div className="text-xs mt-1">
                             {auction.startTime} - {auction.endTime || "N/A"}
                           </div>
                         </div>

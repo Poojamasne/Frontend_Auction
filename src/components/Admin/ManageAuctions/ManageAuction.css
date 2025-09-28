@@ -13,6 +13,9 @@
   -moz-appearance: none;
   appearance: none;
 }
+.manage-auctions-filters .input {
+    appearance: auto;
+}
 
 /* Base Container */
 .manage-auctions {
