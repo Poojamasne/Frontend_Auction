@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+// src/components/SystemSettings.tsx
+import React, { useState, useEffect } from 'react';
 import { Settings, Save, RefreshCw, Globe } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 
+/* ------------------  TYPES  ------------------ */
 interface SystemConfig {
   siteName: string;
   siteDescription: string;
@@ -13,6 +15,35 @@ interface SystemConfig {
   language: string;
 }
 
+/* ------------------  CONSTANTS  ------------------ */
+const DEFAULT_CONFIG: SystemConfig = {
+  siteName: 'AuctionPlatform Pro',
+  siteDescription: 'Professional Auction Management Platform',
+  contactEmail: 'admin@auctionplatform.com',
+  contactPhone: '9999999999',
+  address: 'Mumbai, Maharashtra, India',
+  timezone: 'Asia/Kolkata',
+  currency: 'INR',
+  language: 'en',
+};
+
+const STORAGE_KEY = 'system_config';
+
+/* ------------------  HELPERS  ------------------ */
+const loadStored = (): SystemConfig => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? { ...DEFAULT_CONFIG, ...JSON.parse(raw) } : DEFAULT_CONFIG;
+  } catch {
+    return DEFAULT_CONFIG;
+  }
+};
+
+const saveStored = (data: SystemConfig) => {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+};
+
+/* ------------------  COMPONENT  ------------------ */
 const SystemSettings: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -20,36 +51,32 @@ const SystemSettings: React.FC = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors, isDirty },
     reset,
-    watch
-  } = useForm<SystemConfig>({
-    defaultValues: {
-      siteName: 'AuctionPlatform Pro',
-      siteDescription: 'Professional Auction Management Platform',
-      contactEmail: 'admin@auctionplatform.com',
-      contactPhone: '9999999999',
-      address: 'Mumbai, Maharashtra, India',
-      timezone: 'Asia/Kolkata',
-      currency: 'INR',
-      language: 'en',
-    }
-  });
+    watch,
+    formState: { errors, isDirty },
+  } = useForm<SystemConfig>({ defaultValues: loadStored() });
 
+  /* keep form in sync if another tab changes storage */
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEY && e.newValue) {
+        reset({ ...DEFAULT_CONFIG, ...JSON.parse(e.newValue) });
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, [reset]);
+
+  /* ------------------  HANDLERS  ------------------ */
   const onSubmit = async (data: SystemConfig) => {
     setIsLoading(true);
     setSaveStatus('idle');
-    
     try {
-      console.log('Saving settings:', data);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await new Promise((r) => setTimeout(r, 1000)); // simulate API
+      saveStored(data);
       setSaveStatus('success');
-      // Reset form state after successful save
-      reset(data);
-    } catch (error) {
-      console.error('Error saving settings:', error);
+      reset(data); // mark clean
+    } catch {
       setSaveStatus('error');
     } finally {
       setIsLoading(false);
@@ -57,36 +84,29 @@ const SystemSettings: React.FC = () => {
   };
 
   const handleReset = () => {
-    reset();
+    reset(DEFAULT_CONFIG);
     setSaveStatus('idle');
   };
 
-  // Enhanced email validation function
+  /* ------------------  VALIDATIONS  ------------------ */
   const validateEmail = (email: string) => {
     const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
     const validDomains = ['com', 'in', 'org'];
-    
-    if (!emailRegex.test(email)) {
-      return 'Please enter a valid email address';
-    }
-    
+    if (!emailRegex.test(email)) return 'Please enter a valid email address';
     const domain = email.split('.').pop()?.toLowerCase();
-    if (!domain || !validDomains.includes(domain)) {
+    if (!domain || !validDomains.includes(domain))
       return 'Email must end with .com, .in, or .org';
-    }
-    
     return true;
   };
 
+  /* ------------------  RENDER  ------------------ */
   return (
     <div className="space-y-6">
-      {/* Status Message */}
       {saveStatus === 'success' && (
         <div className="bg-green-900 border border-green-700 text-green-200 px-4 py-3 rounded-lg">
           Settings saved successfully!
         </div>
       )}
-      
       {saveStatus === 'error' && (
         <div className="bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded-lg">
           Error saving settings. Please try again.
@@ -104,37 +124,29 @@ const SystemSettings: React.FC = () => {
               Configure your platform's basic information and contact details
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Site Name */}
+            {/* ----------  Site Name  ---------- */}
             <div className="col-span-1">
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                <span>
                 Site Name<span className="text-red-500">*</span>
-                </span>
               </label>
               <input
                 type="text"
                 className={`w-full px-3 py-2 rounded-lg border bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${
-                  errors.siteName 
-                    ? 'border-red-500 focus:ring-red-500' 
+                  errors.siteName
+                    ? 'border-red-500 focus:ring-red-500'
                     : 'border-gray-600 focus:border-blue-500'
                 }`}
                 placeholder="Enter your site name"
                 {...register('siteName', {
                   required: 'Site name is required',
-                  minLength: {
-                    value: 3,
-                    message: 'Site name must be at least 3 characters'
-                  },
-                  maxLength: {
-                    value: 50,
-                    message: 'Site name must not exceed 50 characters'
-                  },
+                  minLength: { value: 3, message: 'Site name must be at least 3 characters' },
+                  maxLength: { value: 50, message: 'Site name must not exceed 50 characters' },
                   pattern: {
                     value: /^[a-zA-Z0-9\s\-_]+$/,
-                    message: 'Site name can only contain letters, numbers, spaces, hyphens, and underscores'
-                  }
+                    message: 'Site name can only contain letters, numbers, spaces, hyphens, and underscores',
+                  },
                 })}
               />
               {errors.siteName && (
@@ -145,7 +157,7 @@ const SystemSettings: React.FC = () => {
               )}
             </div>
 
-            {/* Contact Email */}
+            {/* ----------  Contact Email  ---------- */}
             <div className="col-span-1">
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Contact Email<span className="text-red-500">*</span>
@@ -153,18 +165,15 @@ const SystemSettings: React.FC = () => {
               <input
                 type="email"
                 className={`w-full px-3 py-2 rounded-lg border bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${
-                  errors.contactEmail 
-                    ? 'border-red-500 focus:ring-red-500' 
+                  errors.contactEmail
+                    ? 'border-red-500 focus:ring-red-500'
                     : 'border-gray-600 focus:border-blue-500'
                 }`}
                 placeholder="admin@example.com"
                 {...register('contactEmail', {
                   required: 'Contact email is required',
-                  maxLength: {
-                    value: 100,
-                    message: 'Email must not exceed 100 characters'
-                  },
-                  validate: validateEmail
+                  maxLength: { value: 100, message: 'Email must not exceed 100 characters' },
+                  validate: validateEmail,
                 })}
               />
               {errors.contactEmail && (
@@ -175,40 +184,27 @@ const SystemSettings: React.FC = () => {
               )}
             </div>
 
-            {/* Contact Phone */}
+            {/* ----------  Contact Phone  ---------- */}
             <div className="col-span-1">
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Contact Phone<span className="text-red-500">*</span>
               </label>
               <input
                 type="tel"
+                maxLength={10}
                 className={`w-full px-3 py-2 rounded-lg border bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${
-                  errors.contactPhone 
-                    ? 'border-red-500 focus:ring-red-500' 
+                  errors.contactPhone
+                    ? 'border-red-500 focus:ring-red-500'
                     : 'border-gray-600 focus:border-blue-500'
                 }`}
                 placeholder="Enter 10-digit phone number"
-                maxLength={10}
                 {...register('contactPhone', {
                   required: 'Contact phone is required',
-                  pattern: {
-                    value: /^[6-9]\d{9}$/,
-                    message: 'Phone number must start with 6-9 and be 10 digits'
-                  },
-                  minLength: {
-                    value: 10,
-                    message: 'Phone number must be exactly 10 digits'
-                  },
-                  maxLength: {
-                    value: 10,
-                    message: 'Phone number must be exactly 10 digits'
-                  }
+                  pattern: { value: /^[6-9]\d{9}$/, message: 'Phone number must start with 6-9 and be 10 digits' },
+                  minLength: { value: 10, message: 'Phone number must be exactly 10 digits' },
+                  maxLength: { value: 10, message: 'Phone number must be exactly 10 digits' },
                 })}
-                onKeyPress={(e) => {
-                  if (!/[0-9]/.test(e.key)) {
-                    e.preventDefault();
-                  }
-                }}
+                onKeyPress={(e) => /[0-9]/.test(e.key) || e.preventDefault()}
               />
               {errors.contactPhone && (
                 <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
@@ -218,7 +214,7 @@ const SystemSettings: React.FC = () => {
               )}
             </div>
 
-            {/* Timezone */}
+            {/* ----------  Timezone  ---------- */}
             <div className="col-span-1">
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Timezone<span className="text-red-500">*</span>
@@ -240,20 +236,18 @@ const SystemSettings: React.FC = () => {
               )}
             </div>
 
-            {/* Currency */}
+            {/* ----------  Currency  ---------- */}
             <div className="col-span-1">
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Currency<span className="text-red-500">*</span>
               </label>
               <select
                 className={`w-full px-3 py-2 rounded-lg border bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${
-                  errors.currency 
-                    ? 'border-red-500 focus:ring-red-500' 
+                  errors.currency
+                    ? 'border-red-500 focus:ring-red-500'
                     : 'border-gray-600 focus:border-blue-500'
                 }`}
-                {...register('currency', {
-                  required: 'Currency is required'
-                })}
+                {...register('currency', { required: 'Currency is required' })}
               >
                 <option value="INR">INR (₹) - Indian Rupee</option>
                 <option value="USD">USD ($) - US Dollar</option>
@@ -268,7 +262,7 @@ const SystemSettings: React.FC = () => {
               )}
             </div>
 
-            {/* Language */}
+            {/* ----------  Language  ---------- */}
             <div className="col-span-1">
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Language<span className="text-red-500">*</span>
@@ -290,7 +284,7 @@ const SystemSettings: React.FC = () => {
               )}
             </div>
 
-            {/* Site Description */}
+            {/* ----------  Site Description  ---------- */}
             <div className="col-span-1 sm:col-span-2 lg:col-span-3">
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Site Description<span className="text-red-500">*</span>
@@ -298,21 +292,15 @@ const SystemSettings: React.FC = () => {
               <textarea
                 rows={3}
                 className={`w-full px-3 py-2 rounded-lg border bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${
-                  errors.siteDescription 
-                    ? 'border-red-500 focus:ring-red-500' 
+                  errors.siteDescription
+                    ? 'border-red-500 focus:ring-red-500'
                     : 'border-gray-600 focus:border-blue-500'
                 }`}
                 placeholder="Describe your auction platform..."
                 {...register('siteDescription', {
                   required: 'Site description is required',
-                  minLength: {
-                    value: 10,
-                    message: 'Description must be at least 10 characters'
-                  },
-                  maxLength: {
-                    value: 500,
-                    message: 'Description must not exceed 500 characters'
-                  }
+                  minLength: { value: 10, message: 'Description must be at least 10 characters' },
+                  maxLength: { value: 500, message: 'Description must not exceed 500 characters' },
                 })}
               />
               <div className="flex justify-between mt-1">
@@ -329,7 +317,7 @@ const SystemSettings: React.FC = () => {
               </div>
             </div>
 
-            {/* Address */}
+            {/* ----------  Address  ---------- */}
             <div className="col-span-1 sm:col-span-2 lg:col-span-3">
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Address<span className="text-red-500">*</span>
@@ -337,21 +325,15 @@ const SystemSettings: React.FC = () => {
               <textarea
                 rows={2}
                 className={`w-full px-3 py-2 rounded-lg border bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${
-                  errors.address 
-                    ? 'border-red-500 focus:ring-red-500' 
+                  errors.address
+                    ? 'border-red-500 focus:ring-red-500'
                     : 'border-gray-600 focus:border-blue-500'
                 }`}
                 placeholder="Enter your complete address..."
                 {...register('address', {
                   required: 'Address is required',
-                  minLength: {
-                    value: 10,
-                    message: 'Address must be at least 10 characters'
-                  },
-                  maxLength: {
-                    value: 300,
-                    message: 'Address must not exceed 300 characters'
-                  }
+                  minLength: { value: 10, message: 'Address must be at least 10 characters' },
+                  maxLength: { value: 300, message: 'Address must not exceed 300 characters' },
                 })}
               />
               <div className="flex justify-between mt-1">
@@ -370,22 +352,23 @@ const SystemSettings: React.FC = () => {
           </div>
         </div>
 
-        {/* Action Buttons */}
+        {/* ----------  Action Buttons  ---------- */}
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6">
-          <button
+          {/* <button
             type="button"
             onClick={handleReset}
             disabled={isLoading || !isDirty}
             className="px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
           >
             Reset to Default
-          </button>
-          
+          </button> */}
+
           <button
             type="submit"
             disabled={isLoading || !isDirty}
-            className="px-6 py-2 text-black bg-black-600 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center w-full sm:w-auto"
-            // className="px-6 py-2 text-black rounded-lg  flex items-center justify-center w-full"
+            className="px-6 py-2 text-black bg-blue-600 rounded-lg hover:bg-blue-700
+                       transition disabled:opacity-50 disabled:cursor-not-allowed
+                       flex items-center justify-center w-full sm:w-auto"
           >
             {isLoading ? (
               <>
