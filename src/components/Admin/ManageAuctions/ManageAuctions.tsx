@@ -258,6 +258,8 @@ const ManageAuctions: React.FC = () => {
       !window.confirm(
         "Reject this auction? Users will see it was rejected by Admin."
       )
+      
+        
     )
       return;
     try {
@@ -328,6 +330,7 @@ const ManageAuctions: React.FC = () => {
       auction.auctioneerName.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus =
+      // filterStatus === "all" ||
       filterStatus === "all" ||
       auction.status === filterStatus ||
       statusMapForFilter(filterStatus) === auction.status;
@@ -492,43 +495,43 @@ const ManageAuctions: React.FC = () => {
                           {/* <div className="text-xs mt-1">
                             {auction.startTime} - {auction.endTime || "N/A"}
                           </div> */}
-                          <div className="text-xs mt-1">
-                            {/* {auction.auctionStartTime} -{" "}
-                            {auction.auctionEndTime || "N/A"} */}
+                          {/* this Div is not shoing when auction is upcoming */}
 
-                            {auction.auctionStartTime
-                              ? (() => {
-                                  const time = auction.auctionStartTime;
-                                  const [hourStr, minuteStr] = time.split(":");
-                                  const hour = parseInt(hourStr, 10);
-                                  const minute = parseInt(minuteStr, 10);
-                                  const isPM = hour >= 12;
-                                  const adjustedHour = hour % 12 || 12;
-                                  const formattedTime = `${adjustedHour}:${minuteStr} ${
-                                    isPM ? "PM" : "AM"
-                                  }`;
-                                  return formattedTime;
-                                })()
-                              : "N/A"}
-                            {" - "}
-                            {/* when auction is Upcommig then end time is not true make it all status true */}
-                            {auction.auctionEndTime 
-                              ? (() => {
-                                  const time = auction.auctionEndTime;
-                                  const [hourStr, minuteStr] = time.split(":");
-                                  const hour = parseInt(hourStr, 10);
-                                  const minute = parseInt(minuteStr, 10);
-                                  const isPM = hour >= 12;
-                                  const adjustedHour = hour % 12 || 12;
-                                  const formattedTime = `${adjustedHour}:${minuteStr} ${
-                                    isPM ? "PM" : "AM"
-                                  }`;
-                                  return formattedTime;
-                                })()
-                              : "N/A"
-                            }
-                            
-                          </div>
+                          {["live", "completed", "draft"].includes(
+                            auction.status
+                          ) && (
+                            <div className="text-xs mt-1">
+                              {auction.auctionStartTime
+                                ? (() => {
+                                    const time = auction.auctionStartTime;
+                                    const [hourStr, minuteStr] =
+                                      time.split(":");
+                                    const hour = parseInt(hourStr, 10);
+                                    const isPM = hour >= 12;
+                                    const adjustedHour = hour % 12 || 12;
+                                    const formattedTime = `${adjustedHour}:${minuteStr} ${
+                                      isPM ? "PM" : "AM"
+                                    }`;
+                                    return formattedTime;
+                                  })()
+                                : "N/A"}
+                              {" - "}
+                              {auction.auctionEndTime
+                                ? (() => {
+                                    const time = auction.auctionEndTime;
+                                    const [hourStr, minuteStr] =
+                                      time.split(":");
+                                    const hour = parseInt(hourStr, 10);
+                                    const isPM = hour >= 12;
+                                    const adjustedHour = hour % 12 || 12;
+                                    const formattedTime = `${adjustedHour}:${minuteStr} ${
+                                      isPM ? "PM" : "AM"
+                                    }`;
+                                    return formattedTime;
+                                  })()
+                                : "N/A"}
+                            </div>
+                          )}
                         </div>
                       </td>
                       <td data-label="Participants">
