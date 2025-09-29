@@ -140,19 +140,19 @@ class UserService {
   }
 
   // Block user
-  async blockUser(id: string, token?: string): Promise<void> {
-    if (!id) throw new Error('User ID is required');
-    const url = `${ADMIN_USERS_BASE_URL}/${id}/status`;
-    const res = await fetch(url, {
-      method: 'PATCH',
-      headers: this.getAuthHeaders(token),
-      body: JSON.stringify({ is_active: 0 })
-    });
-    const json = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      throw new Error(json.message || `Failed to block user ${id} (${res.status})`);
-    }
+  // Block user - using the specific block endpoint
+async blockUser(id: string, token?: string): Promise<void> {
+  if (!id) throw new Error('User ID is required');
+  const url = `${ADMIN_USERS_BASE_URL}/${id}/block`;
+  const res = await fetch(url, {
+    method: 'PUT',
+    headers: this.getAuthHeaders(token)
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(json.message || `Failed to block user ${id} (${res.status})`);
   }
+}
 
   private normalizeUser(raw: RawUserRecord): NormalizedUserRecord {
     return {
