@@ -559,7 +559,7 @@ const LandingPage: React.FC = () => {
               <ul>
                 <li>
                   <Mail className="w-4 h-4 inline-block mr-2" />{" "}
-                  support@quickauction.com
+                  sales.easyeauction@gmail.com
                 </li>
                 <li>
                   <Phone className="w-4 h-4 inline-block mr-2" /> +91 9876543210
