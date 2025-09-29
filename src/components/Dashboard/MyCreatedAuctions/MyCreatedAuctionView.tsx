@@ -1008,7 +1008,7 @@ if (auctionData && auctionData.status === 'upcoming') {
                   </div>
                 </div>
                 <div className="prebid-actions">
-                  <div
+                  {/* <div
                     className={`participant-status ${
                       preBid.status === "approved"
                         ? "status-active"
@@ -1018,7 +1018,7 @@ if (auctionData && auctionData.status === 'upcoming') {
                     }`}
                   >
                     {preBid.status || "pending"}
-                  </div>
+                  </div> */}
                   {(!preBid.status || preBid.status === "pending") && (
                     <div className="prebid-action-buttons">
                       {/*                       <button
