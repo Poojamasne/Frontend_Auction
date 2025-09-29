@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useParams, useNavigate  } from "react-router-dom";
 import "./ParticipantAuctionSession.css";
 import {
   Timer,
@@ -89,6 +89,10 @@ const ParticipantAuctionSession: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isJoined, setIsJoined] = useState(false);
+  const userIsEditingRef = useRef(false);
+  const [userIsEditing, setUserIsEditing] = useState(false);
+
+
 
   const calculateNextBid = (currentAuction: Auction): string => {
     const lowestBid = currentAuction.statistics?.lowest_bid;
@@ -208,14 +212,27 @@ const ParticipantAuctionSession: React.FC = () => {
     }
   }, [auction, loading]);
 
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     if (isJoined) {
+  //       fetchAuctionData();
+  //     }
+  //   }, 5000);
+  //   return () => clearInterval(interval);
+  // }, [isJoined, fetchAuctionData]);
+
+  useEffect(() => {
+    userIsEditingRef.current = userIsEditing;
+  }, [userIsEditing]);
+
   useEffect(() => {
     const interval = setInterval(() => {
-      if (isJoined) {
+      if (isJoined && !userIsEditingRef.current) {
         fetchAuctionData();
       }
     }, 5000);
     return () => clearInterval(interval);
-  }, [isJoined, fetchAuctionData]);
+  }, [isJoined]);
 
   useEffect(() => {
     if (!auction || auction.status !== "live") {
@@ -484,7 +501,6 @@ const ParticipantAuctionSession: React.FC = () => {
                   const [hours, minutes] = auction.start_time.split(":");
                   return `${hours}:${minutes}`;
                 })()}
-
               </span>
             </div>
             <div className="detail-row">
@@ -624,33 +640,25 @@ const ParticipantAuctionSession: React.FC = () => {
                     placeholder="Enter Your Bid Amount"
                   /> */}
                   <input
-  type="text"
-  id="bidAmount"
-  value={bidAmount}
-  onChange={(e) => {
-    const value = e.target.value;
-    // Allow only numbers and decimal point
-    if (value === "" || /^\d*\.?\d*$/.test(value)) {
-      setBidAmount(value); // just set value
-    }
-  }}
-  onBlur={() => {
-    if (bidAmount && !isNaN(parseFloat(bidAmount))) {
-      // Validate here, not onChange
-      const error = validateBidAmount(bidAmount);
-      if (error) {
-        toast.error(error);
-      } else {
-        // Format number if needed
-        setBidAmount(parseFloat(bidAmount).toString());
-      }
-    }
-  }}
-  className="bid-input"
-  step="0.01"
-  min="0"
-  placeholder="Enter Your Bid Amount"
-/>
+                    type="text"
+                    id="bidAmount"
+                    value={bidAmount}
+                    onFocus={() => setUserIsEditing(true)} // user entered the field
+                    onBlur={() => {
+                      setUserIsEditing(false); // user left the field
+                      if (bidAmount && !isNaN(parseFloat(bidAmount))) {
+                        const err = validateBidAmount(bidAmount);
+                        if (err) toast.error(err);
+                        else setBidAmount(parseFloat(bidAmount).toString());
+                      }
+                    }}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      if (v === "" || /^\d*\.?\d*$/.test(v)) setBidAmount(v);
+                    }}
+                    className="bid-input"
+                    placeholder="Enter Your Bid Amount"
+                  />
                 </div>
               </div>
               <div className="bid-buttons">
