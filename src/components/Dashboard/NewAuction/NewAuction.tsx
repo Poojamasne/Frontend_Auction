@@ -285,7 +285,6 @@ const NewAuction: React.FC = () => {
             </h1>
             <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-accent text-white text-sm font-medium">
               <Users className="w-4 h-4 mr-2" />
-              Auctioneer
             </span>
           </div>
           <div className="card-body">
