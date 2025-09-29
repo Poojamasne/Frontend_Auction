@@ -48,6 +48,7 @@ interface Bid {
   id: number;
   user_id: number;
   amount: string;
+  bid_time: string;
   created_at: string;
   person_name?: string;
   company_name?: string;
@@ -648,10 +649,7 @@ const AuctioneerLiveView: React.FC = () => {
                     <div className="alv-bid-time">
                       <Clock className="w-4 h-4" />
                       <span>
-                        {new Date(bid.created_at).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        {new Date(bid.bid_time).toLocaleDateString("en-GB")}                                              
                       </span>
                     </div>
                   </div>
