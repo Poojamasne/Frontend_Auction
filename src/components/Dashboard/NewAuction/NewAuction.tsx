@@ -406,8 +406,8 @@ const NewAuction: React.FC = () => {
                 </label>
                 <div className="form-helper-text">
                   {watchOpenToAll
-                    ? "✓ Visible to every participant"
-                    : "⚠️ Only invited participants can view"}
+                    ? "✓ Auction will be visible to all users and invited participants"
+                    : "⚠️ Only invited participants can view this auction"}
                 </div>
               </div>
             </div>
@@ -535,10 +535,9 @@ const NewAuction: React.FC = () => {
                     Add Participants
                   </h2>
                   <p className="text-text-secondary mt-2">
-                    Phone number is the primary identifier.
                     {watchOpenToAll
-                      ? " Invitations are optional "
-                      : " Only invited participants can join."}
+                      ? "Auction is open to all users. Adding specific participants is optional."
+                      : "Only invited participants can join. Add participants below."}
                   </p>
                 </div>
 
@@ -582,7 +581,9 @@ const NewAuction: React.FC = () => {
                 <div className="ap-newauction-empty-state">
                   <Users className="w-12 h-12 text-text-secondary mx-auto mb-4" />
                   <p className="text-text-secondary">
-                    No participants added yet.
+                    {watchOpenToAll
+                      ? "No specific participants added. Auction will be open to all users."
+                      : "No participants added yet."}
                   </p>
                 </div>
               ) : (
