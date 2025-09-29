@@ -605,7 +605,7 @@ const ParticipantAuctionView: React.FC = () => {
           <p className="auction-subtitle">#{auction.auction_number}</p>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-          <button
+          {/* <button
             onClick={() => loadAuctionDetails(true)}
             className="btn btn-secondary"
             disabled={refreshing}
@@ -622,7 +622,7 @@ const ParticipantAuctionView: React.FC = () => {
             <RefreshCw
               className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`}
             />
-          </button>
+          </button> */}
           <div
             className={`auction-status-badge ${
               auction.status === "upcoming"
