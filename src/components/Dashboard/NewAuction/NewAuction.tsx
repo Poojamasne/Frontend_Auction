@@ -130,8 +130,21 @@ const NewAuction: React.FC = () => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
 
+    // Allowed file types
+    const allowedExtensions = [".jpeg", ".jpg", ".png", ".pdf", ".doc", ".docx"];
+
+    // Filter allowed file types
+    const typeFiltered = files.filter((f) => {
+      const ext = f.name.toLowerCase().slice(f.name.lastIndexOf("."));
+      if (!allowedExtensions.includes(ext)) {
+        toast.error(`"${f.name}" is not an allowed file type`);
+        return false;
+      }
+      return true;
+    });
+
     // Filter out files exceeding size
-    const validFiles = files.filter((f) => {
+    const validFiles = typeFiltered.filter((f) => {
       if (f.size > MAX_FILE_MB * 1024 * 1024) {
         toast.error(`"${f.name}" exceeds ${MAX_FILE_MB} MB`);
         return false;
@@ -162,6 +175,7 @@ const NewAuction: React.FC = () => {
     // Reset input so user can re-select the same file again
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
+
 
   const removeFile = (idx: number) => {
     setUploadedFiles((p) => p.filter((_, i) => i !== idx));
@@ -489,7 +503,7 @@ const NewAuction: React.FC = () => {
                   ref={fileInputRef}
                   type="file"
                   multiple
-                  accept="*/*"
+                  accept=".jpeg,.jpg,.png,.pdf,.doc,.docx"
                   className="form-input"
                   onChange={handleFileUpload}
                   disabled={uploadedFiles.length >= MAX_FILES}
@@ -590,9 +604,8 @@ const NewAuction: React.FC = () => {
                   {fields.map((field, idx) => (
                     <div
                       key={field.id}
-                      className={`ap-newauction-participant-card ${
-                        field._quick ? "quick-participant" : ""
-                      }`}
+                      className={`ap-newauction-participant-card ${field._quick ? "quick-participant" : ""
+                        }`}
                     >
                       <div className="flex items-center justify-between mb-4">
                         <h4 className="font-medium text-text-primary">
