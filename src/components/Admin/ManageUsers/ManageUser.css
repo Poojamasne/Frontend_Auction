@@ -819,7 +819,7 @@
 
   .user-modal-actions {
     display: flex;
-    position: sticky;
+    /* position: sticky; */
     bottom: 0;
     background: linear-gradient(180deg, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.95));
     margin-top: auto;
