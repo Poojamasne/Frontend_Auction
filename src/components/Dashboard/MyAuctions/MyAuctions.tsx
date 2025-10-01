@@ -534,28 +534,37 @@ const MyAuctions: React.FC = () => {
   };
 
 // Add this helper function to safely check if auction is open to all
+// Helper function to safely check if auction is open to all
 const isAuctionOpenToAll = (auction: BaseAuction): boolean => {
   const openToAllValue = auction.open_to_all;
   
-  // Direct check for true/1 values
+  // Handle undefined/null cases first
+  if (openToAllValue === undefined || openToAllValue === null) {
+    return false;
+  }
+  
+  // Direct check for true/truthy values
   if (openToAllValue === true || openToAllValue === 1) {
     return true;
   }
   
-  // Direct check for false/0 values
+  // Direct check for false/falsy values
   if (openToAllValue === false || openToAllValue === 0) {
     return false;
   }
   
-  // Convert any other value to number and check
-  const numericValue = Number(openToAllValue);
-  if (numericValue === 1) {
-    return true;
+  // Handle string representations
+  if (typeof openToAllValue === 'string') {
+    const lowerVal = openToAllValue.toLowerCase().trim();
+    return lowerVal === 'true' || lowerVal === '1' || lowerVal === 'yes';
   }
   
-  // Default to CLOSED for any other case
-  return false;
+  // Convert any other value to number and check
+  const numericValue = Number(openToAllValue);
+  return numericValue === 1;
 };
+  
+
   
 const fetchAuctions = async (signal?: AbortSignal) => {
   try {
@@ -1383,13 +1392,13 @@ const downloadAuctionReport = async (auction: BaseAuction) => {
         {getStatusIcon(derivedStatus)}
         {derivedStatus.toUpperCase()}
       </span>
-      {/* ADD THIS: Open Auction Badge */}
+      {/* Only show Open badge when auction is actually open to all */}
       {isAuctionOpenToAll(auction) && (
-  <span className="ap-myauctions-status-badge ap-myauctions-status-open">
-    <Users className="w-3 h-3" />
-    OPEN TO ALL
-  </span>
-)}
+        <span className="ap-myauctions-status-badge ap-myauctions-status-open">
+          <Users className="w-3 h-3" />
+          OPEN TO ALL
+        </span>
+      )}
     </div>
   </div>
   <p className="ap-myauctions-card-subtitle">
