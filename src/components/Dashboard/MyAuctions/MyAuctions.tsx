@@ -498,21 +498,31 @@ const MyAuctions: React.FC = () => {
     return false;
   };
 
-  // Add this helper function to safely check if auction is open to all
+// Add this helper function to safely check if auction is open to all
 const isAuctionOpenToAll = (auction: BaseAuction): boolean => {
   const openToAllValue = auction.open_to_all;
   
-  if (openToAllValue === true || openToAllValue === 1) {
+  // Handle boolean values
+  if (openToAllValue === true) {
     return true;
   }
-  if (openToAllValue === false || openToAllValue === 0) {
+  if (openToAllValue === false) {
     return false;
   }
   
-  // Fallback to frontend property if backend field is undefined
+  // Handle numeric values by converting to number first
+  const numericValue = Number(openToAllValue);
+  if (numericValue === 1) {
+    return true;
+  }
+  if (numericValue === 0) {
+    return false;
+  }
+  
+  // Fallback to frontend property if backend field is undefined or invalid
   return auction.openToAllCompanies;
 };
-
+  
 const fetchAuctions = async (signal?: AbortSignal) => {
   try {
     let data: BaseAuction[] = [];
