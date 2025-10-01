@@ -533,8 +533,6 @@ const MyAuctions: React.FC = () => {
     return false;
   };
 
-// Add this helper function to safely check if auction is open to all
-// Helper function to safely check if auction is open to all
 // Helper function to safely check if auction is open to all
 const isAuctionOpenToAll = (auction: BaseAuction): boolean => {
   const openToAllValue = auction.open_to_all;
@@ -554,16 +552,16 @@ const isAuctionOpenToAll = (auction: BaseAuction): boolean => {
     return openToAllValue === 1;
   }
   
-  // Handle string values
+  // Handle string values - use type assertion to help TypeScript
   if (typeof openToAllValue === 'string') {
-    const normalized = openToAllValue.toLowerCase().trim();
+    const normalized = (openToAllValue as string).toLowerCase().trim();
     return normalized === 'true' || normalized === '1' || normalized === 'yes';
   }
   
   // Default to false for any other type
   return false;
 };
-  
+
 const fetchAuctions = async (signal?: AbortSignal) => {
   try {
     let data: BaseAuction[] = [];
