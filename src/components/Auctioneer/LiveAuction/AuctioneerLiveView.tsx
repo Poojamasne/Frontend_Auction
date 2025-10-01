@@ -15,6 +15,7 @@ import {
   Eye,
   Activity,
   TrendingDown,
+  Calendar,
   Download,
   Pause,
   Play,
@@ -647,9 +648,9 @@ const AuctioneerLiveView: React.FC = () => {
                       </span>
                     </div>
                     <div className="alv-bid-time">
-                      <Clock className="w-4 h-4" />
+                      <Calendar className="w-4 h-4" />
                       <span>
-                        {new Date(bid.bid_time).toLocaleDateString("en-GB")}                                              
+                        {new Date(bid.bid_time).toLocaleDateString("en-GB")}
                       </span>
                     </div>
                   </div>
