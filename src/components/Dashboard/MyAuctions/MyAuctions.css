@@ -896,37 +896,3 @@
   }
 }
 
-
-.ap-myauctions-status-open {
-  background-color: #10b981;
-  color: white;
-  border: 1px solid #059669;
-}
-
-.ap-myauctions-status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-/* Status badge colors */
-.ap-myauctions-status-live {
-  background-color: #ef4444;
-  color: white;
-}
-
-.ap-myauctions-status-upcoming {
-  background-color: #f59e0b;
-  color: white;
-}
-
-.ap-myauctions-status-completed {
-  background-color: #6b7280;
-  color: white;
-}
