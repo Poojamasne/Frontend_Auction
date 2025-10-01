@@ -547,178 +547,77 @@ const MyAuctions: React.FC = () => {
       // console.log(`[MyAuctions] 🏗️ FINAL CREATED AUCTIONS RESULT: ${data.length} auctions`);
     }
     else if (activeTab === 'participant') {
-      // console.log(`[MyAuctions] 👥 FETCHING PARTICIPATED AUCTIONS - Only auctions where ${user?.phoneNumber} was added as participant (NOT created by user)`);
+  console.log(`[MyAuctions] 👥 FETCHING AUCTIONS FOR PARTICIPANT TAB - Open auctions + explicit participation`);
+
+  // Helper function to determine if auction should appear in participant tab
+  const shouldShowInParticipantTab = (auction: BaseAuction) => {
+    const isOpen = auction.open_to_all === 1 || auction.open_to_all === true;
+    const isParticipant = !isCreatedByUser(auction) && isUserParticipant(auction);
+    return isOpen || isParticipant;
+  };
+
+  // Strategy 1: Try filtered endpoint (most reliable for open auctions)
+  try {
+    const params = {
+      status: statusFilter === 'all' ? undefined : statusFilter,
+      search: debouncedSearch,
+      signal,
+    };
+    
+    data = await apiService.fetchFilteredAuctions(params);
+    
+    // Filter for open auctions OR explicit participation
+    if (data.length > 0) {
+      const beforeFilter = data.length;
+      data = data.filter(shouldShowInParticipantTab);
+      console.log(`[MyAuctions] Found ${data.length} auctions for participant tab (${beforeFilter} total)`);
       
-      // console.log(`[MyAuctions] User details for participation check:`, {
-      //   userId: user?.id,
-      //   userPhone: user?.phoneNumber,
-      //   userEmail: user?.email,
-      //   userCompany: user?.companyName
-      // });
-
-
-      // Strategy 1: Try direct my-auctions endpoint first (most reliable)
-      try {
-        // console.log(`[MyAuctions] Strategy 1: Trying my-auctions endpoint for participated auctions`);
-        const myAuctions = await apiService.fetchMyAuctions(statusFilter === 'all' ? undefined : statusFilter, signal);
-        // console.log(`[MyAuctions] Fetched ${myAuctions.length} auctions from my-auctions endpoint`);
-        
-        // Filter for participated auctions (excluding created ones)
-        const participated = myAuctions.filter(auction => !isCreatedByUser(auction) && isUserParticipant(auction));
-
-        // console.log(`[MyAuctions] Found ${participated.length} non-created auctions from my-auctions`);
-        
-        if (participated.length > 0) {
-          data = participated;
-          // console.log(`[MyAuctions] Strategy 1 successful: ${data.length} participated auctions`);
-        }
-      } catch (myAuctionsErr) {
-        console.warn('[MyAuctions] Strategy 1 (my-auctions) failed:', myAuctionsErr);
-      }
-
-      // Strategy 2: Try participated endpoint if Strategy 1 failed or returned empty
-      if (data.length === 0) {
-        try {
-          // console.log(`[MyAuctions] Strategy 2: Trying participated endpoint`);
-          const params = {
-            status: statusFilter === 'all' ? undefined : statusFilter,
-            type: 'participated',
-            search: debouncedSearch,
-            signal,
-          };
-          
-          data = await apiService.fetchFilteredAuctions(params);
-          // console.log(`[MyAuctions] Strategy 2: Fetched ${data.length} auctions from participated endpoint`);
-          
-          // Still filter to ensure we only get actual participated auctions
-          if (data.length > 0) {
-            const beforeFilter = data.length;
-            data = data.filter(isUserParticipant);
-            // console.log(`[MyAuctions] Strategy 2: Filtered participated auctions from ${beforeFilter} to ${data.length}`);
-          }
-        } catch (participatedErr) {
-          console.warn('[MyAuctions] Strategy 2 (participated endpoint) failed:', participatedErr);
-          data = [];
-        }
-      }
-
-      // Strategy 3: Use API to check each auction individually for participation
-      if (data.length === 0) {
-        try {
-          // console.log(`[MyAuctions] Strategy 3: Using participants API to check each auction`);
-          const params = {
-            status: statusFilter === 'all' ? undefined : statusFilter,
-            search: debouncedSearch,
-            signal,
-          };
-
-          const allAuctions = await apiService.fetchFilteredAuctions(params);
-          // console.log(`[MyAuctions] Strategy 3: Fetched ${allAuctions.length} total auctions for API check`);
-
-          // Get auctions that user did NOT create
-          const nonCreatedAuctions = allAuctions.filter(auction => !isCreatedByUser(auction));
-          // console.log(`[MyAuctions] Strategy 3: ${nonCreatedAuctions.length} auctions not created by user`);
-
-          // Check each auction via API for participation
-          const participatedAuctions: BaseAuction[] = [];
-          const maxToCheck = Math.min(nonCreatedAuctions.length, 50); // Check more auctions
-
-          for (let i = 0; i < maxToCheck; i++) {
-            const auction = nonCreatedAuctions[i];
-            // console.log(`[MyAuctions] Strategy 3: Checking API participation for auction ${auction.id} (${auction.title})`);
-            
-            const isParticipant = await isUserParticipantViaAPI(auction);
-            if (isParticipant) {
-              // console.log(`[MyAuctions] ✅ Strategy 3: Found participation in auction ${auction.id} via API`);
-              participatedAuctions.push(auction);
-            }
-
-            // Small delay to avoid overwhelming the API
-            if (i < maxToCheck - 1) {
-              await new Promise(resolve => setTimeout(resolve, 100));
-            }
-          }
-
-          // console.log(`[MyAuctions] Strategy 3: Found ${participatedAuctions.length} participated auctions via API`);
-          data = participatedAuctions;
-          
-        } catch (fallbackErr: any) {
-          console.warn('[MyAuctions] Strategy 3 (API check) failed:', fallbackErr);
-          data = [];
-        }
-      }
-
-      // Strategy 4: Emergency fallback - if all else fails, show auctions with participant indicators
-      if (data.length === 0) {
-        try {
-          // console.log(`[MyAuctions] Strategy 4: Emergency fallback - non-created auctions with participants`);
-          const params = {
-            status: statusFilter === 'all' ? undefined : statusFilter,
-            search: debouncedSearch,
-            signal,
-          };
-
-          const allAuctions = await apiService.fetchFilteredAuctions(params);
-          
-          // Get auctions that user did NOT create and have participant indicators
-          const potentialParticipations = allAuctions.filter(auction => {
-            const notCreatedByUser = !isCreatedByUser(auction);
-            const hasParticipants = (auction.participants?.length || 0) > 0;
-            const hasParticipantsList = ((auction as any).participantsList?.length || 0) > 0;
-            const hasParticipantCount = ((auction as any).participantCount || 0) > 0;
-            
-            const hasAnyParticipantData = hasParticipants || hasParticipantsList || hasParticipantCount;
-            
-            if (notCreatedByUser && hasAnyParticipantData) {
-              // console.log(`[MyAuctions] Strategy 4: Potential participation in auction ${auction.id} (${auction.title})`);
-              return true;
-            }
-            
-            return false;
-          });
-          
-          // console.log(`[MyAuctions] Strategy 4: Found ${potentialParticipations.length} potential participated auctions`);
-          
-          // Use this fallback if reasonable number
-          if (potentialParticipations.length > 0 && potentialParticipations.length <= 15) {
-            data = potentialParticipations;
-            // console.log(`[MyAuctions] Strategy 4: Using emergency fallback with ${data.length} auctions`);
-          }
-          
-        } catch (emergencyErr: any) {
-          console.warn('[MyAuctions] Strategy 4 (emergency fallback) failed:', emergencyErr);
-          data = [];
-        }
-      }
-
-      // Set UI state based on which strategy worked
-      if (data.length > 0) {
-        setParticipantBackendFiltered(false);
-        setEnrichedFromDetails(false);
-        
-        // Double-check: Make sure NO auction in participated list was created by user
-        const createdByUserCount = data.filter(isCreatedByUser).length;
-        if (createdByUserCount > 0) {
-          console.warn(`[MyAuctions] ⚠️ Found ${createdByUserCount} user-created auctions in participated list! Removing them...`);
-          data = data.filter(auction => !isCreatedByUser(auction));
-        }
-        
-        // Triple-check: Make sure all auctions are actually participated by user
-        const actuallyParticipated = data.filter(isUserParticipant).length;
-        // console.log(`[MyAuctions] 👥 PARTICIPATION VERIFICATION: ${actuallyParticipated}/${data.length} auctions verified as participated`);
-        
-      } else {
-        // Show a helpful message if no strategies worked
-        // console.log('[MyAuctions] ❌ All strategies failed to find participated auctions');
-        setParticipantBackendFiltered(false);
-        setEnrichedFromDetails(false);
-      }
-      
-      // Update participant count
-      setParticipantCount(data.length);
-      // console.log(`[MyAuctions] 👥 FINAL PARTICIPATED AUCTIONS RESULT: ${data.length} auctions where user is participant (NOT creator)`);
+      // Log breakdown for debugging
+      const openCount = data.filter(a => a.open_to_all === 1 || a.open_to_all === true).length;
+      const participantCount = data.filter(a => !a.open_to_all && isUserParticipant(a)).length;
+      console.log(`[MyAuctions] Breakdown: ${openCount} open auctions, ${participantCount} explicit participants`);
     }
+  } catch (filteredErr) {
+    console.warn('[MyAuctions] Strategy 1 (filtered endpoint) failed:', filteredErr);
+    data = [];
+  }
 
+  // Strategy 2: Fallback to my-auctions endpoint
+  if (data.length === 0) {
+    try {
+      const myAuctions = await apiService.fetchMyAuctions(statusFilter === 'all' ? undefined : statusFilter, signal);
+      
+      // Filter for open auctions OR explicit participation
+      if (myAuctions.length > 0) {
+        const beforeFilter = myAuctions.length;
+        data = myAuctions.filter(shouldShowInParticipantTab);
+        console.log(`[MyAuctions] Strategy 2: Found ${data.length} auctions from my-auctions (${beforeFilter} total)`);
+      }
+    } catch (myAuctionsErr) {
+      console.warn('[MyAuctions] Strategy 2 (my-auctions) failed:', myAuctionsErr);
+    }
+  }
+
+  // Set UI state
+  if (data.length > 0) {
+    setParticipantBackendFiltered(false);
+    setEnrichedFromDetails(false);
+    
+    // Double-check: Make sure NO auction in participated list was created by user
+    const createdByUserCount = data.filter(isCreatedByUser).length;
+    if (createdByUserCount > 0) {
+      console.warn(`[MyAuctions] ⚠️ Found ${createdByUserCount} user-created auctions in participated list! Removing them...`);
+      data = data.filter(auction => !isCreatedByUser(auction));
+    }
+  } else {
+    setParticipantBackendFiltered(false);
+    setEnrichedFromDetails(false);
+  }
+  
+  // Update participant count
+  setParticipantCount(data.length);
+  console.log(`[MyAuctions] 👥 FINAL PARTICIPATED AUCTIONS RESULT: ${data.length} auctions (open + participated)`);
+}
     // console.log(`[MyAuctions] Final result: ${data.length} auctions for ${activeTab} tab`);
     setAuctions(data);
     
@@ -1374,17 +1273,27 @@ const downloadAuctionReport = async (auction: BaseAuction) => {
                   className="ap-myauctions-card"
                 >
                   <div className="ap-myauctions-card-header">
-                    <div className="ap-myauctions-card-title-section">
-                      <h3 className="ap-myauctions-card-title">{auction.title}</h3>
-                      <span className={`ap-myauctions-status-badge ap-myauctions-status-${derivedStatus}`}>
-                        {getStatusIcon(derivedStatus)}
-                        {derivedStatus.toUpperCase()}
-                      </span>
-                    </div>
-                    <p className="ap-myauctions-card-subtitle">
-                      Auction No: {auction.auctionNo}
-                    </p>
-                  </div>
+  <div className="ap-myauctions-card-title-section">
+    <h3 className="ap-myauctions-card-title">{auction.title}</h3>
+    <div className="flex items-center gap-2">
+      <span className={`ap-myauctions-status-badge ap-myauctions-status-${derivedStatus}`}>
+        {getStatusIcon(derivedStatus)}
+        {derivedStatus.toUpperCase()}
+      </span>
+      {/* ADD THIS: Open Auction Badge */}
+      {(auction.open_to_all === 1 || auction.open_to_all === true) && (
+        <span className="ap-myauctions-status-badge ap-myauctions-status-open">
+          <Users className="w-3 h-3" />
+          OPEN TO ALL
+        </span>
+      )}
+    </div>
+  </div>
+  <p className="ap-myauctions-card-subtitle">
+    Auction No: {auction.auctionNo}
+    {(auction.open_to_all === 1 || auction.open_to_all === true) && " • Open to all users"}
+  </p>
+</div>
                   <div className="ap-myauctions-card-info">
                     <div className="ap-myauctions-info-item">
                       <span className="ap-myauctions-info-label">Date &amp; Time:</span>
