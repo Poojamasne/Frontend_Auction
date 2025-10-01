@@ -15,6 +15,101 @@
     align-items: center;
 }
 
+
+
+
+/* ==== Shared Info Section Styles ==== */
+.info-section {
+  position: relative;
+  /* background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%); */
+  background: white;
+  border-top: 1px solid black;
+  padding-top: 4rem;
+  padding-bottom: 4rem;
+}
+
+.info-section h2 {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 2rem;
+  text-align: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* background: white; */
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Container */
+.container {
+  max-width: 1267px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* Info Cards */
+.info-cardd {
+  /* background: #ffffff; */
+   background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+   display: flex;
+  flex-direction: row;
+  width: 400px;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(229, 231, 235, 0.6);
+  transition: all 0.3s ease;
+  text-align: left;
+}
+
+.info-cardd:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+}
+
+/* Card Headings */
+.info-cardd h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  /* color: #764ba2; */
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Card Text */
+.info-cardd p {
+  font-size: 1rem;
+  color: #efeded;
+  line-height: 1.6;
+}
+
+/* Background Alternates */
+.bg-gray-50 {
+  background-color: #f9fafb;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .info-section h2 {
+    font-size: 1.5rem;
+  }
+
+  .info-cardd {
+    padding: 1.25rem;
+  }
+
+  .info-cardd h3 {
+    font-size: 1.1rem;
+  }
+
+  .info-cardd p {
+    font-size: 0.95rem;
+  }
+}
+
+
 .hero-section::before {
     content: '';
     position: absolute;
@@ -39,11 +134,11 @@
 
 /* Force the hero title/subtitle to use solid white for maximum contrast (override gradient text) */
 .hero-content .hero-title {
-    background: none !important;
-    background-clip: unset !important;
-    -webkit-background-clip: unset !important;
-    -webkit-text-fill-color: unset !important;
-    color: #ffffff !important;
+    background: none;
+    background-clip: unset;
+    -webkit-background-clip: unset ;
+    -webkit-text-fill-color: unset ;
+    color: #ffffff;
     text-shadow: 0 14px 40px rgba(0, 0, 0, 0.65);
 }
 
@@ -572,8 +667,13 @@
     font-size: 1.5rem;
     font-weight: 700;
     margin-bottom: 1rem;
-    color: #1a202c;
+    /* color: #1a202c; */
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+
 }
+
 
 .feature-description {
     color: #4a5568;
@@ -590,7 +690,7 @@
 
 .steps-container {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 3rem;
     margin-top: 4rem;
     position: relative;
@@ -650,7 +750,12 @@
     font-size: 1.3rem;
     font-weight: 600;
     margin-bottom: 1rem;
-    color: #1a202c;
+    /* color: #1a202c; */
+     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* background: white; */
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 /* Highlight specific How-it-Works step titles - force black */
@@ -761,11 +866,22 @@
     margin: 0 auto;
 }
 
+.check h2{
+    /* color: #4ecdc4; */
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+
+
 .cta-title {
     font-size: 3rem;
     font-weight: 800;
     margin-bottom: 1.5rem;
-    background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+    /* background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%); */
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -809,7 +925,7 @@
 
 .footer-content {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 3rem;
     margin-bottom: 3rem;
 }
@@ -818,7 +934,10 @@
     font-size: 1.3rem;
     font-weight: 700;
     margin-bottom: 1.5rem;
-    color: white;
+    /* color: white; */
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .footer-section p,
@@ -870,7 +989,10 @@
 .footer-logo-text {
     font-size: 1.5rem;
     font-weight: 700;
-    color: white;
+    /* color: white; */
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .footer-bottom {
@@ -926,6 +1048,13 @@
 
 /* Responsive Design */
 @media (max-width: 1024px) {
+    .p-6 {
+    padding: 1.5rem;
+    color: #ffffff;
+    height: 100%;
+    width: 357px !important;
+    overflow-y: auto;
+}
     .hero-title {
         font-size: 3rem;
     }
@@ -958,6 +1087,9 @@
 }
 
 @media (max-width: 768px) {
+
+
+
     .hero-title {
         font-size: 2.5rem;
     }
@@ -1054,6 +1186,31 @@
 }
 
 @media (max-width: 480px) {
+
+    .p-6 {
+    width: 324px !important;
+    padding: 1.5rem;
+    color: #ffffff;
+    height: 100%;
+    overflow-y: auto;
+}
+
+
+    .info-cardd {
+  /* background: #ffffff; */
+   background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+   display: flex;
+  flex-direction: column;
+  width: 400px;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(229, 231, 235, 0.6);
+  transition: all 0.3s ease;
+  text-align: left;
+}
+
+
 
     .slider-arrow.next {
     right: 15px;
