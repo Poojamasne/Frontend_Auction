@@ -537,28 +537,58 @@ const MyAuctions: React.FC = () => {
 const isAuctionOpenToAll = (auction: BaseAuction): boolean => {
   const openToAllValue = auction.open_to_all;
   
+  console.log(`[MyAuctions] Checking open_to_all for auction ${auction.auctionNo}:`, {
+    value: openToAllValue,
+    type: typeof openToAllValue
+  });
+  
   // Handle boolean values
   if (openToAllValue === true) {
+    console.log(`[MyAuctions] ✅ Auction ${auction.auctionNo} is OPEN TO ALL (boolean true)`);
     return true;
   }
   if (openToAllValue === false) {
+    console.log(`[MyAuctions] 🔒 Auction ${auction.auctionNo} is CLOSED (boolean false)`);
     return false;
+  }
+  
+  // Handle numeric values directly (from database: 1 = true, 0 = false)
+  if (openToAllValue === 1) {
+    console.log(`[MyAuctions] ✅ Auction ${auction.auctionNo} is OPEN TO ALL (numeric 1)`);
+    return true;
+  }
+  if (openToAllValue === 0) {
+    console.log(`[MyAuctions] 🔒 Auction ${auction.auctionNo} is CLOSED (numeric 0)`);
+    return false;
+  }
+  
+  // Handle string values
+  if (typeof openToAllValue === 'string') {
+    const lowerValue = openToAllValue.toLowerCase().trim();
+    if (lowerValue === 'true' || lowerValue === '1' || lowerValue === 'yes') {
+      console.log(`[MyAuctions] ✅ Auction ${auction.auctionNo} is OPEN TO ALL (string: "${openToAllValue}")`);
+      return true;
+    }
+    if (lowerValue === 'false' || lowerValue === '0' || lowerValue === 'no') {
+      console.log(`[MyAuctions] 🔒 Auction ${auction.auctionNo} is CLOSED (string: "${openToAllValue}")`);
+      return false;
+    }
   }
   
   // Handle numeric values by converting to number first
   const numericValue = Number(openToAllValue);
   if (numericValue === 1) {
+    console.log(`[MyAuctions] ✅ Auction ${auction.auctionNo} is OPEN TO ALL (converted numeric: 1)`);
     return true;
   }
   if (numericValue === 0) {
+    console.log(`[MyAuctions] 🔒 Auction ${auction.auctionNo} is CLOSED (converted numeric: 0)`);
     return false;
   }
   
   // If backend field is undefined or invalid, default to CLOSED
-// Don't fallback to openToAllCompanies as it's likely always true
-console.log(`[MyAuctions] ⚠️ Auction ${auction.id} - open_to_all undefined, defaulting to CLOSED`);
-return false;
-  
+  console.log(`[MyAuctions] ⚠️ Auction ${auction.auctionNo} - open_to_all undefined/invalid, defaulting to CLOSED`);
+  return false;
 };
   
 const fetchAuctions = async (signal?: AbortSignal) => {
