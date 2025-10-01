@@ -535,6 +535,7 @@ const MyAuctions: React.FC = () => {
 
 // Add this helper function to safely check if auction is open to all
 // Helper function to safely check if auction is open to all
+// Helper function to safely check if auction is open to all
 const isAuctionOpenToAll = (auction: BaseAuction): boolean => {
   const openToAllValue = auction.open_to_all;
   
@@ -543,28 +544,25 @@ const isAuctionOpenToAll = (auction: BaseAuction): boolean => {
     return false;
   }
   
-  // Direct check for true/truthy values
-  if (openToAllValue === true || openToAllValue === 1) {
-    return true;
+  // Handle boolean values
+  if (typeof openToAllValue === 'boolean') {
+    return openToAllValue;
   }
   
-  // Direct check for false/falsy values
-  if (openToAllValue === false || openToAllValue === 0) {
-    return false;
+  // Handle number values (1 = true, 0 = false)
+  if (typeof openToAllValue === 'number') {
+    return openToAllValue === 1;
   }
   
-  // Handle string representations
+  // Handle string values
   if (typeof openToAllValue === 'string') {
-    const lowerVal = openToAllValue.toLowerCase().trim();
-    return lowerVal === 'true' || lowerVal === '1' || lowerVal === 'yes';
+    const normalized = openToAllValue.toLowerCase().trim();
+    return normalized === 'true' || normalized === '1' || normalized === 'yes';
   }
   
-  // Convert any other value to number and check
-  const numericValue = Number(openToAllValue);
-  return numericValue === 1;
+  // Default to false for any other type
+  return false;
 };
-  
-
   
 const fetchAuctions = async (signal?: AbortSignal) => {
   try {
