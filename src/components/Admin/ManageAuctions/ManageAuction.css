@@ -1894,6 +1894,7 @@ select:focus {
 
   .auctions-table.responsive-table .auction-status {
     font-size: 0.5rem;
+    justify-content: center;
     padding: 2px 5px;  
     /* padding-left: 25px; */
   }
