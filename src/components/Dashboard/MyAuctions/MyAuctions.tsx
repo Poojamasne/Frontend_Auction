@@ -276,53 +276,88 @@ const MyAuctions: React.FC = () => {
 
   // Enhanced helper to check if user is a participant using API
   const isUserParticipantViaAPI = async (auction: BaseAuction): Promise<boolean> => {
-    if (!user) return false;
-    if (isCreatedByUser(auction)) return false;
+  if (!user) return false;
 
-    const auctionId = auction.backendId || auction.id;
-    if (!auctionId) return false;
+  const auctionId = auction.backendId || auction.id;
+  if (!auctionId) return false;
 
-    try {
-      const participantsData = await fetchParticipantsByAuctionId(auctionId);
-      if (!participantsData || !participantsData.participants) {
-        return false;
-      }
-
-      // Check if current user is in the participants list
-      const userPhoneVariations = [
-        user.phoneNumber,
-        user.phoneNumber?.replace('+91', ''),
-        user.phoneNumber?.replace('+', ''),
-        '+91' + user.phoneNumber?.replace(/^\+?91?/, '')
-      ].filter(Boolean);
-
-      const isParticipant = participantsData.participants.some((participant: any) => {
-        if (!participant) return false;
-
-        // Check if participant is a string (phone number)
-        if (typeof participant === 'string') {
-          return userPhoneVariations.includes(participant) || 
-                 (user.email && participant.includes(user.email));
-        }
-
-        // Check if participant is an object
-        if (typeof participant === 'object') {
-          const values = Object.values(participant);
-          return userPhoneVariations.some(phone => values.includes(phone)) ||
-                 values.includes(user.id) ||
-                 (user.email && values.includes(user.email));
-        }
-
-        return false;
-      });
-
-      // console.log(`[MyAuctions] API check for auction ${auctionId}: participant = ${isParticipant}`);
-      return isParticipant;
-    } catch (error) {
-      // console.error(`[MyAuctions] Error in API participant check for auction ${auctionId}:`, error);
+  try {
+    const participantsData = await fetchParticipantsByAuctionId(auctionId);
+    if (!participantsData || !participantsData.participants) {
+      console.log(`[MyAuctions] No participants data for auction ${auctionId}`);
       return false;
     }
-  };
+
+    // Generate all possible phone number variations
+    const userPhoneVariations = [
+      user.phoneNumber,
+      user.phoneNumber?.replace('+91', ''),
+      user.phoneNumber?.replace('+', ''),
+      '+91' + user.phoneNumber?.replace(/^\+?91?/, ''),
+      user.phoneNumber?.replace(/^(\+91|91)/, '') // Just the 10-digit number
+    ].filter(Boolean);
+
+    console.log(`[MyAuctions] Checking participant ${user.phoneNumber} in auction ${auctionId}`, {
+      variations: userPhoneVariations,
+      participants: participantsData.participants
+    });
+
+    const isParticipant = participantsData.participants.some((participant: any) => {
+      if (!participant) return false;
+
+      // Handle string participants (phone numbers)
+      if (typeof participant === 'string') {
+        const cleanParticipant = participant.trim();
+        return userPhoneVariations.includes(cleanParticipant);
+      }
+
+      // Handle object participants
+      if (typeof participant === 'object') {
+        // Check all possible phone number fields
+        const phoneFields = [
+          participant.phone_number,
+          participant.phoneNumber, 
+          participant.phone,
+          participant.user_phone,
+          participant.contact_number
+        ].filter(Boolean);
+
+        const hasPhoneMatch = phoneFields.some(phone => 
+          userPhoneVariations.includes(phone)
+        );
+
+        // Check user ID fields
+        const userIdFields = [
+          participant.user_id,
+          participant.userId,
+          participant.id
+        ].filter(Boolean);
+
+        const hasUserIdMatch = userIdFields.includes(user.id);
+
+        // Check email fields
+        const emailFields = [
+          participant.email,
+          participant.mail_id,
+          participant.mailId
+        ].filter(Boolean);
+
+        const hasEmailMatch = user.email ? emailFields.includes(user.email) : false;
+
+        return hasPhoneMatch || hasUserIdMatch || hasEmailMatch;
+      }
+
+      return false;
+    });
+
+    console.log(`[MyAuctions] API participant check result for ${auctionId}: ${isParticipant}`);
+    return isParticipant;
+  } catch (error) {
+    console.error(`[MyAuctions] Error in API participant check for auction ${auctionId}:`, error);
+    return false;
+  }
+};
+  
 
   // Enhanced helper to check if user is a participant (but NOT the creator)
   const isUserParticipant = (auction: BaseAuction) => {
@@ -575,12 +610,36 @@ const fetchAuctions = async (signal?: AbortSignal) => {
       console.log(`[MyAuctions] 🏗️ FINAL CREATED AUCTIONS RESULT: ${data.length} auctions`);
     }
     else if (activeTab === 'participant') {
-      console.log(`[MyAuctions] 👥 FETCHING AUCTIONS FOR PARTICIPANT TAB - Open auctions + explicit participation`);
+      console.log(`[MyAuctions] 👥 FETCHING AUCTIONS FOR PARTICIPANT TAB - User: ${user?.phoneNumber}`);
 
-      const shouldShowInParticipantTab = (auction: BaseAuction) => {
+      // Enhanced filtering function with API checks
+      const shouldShowInParticipantTab = async (auction: BaseAuction): Promise<boolean> => {
+        // CRITICAL: Never show auctions created by the user in participant tab
+        if (isCreatedByUser(auction)) {
+          console.log(`[MyAuctions] ❌ Filtering out user-created auction: ${auction.id}`);
+          return false;
+        }
+
         const isOpen = isAuctionOpenToAll(auction);
-        const isParticipant = !isCreatedByUser(auction) && isUserParticipant(auction);
-        return isOpen || isParticipant;
+        
+        // If open to all, show it to everyone
+        if (isOpen) {
+          console.log(`[MyAuctions] ✅ Showing OPEN auction: ${auction.id} - ${auction.title}`);
+          return true;
+        }
+
+        // If NOT open to all (invitation only), check if user is explicitly invited
+        console.log(`[MyAuctions] 🔒 Checking CLOSED auction: ${auction.id} - ${auction.title}`);
+        const isExplicitParticipant = await isUserParticipantViaAPI(auction);
+        console.log(`[MyAuctions] 🔒 Closed auction ${auction.id} result: user is participant = ${isExplicitParticipant}`);
+        
+        if (isExplicitParticipant) {
+          console.log(`[MyAuctions] ✅ Showing CLOSED auction (user is invited): ${auction.id}`);
+        } else {
+          console.log(`[MyAuctions] ❌ Hiding CLOSED auction (user NOT invited): ${auction.id}`);
+        }
+        
+        return isExplicitParticipant;
       };
 
       // Strategy 1: Try filtered endpoint (most reliable for open auctions)
@@ -592,18 +651,20 @@ const fetchAuctions = async (signal?: AbortSignal) => {
         };
         
         data = await apiService.fetchFilteredAuctions(params);
+        console.log(`[MyAuctions] Initial fetch: ${data.length} auctions`);
         
-        // Filter for open auctions OR explicit participation
-        if (data.length > 0) {
-          const beforeFilter = data.length;
-          data = data.filter(shouldShowInParticipantTab);
-          console.log(`[MyAuctions] Found ${data.length} auctions for participant tab (${beforeFilter} total)`);
-          
-          // FIXED: Use helper function for logging
-          const openCount = data.filter(a => isAuctionOpenToAll(a)).length;
-          const participantCount = data.filter(a => !isAuctionOpenToAll(a) && isUserParticipant(a)).length;
-          console.log(`[MyAuctions] Breakdown: ${openCount} open auctions, ${participantCount} explicit participants`);
+        // Filter auctions using async checks
+        const filteredData: BaseAuction[] = [];
+        for (const auction of data) {
+          const shouldShow = await shouldShowInParticipantTab(auction);
+          if (shouldShow) {
+            filteredData.push(auction);
+          }
         }
+        
+        data = filteredData;
+        console.log(`[MyAuctions] After participant filtering: ${data.length} auctions`);
+        
       } catch (filteredErr) {
         console.warn('[MyAuctions] Strategy 1 (filtered endpoint) failed:', filteredErr);
         data = [];
@@ -613,17 +674,33 @@ const fetchAuctions = async (signal?: AbortSignal) => {
       if (data.length === 0) {
         try {
           const myAuctions = await apiService.fetchMyAuctions(statusFilter === 'all' ? undefined : statusFilter, signal);
+          console.log(`[MyAuctions] Strategy 2: Fetched ${myAuctions.length} auctions from my-auctions`);
           
-          // Filter for open auctions OR explicit participation
+          // Filter auctions using async checks
           if (myAuctions.length > 0) {
-            const beforeFilter = myAuctions.length;
-            data = myAuctions.filter(shouldShowInParticipantTab);
-            console.log(`[MyAuctions] Strategy 2: Found ${data.length} auctions from my-auctions (${beforeFilter} total)`);
+            const filteredData: BaseAuction[] = [];
+            for (const auction of myAuctions) {
+              const shouldShow = await shouldShowInParticipantTab(auction);
+              if (shouldShow) {
+                filteredData.push(auction);
+              }
+            }
+            data = filteredData;
+            console.log(`[MyAuctions] Strategy 2 filtered: ${data.length} auctions`);
           }
         } catch (myAuctionsErr) {
           console.warn('[MyAuctions] Strategy 2 (my-auctions) failed:', myAuctionsErr);
         }
       }
+
+      // Count how many open vs closed auctions we found
+      const openAuctions = data.filter(a => isAuctionOpenToAll(a));
+      const closedAuctions = data.filter(a => !isAuctionOpenToAll(a));
+      
+      console.log(`[MyAuctions] 👥 FINAL PARTICIPATED AUCTIONS BREAKDOWN:`);
+      console.log(`[MyAuctions]   - Open auctions: ${openAuctions.length}`);
+      console.log(`[MyAuctions]   - Closed auctions (invitation only): ${closedAuctions.length}`);
+      console.log(`[MyAuctions]   - Total: ${data.length} auctions`);
 
       // Set UI state
       if (data.length > 0) {
@@ -643,7 +720,7 @@ const fetchAuctions = async (signal?: AbortSignal) => {
       
       // Update participant count
       setParticipantCount(data.length);
-      console.log(`[MyAuctions] 👥 FINAL PARTICIPATED AUCTIONS RESULT: ${data.length} auctions (open + participated)`);
+      console.log(`[MyAuctions] 👥 FINAL PARTICIPATED AUCTIONS RESULT: ${data.length} auctions`);
     }
 
     setAuctions(data);
@@ -659,7 +736,6 @@ const fetchAuctions = async (signal?: AbortSignal) => {
   }
 }
   
-
   // Derive start Date object for an auction
  /* 1.  Helper : make a JS-Date out of the auction fields */
 const getAuctionStart = (auction: BaseAuction) => {
