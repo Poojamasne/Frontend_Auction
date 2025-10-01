@@ -562,9 +562,10 @@ const isAuctionOpenToAll = (auction: BaseAuction): boolean => {
     return false;
   }
   
-  // Handle string values
+  // Handle string values with proper type checking
   if (typeof openToAllValue === 'string') {
-    const lowerValue = openToAllValue.toLowerCase().trim();
+    const stringValue = openToAllValue;
+    const lowerValue = stringValue.toLowerCase().trim();
     if (lowerValue === 'true' || lowerValue === '1' || lowerValue === 'yes') {
       console.log(`[MyAuctions] ✅ Auction ${auction.auctionNo} is OPEN TO ALL (string: "${openToAllValue}")`);
       return true;
@@ -575,15 +576,19 @@ const isAuctionOpenToAll = (auction: BaseAuction): boolean => {
     }
   }
   
-  // Handle numeric values by converting to number first
-  const numericValue = Number(openToAllValue);
-  if (numericValue === 1) {
-    console.log(`[MyAuctions] ✅ Auction ${auction.auctionNo} is OPEN TO ALL (converted numeric: 1)`);
-    return true;
-  }
-  if (numericValue === 0) {
-    console.log(`[MyAuctions] 🔒 Auction ${auction.auctionNo} is CLOSED (converted numeric: 0)`);
-    return false;
+  // Handle other numeric values by converting to number
+  if (openToAllValue !== null && openToAllValue !== undefined) {
+    const numericValue = Number(openToAllValue);
+    if (!isNaN(numericValue)) {
+      if (numericValue === 1) {
+        console.log(`[MyAuctions] ✅ Auction ${auction.auctionNo} is OPEN TO ALL (converted numeric: 1)`);
+        return true;
+      }
+      if (numericValue === 0) {
+        console.log(`[MyAuctions] 🔒 Auction ${auction.auctionNo} is CLOSED (converted numeric: 0)`);
+        return false;
+      }
+    }
   }
   
   // If backend field is undefined or invalid, default to CLOSED
