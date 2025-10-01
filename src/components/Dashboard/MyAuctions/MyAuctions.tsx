@@ -528,7 +528,51 @@ const fetchAuctions = async (signal?: AbortSignal) => {
     let data: BaseAuction[] = [];
 
     if (activeTab === 'auctioneer') {
-      // ... your existing auctioneer logic
+      console.log(`[MyAuctions] 🏗️ FETCHING CREATED AUCTIONS for user:`, {
+        userId: user?.id,
+        companyName: user?.companyName,
+        phoneNumber: user?.phoneNumber
+      });
+      
+      // Fetch auctions created by user
+      if (!debouncedSearch) {
+        try {
+          data = await apiService.fetchMyAuctions(statusFilter === 'all' ? undefined : statusFilter, signal);
+          console.log(`[MyAuctions] Fetched ${data.length} auctions from my-auctions endpoint`);
+        } catch (e) {
+          console.warn('[MyAuctions] fetchMyAuctions failed, falling back', e);
+        }
+      }
+
+      // Fallback to filtered endpoint for created auctions
+      if (data.length === 0) {
+        const params = {
+          status: statusFilter,
+          type: 'created',
+          search: debouncedSearch,
+          signal,
+        };
+        data = await apiService.fetchFilteredAuctions(params);
+        console.log(`[MyAuctions] Fallback: Fetched ${data.length} auctions from filtered endpoint`);
+
+        // Filter to only auctions created by current user
+        if (data.length > 0 && user?.id) {
+          const beforeFilter = data.length;
+          data = data.filter(isCreatedByUser);
+          console.log(`[MyAuctions] ✅ Filtered to show only USER CREATED auctions: ${beforeFilter} → ${data.length}`);
+        }
+      }
+      
+      // Double-check: Make sure all returned auctions are created by user
+      const finalCreatedCheck = data.filter(isCreatedByUser);
+      if (finalCreatedCheck.length !== data.length) {
+        console.warn(`[MyAuctions] ⚠️ Found non-created auctions in created tab! Filtering...`);
+        data = finalCreatedCheck;
+      }
+      
+      // Update auctioneer count
+      setAuctioneerCount(data.length);
+      console.log(`[MyAuctions] 🏗️ FINAL CREATED AUCTIONS RESULT: ${data.length} auctions`);
     }
     else if (activeTab === 'participant') {
       console.log(`[MyAuctions] 👥 FETCHING AUCTIONS FOR PARTICIPANT TAB - Open auctions + explicit participation`);
