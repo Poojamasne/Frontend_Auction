@@ -554,8 +554,11 @@ const isAuctionOpenToAll = (auction: BaseAuction): boolean => {
     return false;
   }
   
-  // Fallback to frontend property if backend field is undefined or invalid
-  return auction.openToAllCompanies;
+  // If backend field is undefined or invalid, default to CLOSED
+// Don't fallback to openToAllCompanies as it's likely always true
+console.log(`[MyAuctions] ⚠️ Auction ${auction.id} - open_to_all undefined, defaulting to CLOSED`);
+return false;
+  
 };
   
 const fetchAuctions = async (signal?: AbortSignal) => {
