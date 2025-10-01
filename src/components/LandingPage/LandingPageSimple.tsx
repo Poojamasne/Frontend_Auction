@@ -169,6 +169,91 @@ const LandingPage: React.FC = () => {
     { number: "99.9%", label: "Uptime" },
   ];
 
+  const whyEasyAuction = [
+    "No subscription fee for Buyer / Auctioner / Seller / Participant → Zero auction cost.",
+    "Auctioner can arrange auctions in just a couple of minutes.",
+    "Participants get SMS alerts for submission of Prebid.",
+    "Auctioner & Participants get SMS alerts 10 minutes before start of Auction.",
+    "Auctioner can reject unsuitable bids at Prebid or Live Auction stage.",
+    "Participants can upload Product / Service Profiles for better evaluation.",
+    "OTP login ensures Security & Privacy of Auction.",
+    "Auction report available immediately after completion.",
+    "No limit of Participants per Auction.",
+    "Provides ease & speed for both Auctioner & Participant.",
+  ];
+
+  const reverseAuctionSteps = [
+    {
+      title: "Buyer Posts Requirements",
+      description:
+        "A business or government agency creates a listing detailing the goods or services it needs, along with specific requirements, quantities, and delivery schedules.",
+    },
+    {
+      title: "Suppliers Register & Bid",
+      description:
+        "Pre-qualified suppliers are invited to participate. They register on the platform and submit their initial bids",
+    },
+    {
+      title: "Real-Time Bidding",
+      description:
+        "The auction takes place over a set period, often with a countdown timer. Suppliers submit progressively lower bids in real-time, typically with the ability to see the leading low bid.",
+    },
+    {
+      title: "Auction Closes & Award",
+      description:
+        "Once the auction timer runs out, the buyer evaluates the bids based on criteria that can include price, quality, and supplier reliability. The lowest—or best—bidder is then awarded the contract.",
+    },
+  ];
+
+  const reverseAuctionBenefits = [
+    {
+      title: "Cost Savings",
+      description:
+        "Competition between suppliers drives best possible pricing.",
+    },
+    {
+      title: "Transparency",
+      description: "Open bidding process reduces favoritism & corruption.",
+    },
+    {
+      title: "Expanded Supplier Base",
+      description: "Access more suppliers, including SMEs, for wider choices.",
+    },
+    {
+      title: "Efficiency",
+      description:
+        "Automated reverse auction reduces negotiation time & effort.",
+    },
+    {
+      title: "Data Insights",
+      description:
+        "Real-time feedback helps procurement teams make smarter decisions.",
+    },
+  ];
+
+  const reverseAuctionUses = [
+    {
+      title: "Government Procurement",
+      description:
+        "Used for acquiring office supplies to complex projects with cost-effectiveness.",
+    },
+    {
+      title: "Manufacturing",
+      description:
+        "Procure raw materials, machinery, and components competitively.",
+    },
+    {
+      title: "Logistics & Transportation",
+      description:
+        "Businesses invite carriers to bid for freight and shipping contracts.",
+    },
+    {
+      title: "Retail",
+      description:
+        "Negotiate better prices for goods and inventory using reverse auctions.",
+    },
+  ];
+
   // Auto-slide functionality
   useEffect(() => {
     const timer = setInterval(() => {
@@ -296,7 +381,7 @@ const LandingPage: React.FC = () => {
         </div>
 
         <div className="container">
-          <div className="hero-content loading-fade-in">
+          <div className="hero-content loading-fade-in check1">
             <h1 className="hero-title">Professional Auction Platform</h1>
             <p className="hero-subtitle">
               Create, manage and participate in auctions with our comprehensive
@@ -380,7 +465,7 @@ const LandingPage: React.FC = () => {
       {/* Features Section */}
       <section id="features" className="features-section">
         <div className="container">
-          <div className="text-center loading-fade-in">
+          <div className="text-center loading-fade-in check">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
               Everything You Need for Successful Auctions
             </h2>
@@ -409,7 +494,7 @@ const LandingPage: React.FC = () => {
       {/* How It Works Section */}
       <section id="how-it-works" className="how-it-works">
         <div className="container">
-          <div className="text-center loading-fade-in">
+          <div className="text-center loading-fade-in check">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
               How It Works
             </h2>
@@ -494,6 +579,85 @@ const LandingPage: React.FC = () => {
         isOpen={isTermsModalOpen}
         onClose={() => setIsTermsModalOpen(false)}
       />
+
+      {/* Why EasyEAuction Section */}
+      <section className="info-section py-12">
+        <div className="container">
+          <h2 className="text-3xl font-bold text-center mb-6">
+            Why EasyEAuction.com?
+          </h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {whyEasyAuction.map((point, idx) => (
+              <div
+                key={idx}
+                className="info-cardd p-6 bg-white shadow-md rounded-xl hover:shadow-lg transition"
+              >
+                <p className="text-gray-700">{point}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Reverse Auction Steps Section */}
+      <section className="info-section py-12">
+        <div className="container">
+          <h2 className="text-3xl font-bold text-center mb-6">
+            How a Reverse Auction Works
+          </h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {reverseAuctionSteps.map((step, idx) => (
+              <div
+                key={idx}
+                className="info-cardd p-6 bg-white shadow-md rounded-xl hover:shadow-lg transition"
+              >
+                <h3 className="font-semibold text-lg mb-2 mr-2">{step.title}</h3>
+                <p className="text-gray-600">{step.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Reverse Auction Benefits */}
+      <section className="info-section py-12">
+        <div className="container">
+          <h2 className="text-3xl font-bold text-center mb-6">
+            Key Benefits of Reverse Auctions
+          </h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {reverseAuctionBenefits.map((benefit, idx) => (
+              <div
+                key={idx}
+                className="info-cardd p-6 bg-white shadow-md rounded-xl hover:shadow-lg transition"
+              >
+                <h3 className="font-semibold text-lg mb-2 mr-2">{benefit.title}</h3>
+                <p className="text-gray-600">{benefit.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Reverse Auction Common Uses */}
+      <section className="info-section py-12">
+        <div className="container">
+          <h2 className="text-3xl font-bold text-center mb-6">
+            Common Uses of Reverse Auctions
+          </h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {reverseAuctionUses.map((use, idx) => (
+              <div
+                key={idx}
+                className="info-cardd p-6 bg-white shadow-md rounded-xl hover:shadow-lg transition"
+              >
+                <h3 className="font-semibold text-lg mb-2 mr-2">{use.title}</h3>
+                <p className="text-gray-600">{use.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* Footer */}
       <footer id="contact" className="footer">
