@@ -498,127 +498,100 @@ const MyAuctions: React.FC = () => {
     return false;
   };
 
-    const fetchAuctions = async (signal?: AbortSignal) => {
+  // Add this helper function to safely check if auction is open to all
+const isAuctionOpenToAll = (auction: BaseAuction): boolean => {
+  const openToAllValue = auction.open_to_all;
+  
+  if (openToAllValue === true || openToAllValue === 1) {
+    return true;
+  }
+  if (openToAllValue === false || openToAllValue === 0) {
+    return false;
+  }
+  
+  // Fallback to frontend property if backend field is undefined
+  return auction.openToAllCompanies;
+};
+
+const fetchAuctions = async (signal?: AbortSignal) => {
   try {
     let data: BaseAuction[] = [];
 
-
     if (activeTab === 'auctioneer') {
-      // console.log(`[MyAuctions] 🏗️ FETCHING CREATED AUCTIONS - Only auctions created by user ${user?.phoneNumber}`);
-      
-      // Fetch auctions created by user
-      if (!debouncedSearch) {
-        try {
-          data = await apiService.fetchMyAuctions(statusFilter === 'all' ? undefined : statusFilter, signal);
-          // console.log(`[MyAuctions] Fetched ${data.length} auctions from my-auctions endpoint`);
-        } catch (e) {
-          console.warn('[MyAuctions] fetchMyAuctions failed, falling back', e);
-        }
-      }
+      // ... your existing auctioneer logic
+    }
+    else if (activeTab === 'participant') {
+      console.log(`[MyAuctions] 👥 FETCHING AUCTIONS FOR PARTICIPANT TAB - Open auctions + explicit participation`);
 
-      // Fallback to filtered endpoint for created auctions
-      if (data.length === 0) {
+      const shouldShowInParticipantTab = (auction: BaseAuction) => {
+        const isOpen = isAuctionOpenToAll(auction);
+        const isParticipant = !isCreatedByUser(auction) && isUserParticipant(auction);
+        return isOpen || isParticipant;
+      };
+
+      // Strategy 1: Try filtered endpoint (most reliable for open auctions)
+      try {
         const params = {
-          status: statusFilter,
-          type: 'created',
+          status: statusFilter === 'all' ? undefined : statusFilter,
           search: debouncedSearch,
           signal,
         };
+        
         data = await apiService.fetchFilteredAuctions(params);
-        // console.log(`[MyAuctions] Fallback: Fetched ${data.length} auctions from filtered endpoint`);
-
-        // Filter to only auctions created by current user
-        if (data.length > 0 && user?.id) {
+        
+        // Filter for open auctions OR explicit participation
+        if (data.length > 0) {
           const beforeFilter = data.length;
-          data = data.filter(isCreatedByUser);
-          // console.log(`[MyAuctions] ✅ Filtered to show only USER CREATED auctions: ${beforeFilter} → ${data.length}`);
+          data = data.filter(shouldShowInParticipantTab);
+          console.log(`[MyAuctions] Found ${data.length} auctions for participant tab (${beforeFilter} total)`);
+          
+          // FIXED: Use helper function for logging
+          const openCount = data.filter(a => isAuctionOpenToAll(a)).length;
+          const participantCount = data.filter(a => !isAuctionOpenToAll(a) && isUserParticipant(a)).length;
+          console.log(`[MyAuctions] Breakdown: ${openCount} open auctions, ${participantCount} explicit participants`);
+        }
+      } catch (filteredErr) {
+        console.warn('[MyAuctions] Strategy 1 (filtered endpoint) failed:', filteredErr);
+        data = [];
+      }
+
+      // Strategy 2: Fallback to my-auctions endpoint
+      if (data.length === 0) {
+        try {
+          const myAuctions = await apiService.fetchMyAuctions(statusFilter === 'all' ? undefined : statusFilter, signal);
+          
+          // Filter for open auctions OR explicit participation
+          if (myAuctions.length > 0) {
+            const beforeFilter = myAuctions.length;
+            data = myAuctions.filter(shouldShowInParticipantTab);
+            console.log(`[MyAuctions] Strategy 2: Found ${data.length} auctions from my-auctions (${beforeFilter} total)`);
+          }
+        } catch (myAuctionsErr) {
+          console.warn('[MyAuctions] Strategy 2 (my-auctions) failed:', myAuctionsErr);
         }
       }
-      
-      // Double-check: Make sure all returned auctions are created by user
-      const finalCreatedCheck = data.filter(isCreatedByUser);
-      if (finalCreatedCheck.length !== data.length) {
-        console.warn(`[MyAuctions] ⚠️ Found non-created auctions in created tab! Filtering...`);
-        data = finalCreatedCheck;
+
+      // Set UI state
+      if (data.length > 0) {
+        setParticipantBackendFiltered(false);
+        setEnrichedFromDetails(false);
+        
+        // Double-check: Make sure NO auction in participated list was created by user
+        const createdByUserCount = data.filter(isCreatedByUser).length;
+        if (createdByUserCount > 0) {
+          console.warn(`[MyAuctions] ⚠️ Found ${createdByUserCount} user-created auctions in participated list! Removing them...`);
+          data = data.filter(auction => !isCreatedByUser(auction));
+        }
+      } else {
+        setParticipantBackendFiltered(false);
+        setEnrichedFromDetails(false);
       }
       
-      // Update auctioneer count
-      setAuctioneerCount(data.length);
-      // console.log(`[MyAuctions] 🏗️ FINAL CREATED AUCTIONS RESULT: ${data.length} auctions`);
+      // Update participant count
+      setParticipantCount(data.length);
+      console.log(`[MyAuctions] 👥 FINAL PARTICIPATED AUCTIONS RESULT: ${data.length} auctions (open + participated)`);
     }
-    else if (activeTab === 'participant') {
-  console.log(`[MyAuctions] 👥 FETCHING AUCTIONS FOR PARTICIPANT TAB - Open auctions + explicit participation`);
 
-  // Helper function to determine if auction should appear in participant tab
-  const shouldShowInParticipantTab = (auction: BaseAuction) => {
-    const isOpen = auction.open_to_all === 1 || auction.open_to_all === true;
-    const isParticipant = !isCreatedByUser(auction) && isUserParticipant(auction);
-    return isOpen || isParticipant;
-  };
-
-  // Strategy 1: Try filtered endpoint (most reliable for open auctions)
-  try {
-    const params = {
-      status: statusFilter === 'all' ? undefined : statusFilter,
-      search: debouncedSearch,
-      signal,
-    };
-    
-    data = await apiService.fetchFilteredAuctions(params);
-    
-    // Filter for open auctions OR explicit participation
-    if (data.length > 0) {
-      const beforeFilter = data.length;
-      data = data.filter(shouldShowInParticipantTab);
-      console.log(`[MyAuctions] Found ${data.length} auctions for participant tab (${beforeFilter} total)`);
-      
-      // Log breakdown for debugging
-      const openCount = data.filter(a => a.open_to_all === 1 || a.open_to_all === true).length;
-      const participantCount = data.filter(a => !a.open_to_all && isUserParticipant(a)).length;
-      console.log(`[MyAuctions] Breakdown: ${openCount} open auctions, ${participantCount} explicit participants`);
-    }
-  } catch (filteredErr) {
-    console.warn('[MyAuctions] Strategy 1 (filtered endpoint) failed:', filteredErr);
-    data = [];
-  }
-
-  // Strategy 2: Fallback to my-auctions endpoint
-  if (data.length === 0) {
-    try {
-      const myAuctions = await apiService.fetchMyAuctions(statusFilter === 'all' ? undefined : statusFilter, signal);
-      
-      // Filter for open auctions OR explicit participation
-      if (myAuctions.length > 0) {
-        const beforeFilter = myAuctions.length;
-        data = myAuctions.filter(shouldShowInParticipantTab);
-        console.log(`[MyAuctions] Strategy 2: Found ${data.length} auctions from my-auctions (${beforeFilter} total)`);
-      }
-    } catch (myAuctionsErr) {
-      console.warn('[MyAuctions] Strategy 2 (my-auctions) failed:', myAuctionsErr);
-    }
-  }
-
-  // Set UI state
-  if (data.length > 0) {
-    setParticipantBackendFiltered(false);
-    setEnrichedFromDetails(false);
-    
-    // Double-check: Make sure NO auction in participated list was created by user
-    const createdByUserCount = data.filter(isCreatedByUser).length;
-    if (createdByUserCount > 0) {
-      console.warn(`[MyAuctions] ⚠️ Found ${createdByUserCount} user-created auctions in participated list! Removing them...`);
-      data = data.filter(auction => !isCreatedByUser(auction));
-    }
-  } else {
-    setParticipantBackendFiltered(false);
-    setEnrichedFromDetails(false);
-  }
-  
-  // Update participant count
-  setParticipantCount(data.length);
-  console.log(`[MyAuctions] 👥 FINAL PARTICIPATED AUCTIONS RESULT: ${data.length} auctions (open + participated)`);
-}
-    // console.log(`[MyAuctions] Final result: ${data.length} auctions for ${activeTab} tab`);
     setAuctions(data);
     
     // Fetch participant counts for all auctions
@@ -631,6 +604,7 @@ const MyAuctions: React.FC = () => {
     setAuctions([]);
   }
 }
+  
 
   // Derive start Date object for an auction
  /* 1.  Helper : make a JS-Date out of the auction fields */
@@ -1281,17 +1255,17 @@ const downloadAuctionReport = async (auction: BaseAuction) => {
         {derivedStatus.toUpperCase()}
       </span>
       {/* ADD THIS: Open Auction Badge */}
-      {(auction.open_to_all === 1 || auction.open_to_all === true) && (
-        <span className="ap-myauctions-status-badge ap-myauctions-status-open">
-          <Users className="w-3 h-3" />
-          OPEN TO ALL
-        </span>
-      )}
+      {isAuctionOpenToAll(auction) && (
+  <span className="ap-myauctions-status-badge ap-myauctions-status-open">
+    <Users className="w-3 h-3" />
+    OPEN TO ALL
+  </span>
+)}
     </div>
   </div>
   <p className="ap-myauctions-card-subtitle">
     Auction No: {auction.auctionNo}
-    {(auction.open_to_all === 1 || auction.open_to_all === true) && " • Open to all users"}
+    {isAuctionOpenToAll(auction) && " • Open to all users"}
   </p>
 </div>
                   <div className="ap-myauctions-card-info">
