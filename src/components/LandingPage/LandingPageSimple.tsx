@@ -209,25 +209,25 @@ const LandingPage: React.FC = () => {
     {
       title: "Cost Savings",
       description:
-        "Competition between suppliers drives best possible pricing.",
+        "Competition between suppliers incentivizes them to offer their best possible prices, leading to substantial cost reductions for the buyer.",
     },
     {
       title: "Transparency",
-      description: "Open bidding process reduces favoritism & corruption.",
+      description: "The online platform creates an open and visible bidding process for all participants, which can minimize favoritism and corruption.",
     },
     {
       title: "Expanded Supplier Base",
-      description: "Access more suppliers, including SMEs, for wider choices.",
+      description: "Buyers can access a larger pool of potential suppliers, including small and medium-sized enterprises (SMEs), which increases market options.",
     },
     {
       title: "Efficiency",
       description:
-        "Automated reverse auction reduces negotiation time & effort.",
+        "The automated nature of a reverse auction website streamlines the procurement process, reducing the time and manual effort typically spent on negotiations.",
     },
     {
       title: "Data Insights",
       description:
-        "Real-time feedback helps procurement teams make smarter decisions.",
+        "The platform provides procurement teams with real-time feedback on market pricing and supplier responses, enabling more informed strategic decisions. ",
     },
   ];
 
@@ -235,22 +235,22 @@ const LandingPage: React.FC = () => {
     {
       title: "Government Procurement",
       description:
-        "Used for acquiring office supplies to complex projects with cost-effectiveness.",
+        "Federal and state agencies frequently use reverse auctions to acquire everything from office supplies to complex construction projects, ensuring cost-effectiveness in public spending.",
     },
     {
       title: "Manufacturing",
       description:
-        "Procure raw materials, machinery, and components competitively.",
+        "Companies procure raw materials, components, and machinery by hosting reverse auctions where suppliers compete to offer the best price.",
     },
     {
       title: "Logistics & Transportation",
       description:
-        "Businesses invite carriers to bid for freight and shipping contracts.",
+        "Businesses source freight and shipping services by inviting carriers to bid on delivery contracts.",
     },
     {
       title: "Retail",
       description:
-        "Negotiate better prices for goods and inventory using reverse auctions.",
+        "Retailers purchase goods from suppliers, using reverse auctions to negotiate better prices for inventory.",
     },
   ];
 
