@@ -1,4 +1,5 @@
 // Auction Type Definitions
+// Auction Type Definitions
 export interface BaseAuction {
   id: string;
   // Original backend identifier (may differ from synthetic id we generate as fallback)
@@ -13,10 +14,14 @@ export interface BaseAuction {
   duration: number;
   currency: "INR" | "USD";
   auctionDetails: string;
-  openToAllCompanies: boolean;
+  openToAllCompanies: boolean; // Frontend property name
+  open_to_all?: boolean; // Backend property name - ADD THIS
   preBidOfferAllowed: boolean;
+  pre_bid_allowed?: boolean; // Backend property name - ADD THIS
   decrementalValue?: number;
+  decremental_value?: number; // Backend property name - ADD THIS
   startingPrice?: number;
+  current_price?: number; // Backend property name - ADD THIS
   reservePrice?: number;
   userId?: string; // For backward compatibility with existing code
   creator_company?: string;
@@ -28,10 +33,17 @@ export interface BaseAuction {
   auctioneerName?: string;
   status: "upcoming" | "live" | "completed";
   participants: string[]; // Array of participant IDs
+  participantsList?: any[]; // Backend participants data - ADD THIS
   documents: AuctionDocument[];
   createdBy: string; // User ID who created the auction
+  created_by?: number; // Backend creator ID - ADD THIS
   createdAt: string;
   updatedAt: string;
+  // Additional backend fields that might be present
+  creator_info?: any;
+  statistics?: any;
+  formatted_start_time?: string;
+  formatted_end_time?: string;
 }
 
 export interface AuctionDocument {
