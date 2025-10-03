@@ -150,13 +150,16 @@ const ParticipantAuctionView: React.FC = () => {
       }
 
       // Fetch auction details from the correct API endpoint
-      const response = await fetch(`${API_BASE_URL}/auction/${id}`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/auction/${id}/participants`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
