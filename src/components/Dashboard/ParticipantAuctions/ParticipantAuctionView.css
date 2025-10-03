@@ -951,3 +951,16 @@
 }
 
 
+@media (max-width: 480px) {
+  
+
+    .document-details h4
+    {  
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin: 0px 0px 0.25rem;
+    width: 60% !important;
+  }
+}
+

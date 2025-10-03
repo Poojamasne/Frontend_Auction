@@ -691,13 +691,13 @@ const ParticipantAuctionView: React.FC = () => {
             </div>
           </div>
 
-          <div className="info-item">
+          {/* <div className="info-item">
             <span className="info-label">Participants</span>
             <div className="info-value">
               <Users className="w-4 h-4" />
               {auction.participants.length} registered
             </div>
-          </div>
+          </div> */}
         </div>
 
         <div className="auction-description">
@@ -751,20 +751,59 @@ const ParticipantAuctionView: React.FC = () => {
           </h2>
           <div className="documents-grid">
             {auction.documents.map((doc, index) => (
-              <div key={index} className="document-card">
-                <div className="document-icon">
+              <div
+                key={index}
+                className="document-card"
+                style={{
+                  display: "flex",
+                  // alignItems: "center",
+                  gap: "1rem",
+                }}
+              >
+                <div className="document-icon" style={{ flexShrink: 0 }}>
                   <FileText className="w-8 h-8" />
                 </div>
-                <div className="document-details">
+                <div
+                  className="document-details"
+                  style={{
+                    flex: 1,
+                    minWidth: 0,
+                    width: 400,
+                    overflow: "hidden",
+                  }}
+                >
                   <div className="document-info">
-                    <h4>{doc.file_name || "Document"}</h4>
-                    <p>{doc.file_type || "PDF Document"}</p>
+                    <h4
+                      style={{
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        margin: 0,
+                        marginBottom: "0.25rem",
+                      }}
+                    >
+                      {doc.file_name || "Document"}
+                    </h4>
+                    <p
+                      style={{
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        margin: 0,
+                      }}
+                    >
+                      {doc.file_type || "PDF Document"}
+                    </p>
                   </div>
                 </div>
                 <button
                   onClick={() => handleDownloadDocument(doc)}
                   className="btn btn-primary download-btn"
                   title={`Download ${doc.file_name || "document"}`}
+                  style={{
+                    flexShrink: 0,
+                    whiteSpace: "nowrap",
+                  }}
                 >
                   <Download className="w-4 h-4" />
                   Download
@@ -774,6 +813,7 @@ const ParticipantAuctionView: React.FC = () => {
           </div>
         </div>
       )}
+      
 
       {/* Participation Status */}
       {isParticipant && (

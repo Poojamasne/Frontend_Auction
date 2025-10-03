@@ -15,6 +15,8 @@ import JoinAuction from '../JoinAuction/JoinAuction';
 import MyProfile from '../MyProfile/MyProfile';
 import AuctionReports from '../AuctionReports/AuctionReports';
 import DashboardHeader from './DashboardHeader';
+import Separate_MyCreated from '../Separate_MyCreated/MyCreatedA';
+import Separate_MyParticipat from '../Separate_MyParticipant/MyParticipantA';
 
 // Participant Components
 import ParticipantAuctionSession from '../../Participant/AuctionSession/ParticipantAuctionSession';
@@ -32,22 +34,19 @@ const Dashboard: React.FC = () => {
     <div className="ap-dashboard">
       {/* Mobile sidebar backdrop */}
       {isSidebarOpen && (
-        <div 
+        <div
           className="ap-dashboard-backdrop"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar Component */}
-      <Sidebar 
-        isOpen={isSidebarOpen} 
-        onClose={() => setIsSidebarOpen(false)} 
-      />
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       {/* Main content */}
       <div className="ap-dashboard-main">
         {/* Top header */}
-        <DashboardHeader 
+        <DashboardHeader
           onMenuClick={() => setIsSidebarOpen(true)}
           isSidebarOpen={isSidebarOpen}
         />
@@ -62,12 +61,29 @@ const Dashboard: React.FC = () => {
             <Route path="auction/:id" element={<ParticipantAuctionView />} />
             <Route path="join" element={<JoinAuction />} />
             <Route path="join/:id" element={<JoinAuction />} />
-            <Route path="auction-session/:id" element={<ParticipantAuctionSession />} />
-            <Route path="participant-auction/:id" element={<ParticipantAuctionSession />} />
-            <Route path="auctioneer-live/:id" element={<AuctioneerLiveView />} />
+            <Route
+              path="auction-session/:id"
+              element={<ParticipantAuctionSession />}
+            />
+            <Route
+              path="participant-auction/:id"
+              element={<ParticipantAuctionSession />}
+            />
+            <Route
+              path="auctioneer-live/:id"
+              element={<AuctioneerLiveView />}
+            />
             <Route path="profile" element={<MyProfile />} />
             <Route path="reports" element={<AuctionReports />} />
             <Route path="timers-test" element={<TimersAPITest />} />
+            <Route
+              path="MyCreatedA"
+              element={<Separate_MyCreated />}
+            />
+            <Route
+              path="MyParticipatedA"
+              element={<Separate_MyParticipat />}
+            />
           </Routes>
         </main>
       </div>

@@ -942,16 +942,32 @@ if (auctionData && auctionData.status === 'upcoming') {
           <div className="participants-list">
             {auction.documents.map((doc, index) => (
               <div key={index} className="participant-item">
-                <div className="participant-info">
-                  <FileText className="w-5 h-5" />
-                  <div className="participant-details">
-                    <h4>{doc.name}</h4>
+                <div
+                  className="participant-info"
+                  style={{ flex: 1, minWidth: 0 }}
+                >
+                  <FileText className="w-5 h-5" style={{ flexShrink: 0 }} />
+                  <div
+                    className="participant-details"
+                    style={{ minWidth: 0, overflow: "hidden" }}
+                  >
+                    <h4
+                      style={{
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "wrap",
+                        maxWidth: "80%",
+                      }}
+                    >
+                      {doc.name}
+                    </h4>
                     <p>{doc.size}</p>
                   </div>
                 </div>
                 <button
                   onClick={() => handleDownloadDocument(doc)}
                   className="btn btn-secondary"
+                  style={{ flexShrink: 0, marginLeft: "1rem" }}
                 >
                   <Download className="w-4 h-4" />
                   Download

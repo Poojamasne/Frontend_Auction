@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   Home,
+  CalendarPlus,
   Plus,
   Calendar,
   User,
@@ -23,11 +24,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const location = useLocation();
 
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: Home },
-    { name: 'My Auctions', href: '/dashboard/auctions', icon: Gavel },
-    { name: 'New Auction', href: '/dashboard/new-auction', icon: Plus },
-    { name: 'Reports', href: '/dashboard/reports', icon: FileText },
-    { name: 'My Profile', href: '/dashboard/profile', icon: User },
+    { name: "Dashboard", href: "/dashboard", icon: Home },
+    // { name: "My Auctions", href: "/dashboard/auctions", icon: Gavel },
+    {
+      name: "My Created Auctions",
+      href: "/dashboard/MyCreatedA",
+      icon: Gavel,
+    },
+    {name: "My Participated Auctions",href: "/dashboard/MyParticipatedA",icon: CalendarPlus},
+    { name: "New Auction", href: "/dashboard/new-auction", icon: Plus },
+    { name: "Reports", href: "/dashboard/reports", icon: FileText },
+    { name: "My Profile", href: "/dashboard/profile", icon: User },
   ];
 
   const handleLogout = () => {

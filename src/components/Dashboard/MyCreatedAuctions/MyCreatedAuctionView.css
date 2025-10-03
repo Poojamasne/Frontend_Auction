@@ -896,6 +896,15 @@
 }
 
 @media (max-width: 480px) {
+
+
+  .participant-details h4{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
+    max-width: 23% !important;
+  }
+  
   .auction-title {
     font-size: 1.5rem;
   }
