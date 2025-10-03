@@ -201,11 +201,13 @@ const DashboardHome: React.FC = () => {
       const participatedCount =
         participatedOverride ?? remoteStats.participated_auctions;
       const createdCount = createdOverride ?? remoteStats.total_created;
+      const CreateAuctionCount = remoteStats.active_auctions;
+
       return [
         {
           title: "My Active Auctions",
-          value: remoteStats.active_auctions.toString(),
-          change: `${createdCount} total created${
+          value: remoteStats.total_created.toString(),
+          change: `${CreateAuctionCount} total Live${
             createdOverride !== null ? " (verified)" : ""
           }`,
           icon: Gavel,
@@ -239,6 +241,10 @@ const DashboardHome: React.FC = () => {
       const bids = AuctionService.getBidsByAuction(auction.id);
       totalBids += bids.filter((bid) => bid.userId === user?.id).length;
     });
+    
+    
+
+
     return [
       {
         title: "My Active Auctions",
@@ -405,6 +411,7 @@ const DashboardHome: React.FC = () => {
                     <p className="ap-dashboard-home-stat-value">{stat.value}</p>
                     <p className="ap-dashboard-home-stat-change">
                       {stat.change}
+                      
                     </p>
                   </div>
                   <div
