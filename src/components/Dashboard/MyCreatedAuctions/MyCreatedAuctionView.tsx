@@ -1269,7 +1269,7 @@ if (auctionData && auctionData.status === 'upcoming') {
       <div className="auction-details-card">
         <div className="flex flex-wrap items-center justify-center gap-4 p-4 md:p-6">
           <button
-            onClick={() => navigate("/dashboard/auctions")}
+            onClick={() => navigate("/dashboard/MyCreatedA")}
             className="btn btn-secondary"
           >
             <ArrowLeft className="w-4 h-4" />

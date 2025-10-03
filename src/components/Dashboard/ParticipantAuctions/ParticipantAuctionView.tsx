@@ -133,7 +133,7 @@ const ParticipantAuctionView: React.FC = () => {
 
   const loadAuctionDetails = async (isManualRefresh = false) => {
     if (!id || !isMountedRef.current) {
-      navigate("/dashboard/auctions");
+      navigate(`/dashboard/auctions`);
       return;
     }
 
@@ -561,7 +561,7 @@ const ParticipantAuctionView: React.FC = () => {
             The requested auction could not be found.
           </p>
           <button
-            onClick={() => navigate("/dashboard/auctions")}
+            onClick={() => navigate("/dashboard/MyParticipatedA")}
             className="btn btn-primary"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />

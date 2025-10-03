@@ -1346,6 +1346,15 @@ const MyParticipatedAuctions: React.FC = () => {
                   </div>
 
                   <div className="ap-myauctions-card-actions">
+                    {/* <Link
+                      to={`/dashboard/auction/${
+                        auction.backendId || auction.id
+                      }`}
+                      className="ap-myauctions-action-btn ap-myauctions-view-btn"
+                    >
+                      <Eye className="w-4 h-4" />
+                      View Details
+                    </Link> */}
                     <Link
                       to={`/dashboard/auction/${
                         auction.backendId || auction.id
