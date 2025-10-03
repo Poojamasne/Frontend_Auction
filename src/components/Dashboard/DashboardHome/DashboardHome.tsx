@@ -213,7 +213,7 @@ const DashboardHome: React.FC = () => {
         },
         {
           title: "Participated Auctions",
-          value: participatedCount.toString(),
+          value: remoteStats.participated_auctions.toString(),
           change: `${remoteStats.live_auctions} live now${
             participatedOverride !== null ? " (verified)" : ""
           }`,
