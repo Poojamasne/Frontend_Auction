@@ -1,5 +1,6 @@
 /* DashboardHome Component - Matching MyAuctions Design System */
 
+
 .ap-dashboard-home-wrapper {
   min-height: 160vh;
   position: relative;
@@ -77,7 +78,7 @@
 
 .ap-dashboard-home-subtitle {
   font-size: 1.1rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: white;
   margin: 0;
   font-weight: 400;
 }
@@ -224,7 +225,7 @@
 }
 
 .ap-dashboard-home-action-card:hover svg {
-  color: rgba(255, 255, 255, 0.9) !important;
+  color: white !important;
   transform: scale(1.1);
   filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
 }
@@ -340,7 +341,7 @@
 }
 
 .ap-dashboard-home-welcome-text p {
-  color: rgba(255, 255, 255, 0.9);
+  color: white;
   margin: 0;
   font-size: 1rem;
   font-weight: 400;
@@ -425,7 +426,7 @@
 .ap-dashboard-home-stat-text h3 {
   font-size: 0.9rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.8);
+  color: white;
   margin: 0 0 0.75rem 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -520,7 +521,7 @@
 }
 
 .ap-dashboard-home-section-link {
-  color: rgba(255, 255, 255, 0.9);
+  color: white;
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 600;
@@ -732,7 +733,7 @@
   align-items: center;
   gap: 1.5rem;
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: white;
   font-weight: 500;
 }
 
@@ -954,7 +955,7 @@
 
 .ap-dashboard-home-action-text p {
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: white;
   margin: 0;
   line-height: 1.4;
 }
@@ -993,7 +994,7 @@
 }
 
 .ap-dashboard-home-empty-text {
-  color: rgba(255, 255, 255, 0.8);
+  color: white;
   margin: 0 0 1.5rem 0;
   font-weight: 500;
 }
