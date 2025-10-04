@@ -579,36 +579,34 @@ const ParticipantAuctionSession: React.FC = () => {
           </div>
         </div>
 
-        
-          {showUpdateMsg && (
+        {showUpdateMsg && (
+          <div
+            style={{
+              position: "fixed",
+              inset: 0, // full-screen overlay
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "rgba(0, 0, 0, 0.3)", // dim backdrop
+              zIndex: 9999,
+            }}
+          >
             <div
               style={{
-                position: "fixed",
-                inset: 0, // full-screen overlay
-                display: "flex",
-                alignItems: "center",
-              justifyContent: "center",
-                backgroundColor: "rgba(0, 0, 0, 0.3)", // dim backdrop
-                zIndex: 9999,
+                background: "rgba(0, 0, 0, 0.85)",
+                color: "#fff",
+                padding: "25px 32px",
+                borderRadius: "10px",
+                fontSize: "16px",
+                textAlign: "center",
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
+                animation: "fadeInOut 3s ease-in-out",
               }}
             >
-              <div
-                style={{
-                  background: "rgba(0, 0, 0, 0.85)",
-                  color: "#fff",
-                  padding: "25px 32px",
-                  borderRadius: "10px",
-                  fontSize: "16px",
-                  textAlign: "center",
-                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
-                  animation: "fadeInOut 3s ease-in-out",
-                }}
-              >
-                ⚠️ Decremental Value is updated, check bid amount
-              </div>
+              ⚠️ Decremental Value is updated, check bid amount
             </div>
-          )}
-        
+          </div>
+        )}
 
         <div className="status-card timer-card">
           <div className="status-header">
@@ -782,8 +780,9 @@ const ParticipantAuctionSession: React.FC = () => {
             {isAuctioneer ? "Live Bidding Rankings" : "Current Best Bid (L1)"}
           </h2>
           <p className="card-subtitle">
-            Total Bids: {statistics?.total_bids || 0} • Active Participants:{" "}
-            {statistics?.active_participants || 0}
+            Total Bids: {statistics?.total_bids || 0}
+            {/* • Active Participants:{" "} */}
+            {/* {statistics?.active_participants || 0} */}
           </p>
         </div>
         <div className="card-content">
