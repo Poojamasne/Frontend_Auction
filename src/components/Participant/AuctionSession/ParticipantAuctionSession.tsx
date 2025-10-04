@@ -91,6 +91,32 @@ const ParticipantAuctionSession: React.FC = () => {
   const [isJoined, setIsJoined] = useState(false);
   const userIsEditingRef = useRef(false);
   const [userIsEditing, setUserIsEditing] = useState(false);
+  const prevDecrementRef = useRef<string | null>(null);
+  const [showUpdateMsg, setShowUpdateMsg] = useState(false);
+
+
+  useEffect(() => {
+    if (!auction) return;
+
+    const currentValue = auction.decremental_value;
+
+    if (
+      prevDecrementRef.current !== null &&
+      prevDecrementRef.current !== currentValue
+    ) {
+      // 👇 show message when value changes
+      setShowUpdateMsg(true);
+
+      // Hide after 3 seconds
+      const timer = setTimeout(() => setShowUpdateMsg(false), 3000);
+      return () => clearTimeout(timer);
+    }
+
+    prevDecrementRef.current = currentValue;
+  }, [auction?.decremental_value]);
+
+
+
 
 
 
@@ -145,6 +171,9 @@ const ParticipantAuctionSession: React.FC = () => {
       }
     }
   }, [id]);
+
+
+  
 
   const joinAuction = useCallback(async () => {
     if (!id || !user) return false;
@@ -509,9 +538,16 @@ const ParticipantAuctionSession: React.FC = () => {
                 {/* {new Date(
                   `${auction.auction_date}T${auction.end_time}`
                 ).toLocaleTimeString()} */}
-                {(() => {
+                {/* {(() => {
                   const [hours, minutes] = auction.end_time.split(":");
                   return `${hours}:${minutes}`;
+                })()} */}
+                {(() => {
+                  const [hours, minutes] = auction.end_time.split(":");
+                  let h = parseInt(hours, 10);
+                  const ampm = h >= 12;
+                  h = h % 12 || 12;
+                  return `${h}:${minutes}`;
                 })()}
               </span>
             </div>
@@ -543,6 +579,37 @@ const ParticipantAuctionSession: React.FC = () => {
           </div>
         </div>
 
+        
+          {showUpdateMsg && (
+            <div
+              style={{
+                position: "fixed",
+                inset: 0, // full-screen overlay
+                display: "flex",
+                alignItems: "center",
+              justifyContent: "center",
+                backgroundColor: "rgba(0, 0, 0, 0.3)", // dim backdrop
+                zIndex: 9999,
+              }}
+            >
+              <div
+                style={{
+                  background: "rgba(0, 0, 0, 0.85)",
+                  color: "#fff",
+                  padding: "25px 32px",
+                  borderRadius: "10px",
+                  fontSize: "16px",
+                  textAlign: "center",
+                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
+                  animation: "fadeInOut 3s ease-in-out",
+                }}
+              >
+                ⚠️ Decremental Value is updated, check bid amount
+              </div>
+            </div>
+          )}
+        
+
         <div className="status-card timer-card">
           <div className="status-header">
             <Timer className="w-6 h-6 text-red-500" />
@@ -557,11 +624,23 @@ const ParticipantAuctionSession: React.FC = () => {
                   Closes on{" "}
                   {new Date(
                     `${auction.auction_date}T${auction.end_time}`
-                  ).toLocaleDateString()}{" "}
+                  ).toLocaleDateString("en-GB")}{" "}
                   at{" "}
-                  {new Date(
-                    `${auction.auction_date}T${auction.end_time}`
-                  ).toLocaleTimeString()}
+                  {(() => {
+                    const date = new Date(
+                      `${auction.auction_date}T${auction.end_time}`
+                    );
+                    let hours = date.getHours();
+                    const minutes = date
+                      .getMinutes()
+                      .toString()
+                      .padStart(2, "0");
+
+                    // convert to 12-hour format (without AM/PM)
+                    hours = hours % 12 || 12;
+
+                    return `${hours.toString().padStart(2, "0")}:${minutes}`;
+                  })()}
                 </span>
               )}
             </div>
