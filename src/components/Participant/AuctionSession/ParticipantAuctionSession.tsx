@@ -801,13 +801,13 @@ const ParticipantAuctionSession: React.FC = () => {
                       <span className="rank-text">L{bid.rank}</span>
                     </div>
                     <div className="participant-info">
-                      <div className="company-name">
+                      {/* <div className="company-name">
                         <User className="w-3 h-3" />
                         {bid.person_name || "Unknown"}
-                      </div>
+                      </div> */}
                       <div className="company-address">
-                        <School className="w-4 h-4" />
-                        {bid.company_name || bid.person_name || "Unknown"}
+                        {/* <School className="w-4 h-4" /> */}
+                        {/* {bid.company_name || bid.person_name || "Unknown"} */}
                         {bid.user_id === myId && (
                           <span className="user-badge">You</span>
                         )}
