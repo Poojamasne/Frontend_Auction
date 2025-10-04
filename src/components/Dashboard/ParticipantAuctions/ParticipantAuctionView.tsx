@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "./ParticipantAuctionView.css";
@@ -133,7 +135,7 @@ const ParticipantAuctionView: React.FC = () => {
 
   const loadAuctionDetails = async (isManualRefresh = false) => {
     if (!id || !isMountedRef.current) {
-      navigate(`/dashboard/auctions`);
+      navigate("/dashboard/auctions");
       return;
     }
 
@@ -150,16 +152,13 @@ const ParticipantAuctionView: React.FC = () => {
       }
 
       // Fetch auction details from the correct API endpoint
-      const response = await fetch(
-        `${API_BASE_URL}/auction/${id}/participants`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/auction/${id}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -254,9 +253,6 @@ const ParticipantAuctionView: React.FC = () => {
     url?: string;
   }) => {
     try {
-      const token = getAuthToken();
-
-      // Use the correct field names from your API response
       const documentUrl = doc.file_url || doc.url;
       const filename = doc.file_name || doc.name || "document";
 
@@ -265,40 +261,23 @@ const ParticipantAuctionView: React.FC = () => {
         return;
       }
 
-      // Force download for all file types
-      const response = await fetch(documentUrl, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
+      // **Solution 1: Direct download without fetch (recommended)**
+      // This bypasses CORS by letting the browser handle the download natively
+      const link = document.createElement("a");
+      link.href = documentUrl;
+      link.download = filename;
+      link.target = "_blank"; // Fallback if download attribute doesn't work
+      link.rel = "noopener noreferrer";
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      a.style.display = "none";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+      // Trigger download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
 
       toast.success(`Downloading ${filename}`);
     } catch (error) {
       console.error("[handleDownloadDocument] Failed to download:", error);
-
-      // Fallback: open in new tab
-      const documentUrl = doc.file_url || doc.url;
-      if (documentUrl) {
-        window.open(documentUrl, "_blank");
-        toast.error(
-          "Unable to download file directly. Opened in new tab instead."
-        );
-      } else {
-        toast.error("Unable to access document");
-      }
+      toast.error("Unable to download document");
     }
   };
 
@@ -374,8 +353,6 @@ const ParticipantAuctionView: React.FC = () => {
 
     // Next bid target = Current Lowest Bid - Decremental Value (reverse auction)
     const minAllowedBid = currentLowestBid - auction.decremental_value;
-
-    // Validation 1: bid must be lower than current lowest bid
 
     // ✅ Only enforce decremental rule if there are existing active bids
     if (activeBids.length > 0) {
@@ -564,7 +541,7 @@ const ParticipantAuctionView: React.FC = () => {
             The requested auction could not be found.
           </p>
           <button
-            onClick={() => navigate("/dashboard/MyParticipatedA")}
+            onClick={() => navigate("/dashboard/auctions")}
             className="btn btn-primary"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -608,24 +585,6 @@ const ParticipantAuctionView: React.FC = () => {
           <p className="auction-subtitle">#{auction.auction_number}</p>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-          {/* <button
-            onClick={() => loadAuctionDetails(true)}
-            className="btn btn-secondary"
-            disabled={refreshing}
-            style={{
-              padding: "0.5rem",
-              minWidth: "auto",
-              background: "rgba(255, 255, 255, 0.1)",
-              border: "1px solid rgba(255, 255, 255, 0.2)",
-              opacity: refreshing ? 0.6 : 1,
-              cursor: refreshing ? "not-allowed" : "pointer",
-            }}
-            title="Refresh auction data"
-          >
-            <RefreshCw
-              className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`}
-            />
-          </button> */}
           <div
             className={`auction-status-badge ${
               auction.status === "upcoming"
@@ -710,7 +669,7 @@ const ParticipantAuctionView: React.FC = () => {
       </div>
 
       {/* Current Bidding Status */}
-      {(auction.status === "live" || auction.status === "upcoming") && (
+      {/* {(auction.status === "live" || auction.status === "upcoming") && (
         <div className="auction-details-card">
           <h2 className="card-title">
             <Gavel className="w-5 h-5" />
@@ -742,7 +701,7 @@ const ParticipantAuctionView: React.FC = () => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Documents */}
       {/* Documents */}
@@ -754,59 +713,20 @@ const ParticipantAuctionView: React.FC = () => {
           </h2>
           <div className="documents-grid">
             {auction.documents.map((doc, index) => (
-              <div
-                key={index}
-                className="document-card"
-                style={{
-                  display: "flex",
-                  // alignItems: "center",
-                  gap: "1rem",
-                }}
-              >
-                <div className="document-icon" style={{ flexShrink: 0 }}>
+              <div key={index} className="document-card">
+                <div className="document-icon">
                   <FileText className="w-8 h-8" />
                 </div>
-                <div
-                  className="document-details"
-                  style={{
-                    flex: 1,
-                    minWidth: 0,
-                    width: 400,
-                    overflow: "hidden",
-                  }}
-                >
+                <div className="document-details">
                   <div className="document-info">
-                    <h4
-                      style={{
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                        margin: 0,
-                        marginBottom: "0.25rem",
-                      }}
-                    >
-                      {doc.file_name || "Document"}
-                    </h4>
-                    <p
-                      style={{
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                        margin: 0,
-                      }}
-                    >
-                      {doc.file_type || "PDF Document"}
-                    </p>
+                    <h4>{doc.file_name || "Document"}</h4>
+                    <p>{doc.file_type || "PDF Document"}</p>
                   </div>
                 </div>
                 <button
                   onClick={() => handleDownloadDocument(doc)}
                   className="btn btn-primary download-btn"
                   title={`Download ${doc.file_name || "document"}`}
-                  style={{
-                    flexShrink: 0,
-                    whiteSpace: "nowrap",
-                  }}
                 >
                   <Download className="w-4 h-4" />
                   Download
@@ -816,7 +736,6 @@ const ParticipantAuctionView: React.FC = () => {
           </div>
         </div>
       )}
-      
 
       {/* Participation Status */}
       {isParticipant && (
@@ -933,39 +852,6 @@ const ParticipantAuctionView: React.FC = () => {
         >
           <div className="prebuild-modal" onClick={(e) => e.stopPropagation()}>
             <h3 className="prebuild-modal-title">Submit Pre-Bid</h3>
-
-            {/* <div className="bid-info">
-                  <p>
-                    <strong>Current Lowest Bid:</strong>{" "}
-                    {formatCurrency(currentLowestBid, auction.currency)}
-                  </p>
-                  <p>
-                    <strong>Decremental Value:</strong>{" "}
-                    {formatCurrency(
-                      auction.decremental_value,
-                      auction.currency
-                    )}
-                  </p>
-                  <p>
-                    <strong>Minimum Allowed Bid:</strong>{" "}
-                    {formatCurrency(minAllowedBid, auction.currency)}
-                  </p>
-                  <p>
-                    <strong>Valid Bid Rule:</strong> Your bid must be at or
-                    below {formatCurrency(minAllowedBid, auction.currency)} (at
-                    least the decrement lower than current lowest).
-                  </p>
-                  <p>
-                    <strong>Logic:</strong> Current lowest (
-                    {formatCurrency(currentLowestBid, auction.currency)}) -
-                    Decremental value (
-                    {formatCurrency(
-                      auction.decremental_value,
-                      auction.currency
-                    )}
-                    ) = {formatCurrency(minAllowedBid, auction.currency)}
-                  </p>
-                </div> */}
 
             <input
               type="number"
