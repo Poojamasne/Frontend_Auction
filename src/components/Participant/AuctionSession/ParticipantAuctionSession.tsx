@@ -522,26 +522,18 @@ const ParticipantAuctionSession: React.FC = () => {
             <div className="detail-row">
               <span className="detail-label">Start Time:</span>
               <span className="detail-value">
-                {/* {new Date(
-                  `${auction.auction_date}T${auction.start_time}`
-                ).toLocaleTimeString()} */}
-                {/* {auction.start_time} */}
                 {(() => {
                   const [hours, minutes] = auction.start_time.split(":");
-                  return `${hours}:${minutes}`;
+                  let h = parseInt(hours, 10);
+                  const ampm = h >= 12;
+                  h = h % 12 || 12;
+                  return `${h}:${minutes}`;
                 })()}
               </span>
             </div>
             <div className="detail-row">
               <span className="detail-label">End Time:</span>
               <span className="detail-value">
-                {/* {new Date(
-                  `${auction.auction_date}T${auction.end_time}`
-                ).toLocaleTimeString()} */}
-                {/* {(() => {
-                  const [hours, minutes] = auction.end_time.split(":");
-                  return `${hours}:${minutes}`;
-                })()} */}
                 {(() => {
                   const [hours, minutes] = auction.end_time.split(":");
                   let h = parseInt(hours, 10);
@@ -688,34 +680,6 @@ const ParticipantAuctionSession: React.FC = () => {
                   <label htmlFor="bidAmount">
                     Your Bid Price ({auction.currency})
                   </label>
-                  {/* <input
-                    type="text"
-                    id="bidAmount"
-                    value={bidAmount}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      // Allow only numbers and decimal point
-                      if (value === "" || /^\d*\.?\d*$/.test(value)) {
-                        // Validate against current lowest bid
-                        const numValue = parseFloat(value);
-                        const error = validateBidAmount(value);
-                        if (error) {
-                          toast.error(error);
-                        }
-                        setBidAmount(value);
-                      }
-                    }}
-                    onBlur={() => {
-                      // Format the number properly when leaving the input
-                      if (bidAmount && !isNaN(parseFloat(bidAmount))) {
-                        setBidAmount(parseFloat(bidAmount).toString());
-                      }
-                    }}
-                    className="bid-input"
-                    step="0.01"
-                    min="0"
-                    placeholder="Enter Your Bid Amount"
-                  /> */}
                   <input
                     type="text"
                     id="bidAmount"
