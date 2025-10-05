@@ -117,8 +117,7 @@ const AuctioneerLiveView: React.FC = () => {
   const [currentEndTime, setCurrentEndTime] = useState<Date | null>(null);
   const [isAutoExtending, setIsAutoExtending] = useState(false);
 
-    const prevBidCountRef = useRef(0);
-
+  const prevBidCountRef = useRef(0);
 
   const fetchAuctionData = async () => {
     if (!id) return;
@@ -202,7 +201,6 @@ const AuctioneerLiveView: React.FC = () => {
     },
     [id, currentEndTime]
   );
-
 
   // Separate function for auto-extend
   const handleAutoExtendTime = useCallback(async () => {
@@ -294,7 +292,6 @@ const AuctioneerLiveView: React.FC = () => {
     currentEndTime,
     isAutoExtending,
   ]);
-
 
   // Countdown timer using currentEndTime
   useEffect(() => {
@@ -713,14 +710,7 @@ const AuctioneerLiveView: React.FC = () => {
                 {isPaused && "Auction is currently paused"}
                 {!isPaused && isInAutoExtendWindow && (
                   <span style={{ color: "#f59e0b", fontWeight: "bold" }}>
-                    ⚠️ Auto-extend ACTIVE{" "}
-                    {lastAutoExtendTime > 0 &&
-                      `• Last: ${new Date(
-                        lastAutoExtendTime
-                      ).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}`}
+                    ⚠️ Auto-extend ACTIVE
                   </span>
                 )}
                 {!isPaused &&
