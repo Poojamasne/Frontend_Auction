@@ -1,4 +1,8 @@
-import React, { useRef, useState, useEffect, useCallback } from "react";
+
+
+
+
+import React, { useState, useEffect } from "react";
 import { API_BASE_URL } from "../../../services/apiConfig";
 import { useParams, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -105,7 +109,6 @@ const AuctioneerLiveView: React.FC = () => {
   const [isExtendingTime, setIsExtendingTime] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [lastBidCount, setLastBidCount] = useState<number>(0);
 
   const [newDecrementValue, setNewDecrementValue] = useState<number | string>(
     ""
@@ -113,11 +116,6 @@ const AuctioneerLiveView: React.FC = () => {
   const [updatingDecrement, setUpdatingDecrement] = useState(false);
   const [isEditDecrementOpen, setIsEditDecrementOpen] = useState(false);
   const [rejectingBidId, setRejectingBidId] = useState<number | null>(null);
-  const [lastAutoExtendTime, setLastAutoExtendTime] = useState<number>(0);
-  const [currentEndTime, setCurrentEndTime] = useState<Date | null>(null);
-  const [isAutoExtending, setIsAutoExtending] = useState(false);
-
-  const prevBidCountRef = useRef(0);
 
   const fetchAuctionData = async () => {
     if (!id) return;
@@ -125,34 +123,29 @@ const AuctioneerLiveView: React.FC = () => {
     try {
       const token =
         localStorage.getItem("authToken") || localStorage.getItem("token");
-      const res = await fetch(`${API_BASE_URL}/auction/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/auction/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
           Accept: "application/json",
         },
       });
-      const data = await res.json();
-      if (!res.ok || !data.success)
-        throw new Error(data.message || "Could not retrieve auction details.");
 
-      setAuction(data.auction);
-
-      if (data.auction.auction_date && data.auction.end_time) {
-        const newEnd = new Date(
-          `${data.auction.auction_date}T${data.auction.end_time}`
-        );
-        setCurrentEndTime(newEnd);
+      if (!response.ok) {
+        throw new Error("Failed to fetch auction data.");
       }
 
-      // Set bid count for initial/load
-      if (lastBidCount === 0) setLastBidCount(data.auction.bids.length);
-
-      if (data.auction.status === "completed")
-        toast.success("This auction has been completed.", { icon: "🏁" });
-      setError(null);
-    } catch (err) {
-      setError(error);
-      toast.error(error);
+      const data = await response.json();
+      if (data.success) {
+        setAuction(data.auction);
+        if (data.auction.status === "completed") {
+          toast.success("This auction has been completed.", { icon: "🏁" });
+        }
+      } else {
+        throw new Error(data.message || "Could not retrieve auction details.");
+      }
+    } catch (err: any) {
+      setError(err.message);
+      toast.error(err.message);
     } finally {
       setLoading(false);
     }
@@ -164,145 +157,19 @@ const AuctioneerLiveView: React.FC = () => {
     return () => clearInterval(interval);
   }, [id]);
 
-  const handleExtendTimeAPI = useCallback(
-    async (reason = "manual") => {
-      setIsAutoExtending(true);
-      try {
-        const token =
-          localStorage.getItem("authToken") || localStorage.getItem("token");
-        const response = await fetch(`${API_BASE_URL}/auction/${id}/extend`, {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          body: JSON.stringify({ additional_minutes: 3 }),
-        });
-        const result = await response.json();
-        if (!response.ok || !result.success)
-          throw new Error(result.message || "Failed to extend time.");
-
-        toast.success(
-          reason === "auto"
-            ? "⏱️ New bid detected! Time automatically extended by 3 minutes."
-            : "Time extended successfully by 3 minutes!"
-        );
-
-        if (currentEndTime)
-          setCurrentEndTime(new Date(currentEndTime.getTime() + 3 * 60 * 1000));
-        setLastAutoExtendTime(Date.now());
-        setTimeout(fetchAuctionData, 2000);
-      } catch (err) {
-        toast.error(error);
-      } finally {
-        setIsAutoExtending(false);
-      }
-    },
-    [id, currentEndTime]
-  );
-
-  // Separate function for auto-extend
-  const handleAutoExtendTime = useCallback(async () => {
-    if (!id || isAutoExtending) return;
-
-    console.log("🔄 AUTO-EXTENDING TIME BY 3 MINUTES");
-    setIsAutoExtending(true);
-
-    try {
-      const token =
-        localStorage.getItem("authToken") || localStorage.getItem("token");
-      const response = await fetch(`${API_BASE_URL}/auction/${id}/extend`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({ additional_minutes: 3 }),
-      });
-
-      const result = await response.json();
-
-      if (response.ok && result.success) {
-        console.log("✅ Auto-extend successful!");
-        toast.success(
-          "⏱️ New bid detected! Time automatically extended by 3 minutes.",
-          {
-            duration: 5000,
-          }
-        );
-
-        // Immediately update the local end time by adding 3 minutes
-        if (currentEndTime) {
-          const newEndTime = new Date(currentEndTime.getTime() + 3 * 60 * 1000);
-          setCurrentEndTime(newEndTime);
-          console.log("📅 New end time set:", newEndTime.toLocaleTimeString());
-        }
-
-        setLastAutoExtendTime(Date.now());
-
-        // Refresh auction data to get updated end_time from server
-        setTimeout(() => {
-          fetchAuctionData();
-        }, 2000);
-      } else {
-        throw new Error(result.message || "Failed to extend time.");
-      }
-    } catch (err: any) {
-      console.error("❌ Auto-extend failed:", err);
-      toast.error(err.message);
-    } finally {
-      setIsAutoExtending(false);
-    }
-  }, [id, currentEndTime, isAutoExtending]);
-
-  // Auto-extend time when new bid is placed in last 2 minutes
   useEffect(() => {
-    if (!auction || auction.status !== "live" || isPaused || !currentEndTime)
-      return;
-    const curBids = auction.bids.length;
-    const prevBids = prevBidCountRef.current;
-
-    const now = new Date();
-    const remainingSeconds = Math.floor(
-      (currentEndTime.getTime() - now.getTime()) / 1000
-    );
-    const cooldownEnough = Date.now() - lastAutoExtendTime > 30000;
-
-    if (
-      curBids > prevBids &&
-      prevBids > 0 &&
-      remainingSeconds > 0 &&
-      remainingSeconds <= 120 &&
-      cooldownEnough &&
-      !isAutoExtending
-    ) {
-      handleExtendTimeAPI("auto");
-    }
-
-    prevBidCountRef.current = curBids;
-    setLastBidCount(curBids);
-  }, [
-    auction?.bids,
-    auction,
-    isPaused,
-    handleExtendTimeAPI,
-    lastAutoExtendTime,
-    currentEndTime,
-    isAutoExtending,
-  ]);
-
-  // Countdown timer using currentEndTime
-  useEffect(() => {
-    if (!auction || auction.status !== "live" || isPaused || !currentEndTime) {
-      if (auction?.status === "completed")
+    if (!auction || auction.status !== "live" || isPaused) {
+      if (auction?.status === "completed") {
         setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      }
       return;
     }
+
     const timer = setInterval(() => {
+      const endTime = new Date(`${auction.auction_date}T${auction.end_time}`);
       const now = new Date();
-      const diff = currentEndTime.getTime() - now.getTime();
+      const diff = endTime.getTime() - now.getTime();
+
       if (diff <= 0) {
         setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
         clearInterval(timer);
@@ -314,6 +181,7 @@ const AuctioneerLiveView: React.FC = () => {
         }
         return;
       }
+
       const days = Math.floor(diff / (1000 * 60 * 60 * 24));
       const hours = Math.floor(
         (diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
@@ -322,15 +190,9 @@ const AuctioneerLiveView: React.FC = () => {
       const seconds = Math.floor((diff % (1000 * 60)) / 1000);
       setTimeLeft({ days, hours, minutes, seconds });
     }, 1000);
-    return () => clearInterval(timer);
-  }, [auction, isPaused, currentEndTime]);
 
-  // Reset when auction status changes
-  useEffect(() => {
-    if (auction?.status !== "live") {
-      setLastAutoExtendTime(0);
-    }
-  }, [auction?.status]);
+    return () => clearInterval(timer);
+  }, [auction, isPaused]);
 
   const handlePauseAuction = () => setIsPaused(!isPaused);
 
@@ -394,19 +256,9 @@ const AuctioneerLiveView: React.FC = () => {
       const result = await response.json();
 
       if (response.ok && result.success) {
-        toast.success("Time extended successfully by 3 minutes!");
-
-        // Immediately update local end time
-        if (currentEndTime) {
-          const newEndTime = new Date(currentEndTime.getTime() + 3 * 60 * 1000);
-          setCurrentEndTime(newEndTime);
-          console.log(
-            "📅 Manual extend - new end time:",
-            newEndTime.toLocaleTimeString()
-          );
-        }
-
-        setLastAutoExtendTime(Date.now());
+        toast.success(
+          result.message || "Time extended successfully by 3 minutes!"
+        );
         fetchAuctionData();
       } else {
         throw new Error(result.message || "Failed to extend time.");
@@ -513,13 +365,6 @@ const AuctioneerLiveView: React.FC = () => {
     (a, b) => parseFloat(a.amount) - parseFloat(b.amount)
   );
 
-  // Calculate if we're in auto-extend window
-  const isInAutoExtendWindow =
-    timeLeft.minutes < 2 &&
-    timeLeft.days === 0 &&
-    timeLeft.hours === 0 &&
-    auction.status === "live";
-
   return (
     <div className="alv-container">
       <div className="alv-header">
@@ -530,10 +375,6 @@ const AuctioneerLiveView: React.FC = () => {
         <div className="alv-header-info">
           <h1 className="alv-title">{auction.title}</h1>
           <p className="alv-auction-no">Auction No: {auction.auction_no}</p>
-          {/* Debug info - remove in production */}
-          <div style={{ fontSize: "12px", color: "#666", marginTop: "5px" }}>
-            | Auto-extend: {isInAutoExtendWindow ? "ACTIVE" : "INACTIVE"}
-          </div>
         </div>
         <div className="alv-header-actions">
           <div className="alv-status-badge">
@@ -546,6 +387,7 @@ const AuctioneerLiveView: React.FC = () => {
           </div>
         </div>
       </div>
+      {/* none nojonne */}
 
       <div className="alv-control-panel">
         <div className="alv-control-header">
@@ -708,18 +550,6 @@ const AuctioneerLiveView: React.FC = () => {
               </h3>
               <p className="alv-countdown-subtitle">
                 {isPaused && "Auction is currently paused"}
-                {!isPaused && isInAutoExtendWindow && (
-                  <span style={{ color: "#f59e0b", fontWeight: "bold" }}>
-                    ⚠️ Auto-extend ACTIVE
-                  </span>
-                )}
-                {!isPaused &&
-                  !isInAutoExtendWindow &&
-                  auction.status === "live" && (
-                    <span style={{ color: "#10b981", fontWeight: "bold" }}>
-                      ✅ Auto-extend will activate in last 2 minutes
-                    </span>
-                  )}
               </p>
             </div>
           </div>
