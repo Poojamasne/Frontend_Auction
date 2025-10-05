@@ -260,77 +260,6 @@ const AuctioneerLiveView: React.FC = () => {
   }, [id, currentEndTime, isAutoExtending]);
 
   // Auto-extend time when new bid is placed in last 2 minutes
-  // useEffect(() => {
-  //   if (!auction || auction.status !== "live" || isPaused || !currentEndTime)
-  //     return;
-
-  //   const currentBidCount = auction.bids.length;
-
-  //   // Check if there's a new bid
-  //   if (currentBidCount > lastBidCount && lastBidCount > 0) {
-  //     console.log(`🎯 NEW BID DETECTED: ${lastBidCount} → ${currentBidCount}`);
-
-  //     // Calculate time remaining in seconds using currentEndTime
-  //     const now = new Date();
-  //     const remainingSeconds = Math.floor(
-  //       (currentEndTime.getTime() - now.getTime()) / 1000
-  //     );
-
-  //     console.log(
-  //       `⏰ Time remaining: ${remainingSeconds} seconds (${Math.floor(
-  //         remainingSeconds / 60
-  //       )}m ${remainingSeconds % 60}s)`
-  //     );
-
-  //     // If less than or equal to 2 minutes (120 seconds) remaining and more than 0
-  //     const timeSinceLastExtend = Date.now() - lastAutoExtendTime;
-
-  //     if (remainingSeconds > 0 && remainingSeconds <= 120) {
-  //       if (timeSinceLastExtend > 30000) {
-  //         // 30 seconds cooldown between auto-extends
-  //         console.log("🚀 Triggering auto-extend! Conditions met:");
-  //         console.log(
-  //           "   - Remaining time:",
-  //           remainingSeconds,
-  //           "seconds (< 2 minutes)"
-  //         );
-  //         console.log(
-  //           "   - Time since last extend:",
-  //           Math.floor(timeSinceLastExtend / 1000),
-  //           "seconds (> 30 seconds)"
-  //         );
-  //         handleAutoExtendTime();
-  //       } else {
-  //         console.log(
-  //           "⏸️ Auto-extend on cooldown. Time since last extend:",
-  //           Math.floor(timeSinceLastExtend / 1000),
-  //           "seconds"
-  //         );
-  //       }
-  //     } else {
-  //       console.log(
-  //         "❌ Not in auto-extend window. Need < 2 minutes, got:",
-  //         Math.floor(remainingSeconds / 60),
-  //         "minutes"
-  //       );
-  //     }
-  //   }
-
-  //   // Update lastBidCount
-  //   if (currentBidCount !== lastBidCount) {
-  //     setLastBidCount(currentBidCount);
-  //   }
-  // }, [
-  //   auction?.bids,
-  //   auction,
-  //   isPaused,
-  //   lastBidCount,
-  //   handleAutoExtendTime,
-  //   lastAutoExtendTime,
-  //   currentEndTime,
-  // ]);
-
-
   useEffect(() => {
     if (!auction || auction.status !== "live" || isPaused || !currentEndTime)
       return;
@@ -784,12 +713,14 @@ const AuctioneerLiveView: React.FC = () => {
                 {isPaused && "Auction is currently paused"}
                 {!isPaused && isInAutoExtendWindow && (
                   <span style={{ color: "#f59e0b", fontWeight: "bold" }}>
-                    ⚠️ Auto-extend ACTIVE - New bids will extend time by 3
-                    minutes
+                    ⚠️ Auto-extend ACTIVE{" "}
                     {lastAutoExtendTime > 0 &&
-                      ` (Last extended: ${new Date(
+                      `• Last: ${new Date(
                         lastAutoExtendTime
-                      ).toLocaleTimeString()})`}
+                      ).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}`}
                   </span>
                 )}
                 {!isPaused &&

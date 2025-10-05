@@ -275,7 +275,21 @@
   color: rgba(255, 255, 255, 0.7);
   font-size: 0.9rem;
   margin: 0;
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.4;
 }
+
+.alv-countdown-subtitle span {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgba(245, 158, 11, 0.1);
+}
+.alv-countdown-subtitle span[style*="#10b981"] {
+  background: rgba(16, 185, 129, 0.1);
+}
+
 
 .alv-extended-badge {
   display: flex;
