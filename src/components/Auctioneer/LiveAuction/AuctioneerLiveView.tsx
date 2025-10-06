@@ -699,9 +699,9 @@ const AuctioneerLiveView: React.FC = () => {
 
         <div className="alv-countdown-card">
           <div className="alv-countdown-header">
-            <Timer className="alv-countdown-icon" />
             <div className="alv-countdown-info">
               <h3>
+            <Timer className="alv-countdown-icon mr-2" />
                 {auction.status === "completed"
                   ? "Auction Closed"
                   : "Auction will be Closed in"}

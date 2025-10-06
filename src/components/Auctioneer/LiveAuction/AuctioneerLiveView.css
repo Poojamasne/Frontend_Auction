@@ -244,11 +244,16 @@
 
 /* Countdown Card */
 .alv-countdown-card {
-  background: rgba(255, 255, 255, 0.1);
+  /* background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 20px;
-  padding: 2rem;
+  padding: 2rem; */
+      background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1.5rem;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .alv-countdown-header {
@@ -263,13 +268,21 @@
   width: 1.5rem;
   height: 1.5rem;
 }
+.alv-countdown-info
+{
+  display: flex;
+  flex-direction: row;
 
-.alv-countdown-info h3 {
-  color: white;
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin: 0 0 0.5rem 0;
+
+
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    color: white;
+    font-weight: 600;
 }
+
+
 
 .alv-countdown-subtitle {
   color: rgba(255, 255, 255, 0.7);
@@ -580,7 +593,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  justify-content: flex-end;
+  /* justify-content: flex-end; */
 }
 
 .alv-price-value {
@@ -593,14 +606,14 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  justify-content: flex-end;
+  /* justify-content: flex-end; */
   color: rgba(255, 255, 255, 0.7);
   font-size: 0.9rem;
 }
 
 .alv-participant-status {
   display: flex;
-  justify-content: center;
+  
 }
 
 .alv-status-leading,
@@ -785,12 +798,13 @@
   
   .alv-countdown-display {
     flex-wrap: wrap;
-    gap: 0.5rem;
+        flex-direction: row;
+        gap: 4.1px;
   }
   
   .alv-countdown-segment {
-    min-width: 60px;
-    padding: 0.75rem;
+    min-width: 49px;
+        padding: 8.1px;
   }
   
   .alv-stats-grid {
@@ -898,3 +912,23 @@
     width: 100% !important;
   }
 }
+
+
+@media (max-width: 480px) {
+  .alv-countdown-info
+{
+  display: flex;
+  flex-direction: column;
+
+
+
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    color: white;
+    font-weight: 600;
+}
+}
+
+
+
