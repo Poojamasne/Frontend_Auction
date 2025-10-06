@@ -33,6 +33,8 @@ import apiDencrimentValue from "../../../services/apiDencrimentValue";
 import apiAuctionService from "../../../services/apiAuctionService";
 import newAuctionService from "../../../services/newAuctionService";
 import { BaseAuction, AuctionParticipant } from "../../../types/auction";
+import auctionDeleteService from "../../../services/auctionDeleteService";
+
 
 /* 🔧 ADD-1  helper – add minutes to HH:MM  */
 /* 🔧 FIXED helper – add minutes to 12-hour string */
@@ -68,6 +70,74 @@ const MyCreatedAuctionView: React.FC = () => {
   const [participantsLoading, setParticipantsLoading] = useState(false);
   const isMountedRef = useRef(true);
   const { user } = useAuth();
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+
+
+
+
+
+
+
+  const handleDeleteAuction = async () => {
+    if (!auction || !id) return;
+
+    // Additional confirmation
+    if (deleteConfirmText !== "DELETE") {
+      toast.error('Please type "DELETE" to confirm deletion');
+      return;
+    }
+
+    setDeleteLoading(true);
+    try {
+      const result = await auctionDeleteService.deleteAuction(id);
+
+      if (result.success) {
+        toast.success(result.message || "Auction deleted successfully");
+
+        // Navigate back to auctions list after a short delay
+        setTimeout(() => {
+          navigate("/dashboard/MyCreatedA");
+        }, 1500);
+      }
+    } catch (error: any) {
+      console.error("[MyCreatedAuctionView] Error deleting auction:", error);
+      toast.error(error.message || "Failed to delete auction");
+    } finally {
+      setDeleteLoading(false);
+      setShowDeleteModal(false);
+      setDeleteConfirmText("");
+    }
+  };
+
+  // Add this function to check if auction can be deleted
+  const canDeleteAuction = () => {
+    if (!auction) return false;
+
+    // Only allow deletion for upcoming auctions
+    // You can modify this logic based on your requirements
+    return auction.status === "upcoming";
+  };
+
+  // Add this function to get delete button text based on status
+  const getDeleteButtonText = () => {
+    if (!auction) return "Delete Auction";
+
+    switch (auction.status) {
+      case "completed":
+        return "Cannot Delete Completed Auction";
+      case "live":
+        return "Cannot Delete Live Auction";
+      case "upcoming":
+        return "Delete Auction";
+      default:
+        return "Delete Auction";
+    }
+  };
+
+
 
   // Initial data load - only runs once when component mounts or ID changes
   useEffect(() => {
@@ -839,7 +909,7 @@ if (auctionData && auctionData.status === 'upcoming') {
               {auction.currency} {auction.decrementalValue.toLocaleString()}
               <span> (Minimum bid reduction amount)</span>
             </p>
-            {/*       <div style={{ marginTop: 8 }}>
+            <div style={{ marginTop: 8 }}>
               <button
                 className="btn btn-secondary"
                 onClick={() => {
@@ -849,7 +919,7 @@ if (auctionData && auctionData.status === 'upcoming') {
               >
                 <Edit className="w-4 h-4" /> Edit Decrement
               </button>
-            </div> */}
+            </div>
           </div>
         )}
       </div>
@@ -1266,6 +1336,7 @@ if (auctionData && auctionData.status === 'upcoming') {
       )}
 
       {/* Action Buttons */}
+      {/* Action Buttons */}
       <div className="auction-details-card">
         <div className="flex flex-wrap items-center justify-center gap-4 p-4 md:p-6">
           <button
@@ -1275,18 +1346,113 @@ if (auctionData && auctionData.status === 'upcoming') {
             <ArrowLeft className="w-4 h-4" />
             Back to Auctions
           </button>
+          {/* Delete Auction Button */}
+          <button
+            onClick={() => setShowDeleteModal(true)}
+            disabled={!canDeleteAuction()}
+            className={`btn ${
+              canDeleteAuction() ? "btn-danger" : "btn-disabled"
+            }`}
+            title={
+              canDeleteAuction()
+                ? "Delete this auction"
+                : "Only upcoming auctions can be deleted"
+            }
+          >
+            <XCircle className="w-4 h-4" />
+            {getDeleteButtonText()}
+          </button>
+          
+          
+          
+          
+          
 
-          {/*           {auction.status === "live" && (
-
-          {/* {auction.status === "live" && (
-
-            <button onClick={handleStartAuction} className="btn btn-primary">
-              <Play className="w-4 h-4" />
-              Manage Live Auction
-            </button>
-          )} */}
+          
         </div>
       </div>
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && auction && (
+        <div
+          className="prebuild-modal-overlay"
+          onClick={() => !deleteLoading && setShowDeleteModal(false)}
+        >
+          <div
+            className="prebuild-modal"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: "500px" }}
+          >
+            <div className="prebuild-modal-header">
+              <XCircle className="w-6 h-6 text-red-500" />
+              <h3 className="prebuild-modal-title">Delete Auction</h3>
+            </div>
+
+            <div className="prebuild-modal-content">
+              <div className="delete-warning">
+                <p className="warning-text">
+                  <strong>Warning: This action cannot be undone!</strong>
+                </p>
+                <p className="auction-to-delete">
+                  <strong>"{auction.title}"</strong> (ID: {auction.auctionNo})
+                </p>
+
+                <div className="delete-consequences">
+                  <h4>This will permanently delete:</h4>
+                  <ul>
+                    <li>All auction data and settings</li>
+                  </ul>
+                </div>
+
+                <div className="confirmation-input">
+                  <label htmlFor="deleteConfirm" className="modal-label">
+                    Type <strong>DELETE</strong> to confirm:
+                  </label>
+                  <input
+                    id="deleteConfirm"
+                    type="text"
+                    className="prebuild-input"
+                    value={deleteConfirmText}
+                    onChange={(e) => setDeleteConfirmText(e.target.value)}
+                    placeholder="Type DELETE to confirm"
+                    disabled={deleteLoading}
+                    autoComplete="off"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="prebuild-modal-actions">
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeleteConfirmText("");
+                }}
+                className="btn btn-secondary"
+                disabled={deleteLoading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteAuction}
+                disabled={deleteLoading || deleteConfirmText !== "DELETE"}
+                className="btn btn-danger"
+              >
+                {deleteLoading ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="w-4 h-4" />
+                    Delete Auction Permanently
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };  
