@@ -446,6 +446,7 @@
 .btn {
   display: inline-flex;
   align-items: center;
+  margin-left: 0 !important;
   gap: 0.5rem;
   padding: 0.7rem 1.25rem;
   border-radius: 12px;
@@ -903,7 +904,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: normal;
-    max-width: 23% !important;
+    max-width: 73% !important;
   }
   
   .auction-title {
