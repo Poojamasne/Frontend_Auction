@@ -330,7 +330,6 @@ const NewAuction: React.FC = () => {
                   placeholder="Enter Auction Title"
                   {...register("title", {
                     required: "Required",
-                    minLength: { value: 5, message: "Min 5 chars" },
                   })}
                 />
                 {errors.title && (
@@ -448,7 +447,6 @@ const NewAuction: React.FC = () => {
                   placeholder="Detailed description..."
                   {...register("auctionDetails", {
                     required: "Required",
-                    minLength: { value: 10, message: "Min 10 chars" },
                   })}
                 />
                 {errors.auctionDetails && (
