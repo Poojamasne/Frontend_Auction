@@ -725,6 +725,14 @@ const MyCreatedA: React.FC = () => {
                         {derivedStatus.toUpperCase()}
                       </span>
                     </div>
+                    {/* <div className="ap-myauctions-card-title-section">
+                        <span
+                          className={`ap-myauctions-status-badge ap-myauctions-status-${derivedStatus}`}
+                        >
+                          {getStatusIcon(derivedStatus)}
+                          {derivedStatus.toUpperCase()}
+                        </span>
+                      </div> */}
                     <p className="ap-myauctions-card-subtitle">
                       Auction No: {auction.auctionNo}
                     </p>
