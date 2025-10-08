@@ -874,19 +874,23 @@ const NewAuction: React.FC = () => {
                 <textarea
                   rows={6}
                   className="form-input w-full"
-                  placeholder="Enter phone numbers "
+                  placeholder="Enter phone numbers (numbers only)"
                   value={bulkText}
-                  onChange={(e) => setBulkText(e.target.value)}
+                  onChange={(e) => {
+                    // Allow only numbers, spaces, commas, and newlines
+                    const value = e.target.value.replace(/[^0-9\s,\n]/g, "");
+                    setBulkText(value);
+                  }}
+                  onPaste={(e) => {
+                    // Clean pasted content
+                    e.preventDefault();
+                    const pastedText = e.clipboardData.getData("text");
+                    const cleanedText = pastedText.replace(/[^0-9\s,\n]/g, "");
+                    setBulkText(bulkText + cleanedText);
+                  }}
                 />
               </div>
               <div className="ap-modal-footer flex items-center justify-end gap-2">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setBulkText("")}
-                >
-                  Clear
-                </button>
                 <button
                   type="button"
                   className="btn btn-primary"
@@ -937,7 +941,14 @@ const NewAuction: React.FC = () => {
                 </button>
                 <button
                   type="button"
-                  className="btn btn-secondary"
+                  className="btn btn-secondaryy"
+                  onClick={() => setBulkText("")}
+                >
+                  Clear
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondaryy"
                   onClick={() => setBulkOpen(false)}
                 >
                   Close
