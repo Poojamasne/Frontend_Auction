@@ -9,6 +9,7 @@ export interface RegisterRequest {
   company_name: string;
   company_address?: string;
   company_product_service?: string;
+  gstn?: string;
 }
 
 export interface SendOTPRequest {

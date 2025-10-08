@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Registration.css";
 import authService from "../../services/authService";
-import toast from "react-hot-toast";
+// import SuccessModal from "../Common/SuccessModal";
+// import ErrorModal from "../Common/ErrorModal";
 import TermsModal from "../Common/TermsModal";
 
 /* ---------- TYPES ---------- */
@@ -13,6 +14,7 @@ interface RegistrationFormState {
   companyName: string;
   companyAddress: string;
   companyProductService: string;
+  gstnNumber: string;
   otp: string;
 }
 
@@ -23,6 +25,7 @@ interface FormErrors {
   companyName?: string;
   companyAddress?: string;
   companyProductService?: string;
+  gstnNumber?: string;
 }
 
 /* ---------- COMPONENT ---------- */
@@ -32,6 +35,16 @@ export default function Registration() {
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  // Modal states
+  const [successModal, setSuccessModal] = useState({
+    isOpen: false,
+    message: "",
+  });
+  const [errorModal, setErrorModal] = useState({
+    isOpen: false,
+    message: "",
+  });
+
   const [form, setForm] = useState<RegistrationFormState>({
     phone: "",
     email: "",
@@ -39,6 +52,7 @@ export default function Registration() {
     companyName: "",
     companyAddress: "",
     companyProductService: "",
+    gstnNumber: "",
     otp: "",
   });
 
@@ -71,6 +85,12 @@ export default function Registration() {
       case "companyProductService":
         filtered = value.replace(/[^a-zA-Z0-9\s\-.,&']/g, "");
         break;
+      case "gstnNumber":
+        filtered = value
+          .toUpperCase()
+          .replace(/[^A-Z0-9]/g, "")
+          .slice(0, 15);
+        break;
       default:
         filtered = value;
     }
@@ -90,18 +110,20 @@ export default function Registration() {
       newErrors.email = "Must end with .com, .in or .org";
 
     if (!form.companyName.trim()) newErrors.companyName = "Required";
-    else if (form.companyName.trim().length < 4)
-      newErrors.companyName = " Enter at least 4-5 characters";
-
-    if (form.name && form.name.trim().length < 4)
-      newErrors.name = "Enter at Least 4-5 Characters";
-    else if (!form.name.trim()) newErrors.name = "Required";
-
-    if (!form.companyProductService.trim())
-      newErrors.companyProductService = "Required";
-    else if (form.companyProductService.trim().length < 4)
-      newErrors.companyProductService = "Enter at least 4-5 characters";
     
+
+    
+    if (!form.name.trim()) newErrors.name = "Required";
+
+    if (form.gstnNumber && form.gstnNumber.length !== 15)
+      newErrors.gstnNumber = "GSTN must be exactly 15 characters";
+    else if (
+      form.gstnNumber &&
+      !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(
+        form.gstnNumber
+      )
+    )
+      newErrors.gstnNumber = "Invalid GSTN format";
 
     setErrors(newErrors);
     return !Object.keys(newErrors).length;
@@ -121,18 +143,29 @@ export default function Registration() {
         company_name: form.companyName.trim(),
         company_address: form.companyAddress || undefined,
         company_product_service: form.companyProductService || undefined,
+        // gstn_number: form.gstnNumber || undefined,
       });
 
       if (res.success) {
-        if (res.user) localStorage.setItem("auctionUser", JSON.stringify(res.user));
+        if (res.user)
+          localStorage.setItem("auctionUser", JSON.stringify(res.user));
         if (res.token) localStorage.setItem("authToken", res.token);
-        toast.success(res.message || "Registered! Please log in.");
-        navigate("/login");
+        setSuccessModal({
+          isOpen: true,
+          message:
+            res.message ||
+            "Registration successful! Please log in to continue.",
+        });
+        // Navigate after modal is shown
+        setTimeout(() => navigate("/login"), 2000);
       } else {
         throw new Error(res.message || "Registration failed");
       }
     } catch (err: any) {
-      toast.error(err?.message || "Registration failed. Try again.");
+      setErrorModal({
+        isOpen: true,
+        message: err?.message || "Registration failed. Please try again.",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -219,7 +252,6 @@ export default function Registration() {
                 autoComplete="name"
                 minLength={2}
                 maxLength={50}
-                pattern="[a-zA-Z\s\-.]{2,50}"
                 className={`ap-reg-input ${errors.name ? "error" : ""}`}
                 placeholder="Enter your Full Name"
                 value={form.name}
@@ -247,7 +279,6 @@ export default function Registration() {
                 autoComplete="organization"
                 minLength={2}
                 maxLength={100}
-                pattern="[a-zA-Z0-9\s\-.,&']{2,100}"
                 className={`ap-reg-input ${errors.companyName ? "error" : ""}`}
                 placeholder="Enter your Company Name"
                 value={form.companyName}
@@ -257,18 +288,12 @@ export default function Registration() {
               {errors.companyName && (
                 <span className="ap-reg-error">{errors.companyName}</span>
               )}
-              {!errors.companyName && (
-                <small className="ap-reg-hint">Enter Your Company Name</small>
-              )}
             </div>
 
             {/* Company Product / Service */}
             <div className="ap-reg-field ap-reg-field--full">
               <label htmlFor="companyProductService" className="ap-reg-label">
-                <span>
-                  Company Product/Service
-                  <span className="ap-reg-required">*</span>
-                </span>
+                <span>Company Product/Service</span>
               </label>
               <input
                 id="companyProductService"
@@ -276,14 +301,13 @@ export default function Registration() {
                 name="companyProductService"
                 autoComplete="off"
                 maxLength={200}
-                pattern="[a-zA-Z0-9\s\-.,&']{0,200}"
                 className={`ap-reg-input ${
                   errors.companyProductService ? "error" : ""
                 }`}
-                placeholder="e.g., Construction Materials,IT Service"
+                placeholder="e.g., Construction Materials, IT Service (optional)"
                 value={form.companyProductService}
                 onChange={handleChange}
-                title="Describe your products or services"
+                title="Describe your products or services (optional)"
               />
               {errors.companyProductService && (
                 <span className="ap-reg-error">
@@ -292,7 +316,7 @@ export default function Registration() {
               )}
               {!errors.companyProductService && (
                 <small className="ap-reg-hint">
-                  What does your company sell or provide?
+                  What does your company sell or provide? (optional)
                 </small>
               )}
             </div>
@@ -308,7 +332,6 @@ export default function Registration() {
                 name="companyAddress"
                 autoComplete="street-address"
                 maxLength={200}
-                pattern="[a-zA-Z0-9\s\-.,#/]{0,200}"
                 className={`ap-reg-input ${
                   errors.companyAddress ? "error" : ""
                 }`}
@@ -321,7 +344,36 @@ export default function Registration() {
                 <span className="ap-reg-error">{errors.companyAddress}</span>
               )}
               {!errors.phone && (
-                <small className="ap-reg-hint">Enter Your Company Name</small>
+                <small className="ap-reg-hint">
+                  Enter Your Company Address
+                </small>
+              )}
+            </div>
+
+            {/* GSTN Number */}
+            <div className="ap-reg-field ap-reg-field--full">
+              <label htmlFor="gstnNumber" className="ap-reg-label">
+                GSTN Number
+              </label>
+              <input
+                id="gstnNumber"
+                type="text"
+                name="gstnNumber"
+                autoComplete="off"
+                maxLength={15}
+                className={`ap-reg-input ${errors.gstnNumber ? "error" : ""}`}
+                placeholder="e.g., 22AAAAA0000A1Z5"
+                value={form.gstnNumber}
+                onChange={handleChange}
+                title="Enter 15-character GSTN (optional)"
+              />
+              {errors.gstnNumber && (
+                <span className="ap-reg-error">{errors.gstnNumber}</span>
+              )}
+              {!errors.gstnNumber && (
+                <small className="ap-reg-hint">
+                  GST Number (optional, 15 characters)
+                </small>
               )}
             </div>
           </div>
@@ -363,6 +415,27 @@ export default function Registration() {
           </p>
         </form>
       </div>
+
+      {/* Success Modal */}
+      {/* <SuccessModal
+        isOpen={successModal.isOpen}
+        onClose={() => {
+          setSuccessModal({ isOpen: false, message: "" });
+          navigate("/login");
+        }}
+        title="Registration Successful!"
+        message={successModal.message}
+      />
+
+      
+      <ErrorModal
+        isOpen={errorModal.isOpen}
+        onClose={() => {
+          setErrorModal({ isOpen: false, message: "" });
+        }}
+        title="Registration Failed"
+        message={errorModal.message}
+      /> */}
     </div>
   );
 }

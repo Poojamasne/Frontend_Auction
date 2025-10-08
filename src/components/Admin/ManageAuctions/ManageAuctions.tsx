@@ -217,11 +217,13 @@ const ManageAuctions: React.FC = () => {
 
   const handleViewDetails = async (auction: Auction) => {
     setDetailLoading(true);
+    setSelectedAuction(auction); // Set immediately to show modal
     try {
       const full = await adminAuctionService.getAuctionById(auction.id);
-      setSelectedAuction(full);
+      setSelectedAuction(full); // Update with full details
     } catch (e) {
-      setSelectedAuction(auction);
+      console.error('Error fetching auction details:', e);
+      // Keep the basic auction data if fetch fails
     } finally {
       setDetailLoading(false);
     }
@@ -557,6 +559,19 @@ const ManageAuctions: React.FC = () => {
                             <Eye className="w-4 h-4" />
                           </button>
 
+                          {/* View Live Auction Button for Active/Live Auctions */}
+                          {(auction.status === "live" || 
+                            auction.status === "active" || 
+                            auction.status === "approved") && (
+                            <button
+                              onClick={() => window.open(`/admin/auction-live/${auction.id}`, '_blank')}
+                              className="auction-btn view-live-icon"
+                              title="View Live Auction"
+                            >
+                              <Gavel className="w-4 h-4" />
+                            </button>
+                          )}
+
                           {auction.status === "pending" && (
                             <>
                               <button
@@ -644,13 +659,28 @@ const ManageAuctions: React.FC = () => {
 
       {/* Auction Details Modal */}
       {selectedAuction && (
-        <div className="auction-modal-overlay">
-          <div className="auction-modal-box">
+        <div 
+          className="auction-modal-overlay"
+          onClick={(e) => {
+            // Only close if clicking the overlay itself, not its children
+            if (e.target === e.currentTarget) {
+              setSelectedAuction(null);
+            }
+          }}
+        >
+          <div 
+            className="auction-modal-box"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="modal-header">
               <h2 className="modal-title">Auction Details</h2>
               <button
-                onClick={() => setSelectedAuction(null)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedAuction(null);
+                }}
                 className="modal-close"
+                type="button"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -934,24 +964,46 @@ const ManageAuctions: React.FC = () => {
 
             {/* Modal Actions */}
             <div className="modal-actions">
+              {/* View Live Auction Button - Show for active/live auctions */}
+              {(selectedAuction.status === "live" || 
+                selectedAuction.status === "active" || 
+                selectedAuction.status === "approved") && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.open(`/admin/auction-live/${selectedAuction.id}`, '_blank');
+                  }}
+                  className="view-live"
+                  title="View Live Auction as Admin"
+                  type="button"
+                >
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  View Live Auction
+                </button>
+              )}
+              
               {selectedAuction.status === "pending" && (
                 <>
                   <button
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       handleApproveAuction(selectedAuction.id);
                       setSelectedAuction(null);
                     }}
                     className="approve"
+                    type="button"
                   >
                     <Check className="w-4 h-4 mr-2" />
                     Approve Auction
                   </button>
                   <button
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       handleRejectAuction(selectedAuction.id, "Admin rejected");
                       setSelectedAuction(null);
                     }}
                     className="reject"
+                    type="button"
                   >
                     <X className="w-4 h-4 mr-2" />
                     Reject Auction
@@ -961,20 +1013,26 @@ const ManageAuctions: React.FC = () => {
               {selectedAuction.status !== "rejected" &&
                 selectedAuction.status !== "completed" && (
                   <button
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       handleCloseAuction(selectedAuction.id);
                       setSelectedAuction(null);
                     }}
                     className="reject"
                     title="Reject Auction (Admin)"
+                    type="button"
                   >
                     <X className="w-4 h-4 mr-2" />
                     Reject Auction
                   </button>
                 )}
               <button
-                onClick={() => setSelectedAuction(null)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedAuction(null);
+                }}
                 className="close"
+                type="button"
               >
                 Close
               </button>
@@ -987,3 +1045,4 @@ const ManageAuctions: React.FC = () => {
 };
 
 export default ManageAuctions;
+

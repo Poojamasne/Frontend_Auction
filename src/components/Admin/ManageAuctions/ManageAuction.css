@@ -839,9 +839,10 @@
   padding: 2rem;
   display: grid;
   grid-template-columns: 1fr 1fr;
+  background-color: linear-gradient(135deg,      rgba(15, 23, 42, 0.4),      rgba(15, 23, 42, 0.2));
   gap: 2rem;
   min-height: 100%;
-  animation: content-fade-in 0.5s ease-out;
+  /* animation: content-fade-in 0.5s ease-out; */
 }
 
 @keyframes content-fade-in {
@@ -859,6 +860,7 @@
 /* Modal Content Wrapper - Scrollable area with enhanced styling */
 .auction-modal-content-wrapper {
   flex: 1;
+  width: 118%;
   overflow-y: auto;
   overflow-x: hidden;
   padding: 2rem;
@@ -892,11 +894,13 @@
 .auction-modal-content-wrapper .modal-content {
   display: flex;
   flex-direction: column;
+  background: linear-gradient(135deg,
+      rgba(15, 23, 42, 0.4),
+      rgba(15, 23, 42, 0.2));
 
-  background-color: black;
   grid-template-columns: 1fr 1fr;
   gap: 2rem;
-  max-width: 68vw;
+  max-width: 93vw;
 }
 
 /* Force modal content to stay in grid even on small screens */

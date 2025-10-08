@@ -411,7 +411,6 @@ const DashboardHome: React.FC = () => {
                     <p className="ap-dashboard-home-stat-value">{stat.value}</p>
                     <p className="ap-dashboard-home-stat-change">
                       {stat.change}
-                      
                     </p>
                   </div>
                   <div
@@ -441,7 +440,7 @@ const DashboardHome: React.FC = () => {
                 Upcoming Auctions
               </h2>
               <Link
-                to="/dashboard/auctions"
+                to="/dashboard/MyParticipatedA"
                 className="ap-dashboard-home-section-link"
               >
                 View all
@@ -473,12 +472,12 @@ const DashboardHome: React.FC = () => {
                           </div>
                           <div className="ap-dashboard-home-auction-meta">
                             <span>
-                            <Calendar  />   {fmtDate(a.auction_date)} at{" "}{fmtTime(`${a.auction_date} ${a.start_time}`)}
-                          </span>
-                          <span>
-
+                              <Calendar /> {fmtDate(a.auction_date)} at{" "}
+                              {fmtTime(`${a.auction_date} ${a.start_time}`)}
+                            </span>
+                            <span>
                               <User /> {a.participant_count} participants
-                          </span>
+                            </span>
                           </div>
                         </div>
                         <Link
@@ -639,7 +638,7 @@ const DashboardHome: React.FC = () => {
               </Link>
 
               <Link
-                to="/dashboard/auctions"
+                to="/dashboard/MyParticipatedA"
                 className="ap-dashboard-home-action-card"
               >
                 <div className="ap-dashboard-home-action-content">

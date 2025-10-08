@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { useParams, useNavigate  } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../../../services/apiConfig";
 import "./ParticipantAuctionSession.css";
 import {
   Timer,
@@ -135,7 +136,7 @@ const ParticipantAuctionSession: React.FC = () => {
       const token =
         localStorage.getItem("authToken") || localStorage.getItem("token");
       const response = await fetch(
-        `https://auction-development.onrender.com/api/auction/${id}/participants`,
+        `${API_BASE_URL}/auction/${id}/participants`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -484,13 +485,16 @@ const ParticipantAuctionSession: React.FC = () => {
           <ArrowLeft className="w-4 h-4" />
           Back
         </button>
-        <div className="session-title-section">
-          <h1 className="session-title">
-            <Activity className="w-6 h-6" />
+        <div className="session-title-section flex items-center w-full min-w-0">
+          <h1 className="session-title flex items-center gap-2 overflow-hidden text-ellipsis whitespace-nowrap min-w-0">
+            <Activity className="w-6 h-6 flex-shrink-0" />
             {auction.title}
           </h1>
-          <p className="session-subtitle">Auction No: {auction.auction_no}</p>
+          <p className="session-subtitle text-sm text-gray-500 ml-2">
+            Auction No: {auction.auction_no}
+          </p>
         </div>
+
         <div className={`auction-status ${auction.status}`}>
           <Zap className="w-4 h-4" />
           {auction.time_status || auction.status.toUpperCase()}

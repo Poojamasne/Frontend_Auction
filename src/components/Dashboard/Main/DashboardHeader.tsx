@@ -1,9 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import { Menu, Bell, User, X, Clock } from 'lucide-react';
+import React, { useState, useRef, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import { Menu, Bell, User, X, Clock } from "lucide-react";
 
-import { useAuth } from '../../../contexts/AuthContext';
-import { useNotifications } from '../../../contexts/NotificationContext';
+import { useAuth } from "../../../contexts/AuthContext";
+import { useNotifications } from "../../../contexts/NotificationContext";
 
 interface DashboardHeaderProps {
   onMenuClick: () => void;
@@ -38,25 +38,33 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
   useEffect(() => {
     fetchNotifications().catch((err) =>
-      console.error('Failed to load initial notifications:', err)
+      console.error("Failed to load initial notifications:", err)
     );
   }, [fetchNotifications]);
 
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard' },
-    { name: 'My Auctions', href: '/dashboard/auctions' },
-    { name: 'New Auction', href: '/dashboard/new-auction' },
-    { name: 'Reports', href: '/dashboard/reports' },
-    { name: 'My Profile', href: '/dashboard/profile' },
+    { name: "Dashboard", href: "/dashboard" },
+    
+    {
+      name: "My Created Auctions",
+      href: "/dashboard/MyCreatedA",
+    },
+    {
+      name: "My Participated Auctions",
+      href: "/dashboard/MyParticipatedA",
+    },
+    { name: "New Auction", href: "/dashboard/new-auction" },
+    { name: "Reports", href: "/dashboard/reports" },
+    { name: "My Profile", href: "/dashboard/profile" },
   ];
 
   const getCurrentPageName = () => {
     const current = navigation.find(
       (n) =>
         location.pathname === n.href ||
-        (n.href !== '/dashboard' && location.pathname.startsWith(n.href))
+        (n.href !== "/dashboard" && location.pathname.startsWith(n.href))
     );
-    return current?.name || 'Dashboard';
+    return current?.name || "Dashboard";
   };
 
   useEffect(() => {
@@ -69,8 +77,8 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
       }
     };
     if (isNotificationOpen) {
-      document.addEventListener('mousedown', handleOutside);
-      return () => document.removeEventListener('mousedown', handleOutside);
+      document.addEventListener("mousedown", handleOutside);
+      return () => document.removeEventListener("mousedown", handleOutside);
     }
   }, [isNotificationOpen]);
 
@@ -81,7 +89,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
       try {
         await fetchNotifications();
       } catch (e) {
-        console.error('Failed to fetch notifications:', e);
+        console.error("Failed to fetch notifications:", e);
       }
     }
   };
@@ -98,13 +106,11 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     const mins = Math.floor(diff / 60000);
     const hrs = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
-    
 
-    if (mins < 1) return 'Just now';
+    if (mins < 1) return "Just now";
     if (hrs < 1) return `${mins}m ago`;
     if (days < 1) return `${hrs}h ago`;
     return `${days}d ago`;
-
   };
 
   return (
@@ -132,7 +138,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           >
             <button
               className={`ap-dashboard-notification-btn ${
-                isNotificationOpen ? 'active' : ''
+                isNotificationOpen ? "active" : ""
               }`}
               onClick={handleNotificationClick}
               aria-label="Notifications"
@@ -141,7 +147,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               <Bell className="ap-dashboard-notification-icon" />
               {unreadCount > 0 && (
                 <span className="ap-dashboard-notification-badge">
-                  {unreadCount > 9 ? '9+' : unreadCount}
+                  {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               )}
             </button>
@@ -180,7 +186,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                         <div
                           key={n.id}
                           className={`ap-notification-item ${
-                            !n.is_read ? 'unread' : ''
+                            !n.is_read ? "unread" : ""
                           }`}
                           onClick={() => handleMarkAsRead(n.id)}
                         >
@@ -190,7 +196,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                             </div>
                             <div className="ap-notification-meta">
                               <span className="ap-notification-type">
-                                {n.type?.toUpperCase() ?? ''}
+                                {n.type?.toUpperCase() ?? ""}
                               </span>
                               {/* <span className="ap-notification-time">
                                 <Clock size={12} />
@@ -200,14 +206,14 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                           </div>
 
                           <button
-  className="ap-notification-toggle-btn"
-  onClick={(e) => {
-    e.stopPropagation();
-    handleMarkAsRead(n.id);
-  }}
->
-  {n.is_read ? 'Read' : 'Unread'}
-</button>
+                            className="ap-notification-toggle-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleMarkAsRead(n.id);
+                            }}
+                          >
+                            {n.is_read ? "Read" : "Unread"}
+                          </button>
 
                           {!n.is_read && (
                             <div className="ap-notification-dot" />
@@ -225,7 +231,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           <div className="ap-dashboard-user-menu">
             <div className="ap-dashboard-user-info">
               <div className="ap-dashboard-user-name">
-                {user?.name || 'User'}
+                {user?.name || "User"}
               </div>
             </div>
             <div className="ap-dashboard-user-avatar">

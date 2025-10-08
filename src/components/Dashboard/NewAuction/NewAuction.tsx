@@ -17,9 +17,11 @@ import {
   ArrowDown,
 } from "lucide-react";
 import { useAuth } from "../../../contexts/AuthContext";
-import toast from "react-hot-toast";
 import AuctionService from "../../../services/newAuctionService";
 import { CreateAuctionRequest } from "../../../types/auction";
+// import SuccessModal from "../../Common/SuccessModal";
+// import ErrorModal from "../../Common/ErrorModal";
+// import InfoModal from "../../Common/InfoModal";
 import "./NewAuction.css";
 
 /* -------------------------- types --------------------------------- */
@@ -90,6 +92,18 @@ const NewAuction: React.FC = () => {
   const [newParticipantPhone, setNewParticipantPhone] = useState("");
   const [bulkOpen, setBulkOpen] = useState(false);
   const [bulkText, setBulkText] = useState("");
+  const [successModal, setSuccessModal] = useState({
+    isOpen: false,
+    message: "",
+  });
+  const [errorModal, setErrorModal] = useState({
+    isOpen: false,
+    message: "",
+  });
+  const [infoModal, setInfoModal] = useState({
+    isOpen: false,
+    message: "",
+  });
 
   const watchOpenToAll = watch("openToAllCompanies");
   const watchAuctionDate = watch("auctionDate");
@@ -131,13 +145,23 @@ const NewAuction: React.FC = () => {
     if (!files.length) return;
 
     // Allowed file types
-    const allowedExtensions = [".jpeg", ".jpg", ".png", ".pdf", ".doc", ".docx"];
+    const allowedExtensions = [
+      ".jpeg",
+      ".jpg",
+      ".png",
+      ".pdf",
+      ".doc",
+      ".docx",
+    ];
 
     // Filter allowed file types
     const typeFiltered = files.filter((f) => {
       const ext = f.name.toLowerCase().slice(f.name.lastIndexOf("."));
       if (!allowedExtensions.includes(ext)) {
-        toast.error(`"${f.name}" is not an allowed file type`);
+        setInfoModal({
+          isOpen: true,
+          message: `"${f.name}" is not an allowed file type. Please upload JPEG, JPG, PNG, PDF, DOC, or DOCX files only.`,
+        });
         return false;
       }
       return true;
@@ -146,7 +170,10 @@ const NewAuction: React.FC = () => {
     // Filter out files exceeding size
     const validFiles = typeFiltered.filter((f) => {
       if (f.size > MAX_FILE_MB * 1024 * 1024) {
-        toast.error(`"${f.name}" exceeds ${MAX_FILE_MB} MB`);
+        setInfoModal({
+          isOpen: true,
+          message: `"${f.name}" exceeds the maximum file size of ${MAX_FILE_MB} MB. Please select a smaller file.`,
+        });
         return false;
       }
       return true;
@@ -159,7 +186,10 @@ const NewAuction: React.FC = () => {
 
     // Check file count limit
     if (uploadedFiles.length + dedup.length > MAX_FILES) {
-      toast.error(`Max ${MAX_FILES} files allowed`);
+      setInfoModal({
+        isOpen: true,
+        message: `Maximum ${MAX_FILES} files allowed. Please remove some files before adding more.`,
+      });
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
@@ -167,36 +197,41 @@ const NewAuction: React.FC = () => {
     // Update state if valid files found
     if (dedup.length > 0) {
       setUploadedFiles((prev) => [...prev, ...dedup]);
-      toast.success(`${dedup.length} file(s) uploaded successfully`);
-    } else {
-      toast.error("No new valid files to upload");
     }
 
     // Reset input so user can re-select the same file again
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-
   const removeFile = (idx: number) => {
     setUploadedFiles((p) => p.filter((_, i) => i !== idx));
-    toast.success("File removed");
   };
 
   const addParticipantByPhone = () => {
     const norm = normalizedPhone(newParticipantPhone);
     if (!PHONE_REGEX.test(norm)) {
-      toast.error("Enter valid Indian number");
+      setInfoModal({
+        isOpen: true,
+        message: "Please enter a valid Indian phone number (10 digits).",
+      });
       return;
     }
     if (user?.phoneNumber && normalizedPhone(user.phoneNumber) === norm) {
-      toast.error("You cannot add your own number");
+      setInfoModal({
+        isOpen: true,
+        message: "You cannot add your own phone number as a participant.",
+      });
       return;
     }
     const exists = fields.some(
       (f) => normalizedPhone(f.contactNumber) === norm
     );
     if (exists) {
-      toast.error("Number already added");
+      setInfoModal({
+        isOpen: true,
+        message:
+          "This phone number has already been added to the participants list.",
+      });
       return;
     }
     append({
@@ -207,7 +242,6 @@ const NewAuction: React.FC = () => {
       contactNumber: norm,
       _quick: true,
     });
-    toast.success("Participant added");
     setNewParticipantPhone("");
   };
 
@@ -215,7 +249,10 @@ const NewAuction: React.FC = () => {
   const onSubmit = async (data: AuctionForm) => {
     if (isSubmitting) return;
     if (!user || !AuctionService.isAuthenticated()) {
-      toast.error("Please log in");
+      setErrorModal({
+        isOpen: true,
+        message: "Please log in to continue",
+      });
       navigate("/login");
       return;
     }
@@ -230,9 +267,12 @@ const NewAuction: React.FC = () => {
 
       /* 2. validate only when closed */
       if (!data.openToAllCompanies && uniquePhones.length === 0) {
-        toast.error(
-          'Add at least one participant when auction is not "Open to all"'
-        );
+        setErrorModal({
+          isOpen: true,
+          message:
+            'Please add at least one participant when auction is not "Open to all"',
+        });
+        setIsSubmitting(false);
         return;
       }
 
@@ -260,7 +300,30 @@ const NewAuction: React.FC = () => {
       const res = await AuctionService.createAuction(payload, uploadedFiles);
       if (!res.success) throw new Error(res.message || "Creation failed");
 
-      toast.success(res.message || `Auction "${res.auction.title}" created!`);
+      // Create custom success message based on actual settings
+      let successMessage = `Auction "${res.auction.title}" has been created successfully!`;
+
+      if (data.openToAllCompanies) {
+        successMessage += " This auction is open to all suppliers.";
+      } else {
+        const participantCount = uniquePhones.length;
+        if (participantCount > 0) {
+          successMessage += ` Invitations sent to ${participantCount} participant${
+            participantCount > 1 ? "s" : ""
+          }.`;
+        } else {
+          successMessage +=
+            " No participants were added to this private auction.";
+        }
+      }
+
+      // Show success modal
+      setSuccessModal({
+        isOpen: true,
+        message: successMessage,
+      });
+
+      // Reset form
       reset({
         title: "",
         auctionDate: todayISO,
@@ -272,16 +335,21 @@ const NewAuction: React.FC = () => {
         participants: [],
       });
       setUploadedFiles([]);
+
+      // Navigate after modal is closed
       setTimeout(
         () => navigate(`/dashboard/my-auction/${res.auction.id}`),
-        1200
+        2000
       );
     } catch (e: any) {
       console.error(e);
-      toast.error(e.message || "Creation error");
+      setErrorModal({
+        isOpen: true,
+        message: e.message || "Failed to create auction. Please try again.",
+      });
       if (/auth|session/i.test(e.message)) {
         AuctionService.clearAuth();
-        navigate("/login");
+        setTimeout(() => navigate("/login"), 2000);
       }
     } finally {
       setIsSubmitting(false);
@@ -301,22 +369,18 @@ const NewAuction: React.FC = () => {
               <Users className="w-4 h-4 mr-2" />
             </span>
           </div>
-          <div className="card-body">
+          {/* <div className="card-body">
             <p className="text-text-secondary text-sm">
               Set up a new auction with participants and terms
             </p>
-          </div>
+          </div> */}
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Basic Information */}
-          <div className="card">
-            <div className="card-header">
-              <h2 className="text-xl font-semibold text-text-primary">
-                Basic Information
-              </h2>
-            </div>
-            <div className="card-body grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="card-body space-y-6">
+            {/* First Row: Title, Date, Time */}
+            <div className="grid sm:grid-cols-1 md:grid-cols-4 gap-6">
               <div className="form-group">
                 <label className="form-label">
                   <FileText className="w-4 h-4 inline mr-2" />
@@ -368,9 +432,7 @@ const NewAuction: React.FC = () => {
                 <input
                   type="time"
                   className="form-input"
-                  {...register("auctionStartTime", {
-                    required: "Required",
-                  })}
+                  {...register("auctionStartTime", { required: "Required" })}
                 />
                 {errors.auctionStartTime && (
                   <p className="form-error">
@@ -393,7 +455,10 @@ const NewAuction: React.FC = () => {
                   <option value={120}>2 Hours</option>
                 </select>
               </div>
+            </div>
 
+            {/* Second Row: Duration, Currency */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="form-group">
                 <label className="form-label">
                   <IndianRupee className="w-4 h-4 inline mr-2" />
@@ -407,7 +472,7 @@ const NewAuction: React.FC = () => {
                 </select>
               </div>
 
-              <div className="form-group md:col-span-2">
+              <div className="form-group">
                 <label className="flex items-center gap-2">
                   <input
                     type="checkbox"
@@ -423,6 +488,23 @@ const NewAuction: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {/* Third Row: Checkbox */}
+            {/* <div className="form-group">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  className="form-checkbox"
+                  {...register("openToAllCompanies")}
+                />
+                <span>Open to all companies (Suppliers)</span>
+              </label>
+              <div className="form-helper-text">
+                {watchOpenToAll
+                  ? "✓ Auction will be visible to all users and invited participants"
+                  : "⚠️ Only invited participants can view this auction"}
+              </div>
+            </div> */}
           </div>
 
           {/* Product Details */}
@@ -454,7 +536,7 @@ const NewAuction: React.FC = () => {
                 )}
               </div>
 
-              <div className="form-group">
+              <div className="formset">
                 <label className="form-label">
                   <ArrowDown className="w-4 h-4 inline mr-2" />
                   <span>
@@ -465,7 +547,7 @@ const NewAuction: React.FC = () => {
                   type="number"
                   min={1}
                   step={1}
-                  className="form-input"
+                  className="form-inputt"
                   placeholder="Add Bid Amount"
                   {...register("decrementalValue", {
                     valueAsNumber: true,
@@ -488,7 +570,7 @@ const NewAuction: React.FC = () => {
                 Auction Documents
               </h2>
               <p className="text-text-secondary">
-                Optional – up to {MAX_FILES} files, {MAX_FILE_MB} MB each
+                Optional – up to {MAX_FILES} files, {MAX_FILE_MB} MB
               </p>
             </div>
             <div className="card-body">
@@ -602,8 +684,9 @@ const NewAuction: React.FC = () => {
                   {fields.map((field, idx) => (
                     <div
                       key={field.id}
-                      className={`ap-newauction-participant-card ${field._quick ? "quick-participant" : ""
-                        }`}
+                      className={`ap-newauction-participant-card ${
+                        field._quick ? "quick-participant" : ""
+                      }`}
                     >
                       <div className="flex items-center justify-between mb-4">
                         <h4 className="font-medium text-text-primary">
@@ -748,6 +831,35 @@ const NewAuction: React.FC = () => {
           </div>
         </form>
 
+        {/* <SuccessModal
+          isOpen={successModal.isOpen}
+          onClose={() => {
+            setSuccessModal({ isOpen: false, message: "" });
+          }}
+          title="Auction Created!"
+          message={successModal.message}
+        />
+
+        
+        <ErrorModal
+          isOpen={errorModal.isOpen}
+          onClose={() => {
+            setErrorModal({ isOpen: false, message: "" });
+          }}
+          title="Error"
+          message={errorModal.message}
+        />
+
+        
+        <InfoModal
+          isOpen={infoModal.isOpen}
+          onClose={() => {
+            setInfoModal({ isOpen: false, message: "" });
+          }}
+          title="Information"
+          message={infoModal.message}
+        /> */}
+
         {/* Bulk Modal */}
         {bulkOpen && (
           <div className="ap-modal-overlay">
@@ -800,7 +912,11 @@ const NewAuction: React.FC = () => {
                       phones.push(n);
                     }
                     if (!phones.length) {
-                      toast.error("No valid/new numbers");
+                      setInfoModal({
+                        isOpen: true,
+                        message:
+                          "No valid or new phone numbers found. Please check the numbers and try again.",
+                      });
                       return;
                     }
                     phones.forEach((num) =>
@@ -813,7 +929,6 @@ const NewAuction: React.FC = () => {
                         _quick: true,
                       })
                     );
-                    toast.success(`Added ${phones.length} participant(s)`);
                     setBulkText("");
                     setBulkOpen(false);
                   }}
