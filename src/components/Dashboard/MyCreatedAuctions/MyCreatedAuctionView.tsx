@@ -2250,14 +2250,14 @@ const MyCreatedAuctionView: React.FC = () => {
     <div className="view-auction-container">
       {/* Header */}
       <div className="view-auction-header">
-        <div>
+        {/*<div>
           <h1 className="auction-title">
             {auction.title}: {auction.auctionNo}
           </h1>
           <p className="auction-subtitle">
             Manage your auction details and monitor participants
           </p>
-        </div>
+        </div> */}
         <span className={`auction-status-badge status-${auction.status}`}>
           {auction.status.toUpperCase()}
         </span>

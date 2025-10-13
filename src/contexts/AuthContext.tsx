@@ -21,6 +21,8 @@ export interface User {
   role: "auctioneer" | "participant" | "admin";
   isVerified: boolean;
   createdAt?: string;
+  gstn_number: string;
+  company_product_service: string;
 }
 
 interface AuthContextType {
@@ -86,6 +88,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         backendUser.name ||
         base?.personName ||
         "",
+
       mailId: backendUser.mailId || backendUser.email || base?.mailId || "",
       role: (backendUser.role || base?.role || "participant") as User["role"],
       isVerified: backendUser.isVerified ?? base?.isVerified ?? true,
@@ -94,6 +97,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         backendUser.created_at ||
         base?.createdAt ||
         new Date().toISOString(),
+      gstn_number:
+        backendUser.gstn_number ||
+        backendUser.gstnumber ||
+        base?.gstn_number ||
+        "",
+      company_product_service:
+        backendUser.company_product_service ||
+        backendUser.companyproductservice ||
+        base?.company_product_service ||
+        "",
     };
   };
 
@@ -290,6 +303,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             AuctionService.getUserByPhone(phoneNumber) ||
             AuctionService.getUserByPhone(`+91${normalizedPhone}`) ||
             AuctionService.getUserByPhone(normalizedPhone);
+          
 
           if (existingUser) {
             userData = {
@@ -304,6 +318,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               role: existingUser.role,
               isVerified: existingUser.isVerified,
               createdAt: existingUser.createdAt,
+              gstn_number: existingUser.gstn_number,
+              company_product_service: existingUser.company_product_service
             };
           } else {
             // Create new user
@@ -350,6 +366,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               role: userRole,
               isVerified: true,
               createdAt: new Date().toISOString(),
+              gstn_number: "",
+              company_product_service: ""
             };
           }
         }
@@ -404,6 +422,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       if (data.name || data.personName)
         payload.person_name = data.name || data.personName;
+
+        if (data.gstn_number !== undefined)
+          payload.gstn_number = data.gstn_number;
+        if (data.company_product_service !== undefined)
+          payload.company_product_service = data.company_product_service;
+      
+
+
       if (data.email || data.mailId) payload.email = data.email || data.mailId;
       if (data.companyName) payload.company_name = data.companyName;
       if (data.companyAddress) payload.company_address = data.companyAddress;
@@ -420,6 +446,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           payload.company_address || data.companyAddress || user.companyAddress,
         personName: payload.person_name || data.name || user.personName,
         mailId: payload.email || data.email || user.mailId,
+        gstn_number:
+          data.gstn_number !== undefined ? data.gstn_number : user.gstn_number,
+        company_product_service:
+          data.company_product_service !== undefined
+            ? data.company_product_service
+            : user.company_product_service,
       };
 
       setUser(optimistic);

@@ -115,29 +115,71 @@ const ManageAuctions: React.FC = () => {
   };
 
   // Document download helper
-  const handleDocumentDownload = (doc: AuctionDocument) => {
-    if (!doc.file_path) { 
+  // const handleDocumentDownload = (doc: AuctionDocument) => {
+  //   if (!doc.file_path) {
+  //     toast.error("No file available for download");
+  //     return;
+  //   }
+
+
+  //   // Construct the full URL for the document
+  //   const downloadUrl = doc.file_path.startsWith("http")
+  //     ? doc.file_path
+  //     : `${BACKEND_URL}/${doc.file_path}`;
+
+  //   // Create a temporary link element to trigger download
+  //   const link = document.createElement("a");
+  //   link.href = downloadUrl;
+  //   link.download = doc.file_name || "document";
+  //   link.target = "_blank"; // Open in new tab as fallback
+
+  //   // Add to DOM, click, then remove
+  //   document.body.appendChild(link);
+  //   link.click();
+  //   document.body.removeChild(link);
+  // };
+  
+  const handleDocumentDownload = async (doc: AuctionDocument) => {
+    if (!doc.file_path) {
       toast.error("No file available for download");
       return;
-
     }
 
+    try {
+      // Construct the full URL for the document
+      const fileUrl = doc.file_path.startsWith("http")
+        ? doc.file_path
+        : `${BACKEND_URL}/${doc.file_path.replace(/^\//, "")}`; // Remove leading slash if present
 
-    // Construct the full URL for the document
-    const downloadUrl = doc.file_path.startsWith("http")
-      ? doc.file_path
-      : `${BACKEND_URL}/${doc.file_path}`;
+      console.log("Attempting to download from:", fileUrl); // Debug log
 
-    // Create a temporary link element to trigger download
-    const link = document.createElement("a");
-    link.href = downloadUrl;
-    link.download = doc.file_name || "document";
-    link.target = "_blank"; // Open in new tab as fallback
+      // Method 1: Try direct download first
+      const link = document.createElement("a");
+      link.href = fileUrl;
+      link.download = doc.file_name || "document";
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
 
-    // Add to DOM, click, then remove
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+      // Add to DOM, click, then remove
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Fallback: If direct download doesn't work, try opening in new tab
+      setTimeout(() => {
+        // Check if download started, if not open in new tab
+        window.open(fileUrl, "_blank", "noopener,noreferrer");
+      }, 1000);
+    } catch (error) {
+      console.error("Download error:", error);
+      toast.error("Failed to download document");
+
+      // Final fallback - just open in new tab
+      const fileUrl = doc.file_path.startsWith("http")
+        ? doc.file_path
+        : `${BACKEND_URL}/${doc.file_path.replace(/^\//, "")}`;
+      window.open(fileUrl, "_blank", "noopener,noreferrer");
+    }
   };
 
   // Export functionality
@@ -711,7 +753,7 @@ const ManageAuctions: React.FC = () => {
                     <span className="modal-label">Current Bid:</span>
                     <span className="modal-value">
                       {selectedAuction.currentBid > 0
-                        ? formatCurrency(selectedAuction.currentBid)
+                        ? formatCurrency(selectedAuction.current_price)
                         : "No bids yet"}
                     </span>
                   </div>

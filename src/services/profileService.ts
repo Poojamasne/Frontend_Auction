@@ -27,21 +27,27 @@ export interface BackendProfileUser {
   isVerified?: boolean;
   createdAt?: string;
   created_at?: string;
+  company_product_service: string;
+  gstn_number: string;
 }
 
 export interface ProfileResponse {
   success: boolean;
+
   message?: string;
   data?: any;
   user?: BackendProfileUser; // sometimes API might return user directly
+
 }
 
 export interface UpdateProfilePayload {
   phone_number?: string; // only if phone changed and backend allows
   email?: string;
   person_name?: string;
+  gstn_number?: string;
+  company_product_service?: string;
   company_name?: string;
-  company_address?: string;
+  company_address?: string; 
 }
 
 class ProfileService {
@@ -65,6 +71,8 @@ class ProfileService {
       isVerified: raw.isVerified,
       createdAt: raw.createdAt || raw.created_at,
       created_at: raw.created_at || raw.createdAt,
+      company_product_service: raw.company_product_service || raw.companyproductservice,
+      gstn_number: raw.gstn_number || raw.gstnumber,
     };
   }
 

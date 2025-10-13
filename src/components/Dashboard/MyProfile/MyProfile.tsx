@@ -12,6 +12,8 @@ interface ProfileForm {
   name?: string;
   companyName?: string;
   companyAddress?: string;
+  gstn_number?: string;
+  company_product_service: string;
 }
 
 const MyProfile: React.FC = () => {
@@ -30,6 +32,10 @@ const MyProfile: React.FC = () => {
       name: user?.name || "",
       companyName: user?.companyName || "",
       companyAddress: user?.companyAddress || "",
+      // gstnnumber: user?.gstn_number || "None",
+      // companyproductservice: user?.company_product_service || "None",
+      gstn_number: user?.gstn_number || "", // Fixed field name
+      company_product_service: user?.company_product_service || "", // Fixed field name
     },
   });
 
@@ -167,29 +173,26 @@ const MyProfile: React.FC = () => {
                     </div>
                   )}
                 </div>
+                {/* GST Number kakakakaka */}
+                <div className="form-group">
+                  <label htmlFor="gstnnumber" className="form-label">
+                    <BusinessIcon className="w-4 h-4 inline mr-2" />
+                    <span>GST Number</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="gstnnumber"
+                    className="form-input"
+                    placeholder="Enter your GST Number (optional)"
+                    {...register("gstn_number")}
+                  />
+                  {errors.gstn_number && (
+                    <div className="form-error">
+                      {errors.gstn_number.message}
+                    </div>
+                  )}
+                </div>
               </div>
-
-              {/* Second Row: Company Name */}
-              {/* <div className="form-group">
-                <label htmlFor="companyName" className="form-label">
-                  <BusinessIcon className="w-4 h-4 inline mr-2" />
-                  <span>
-                    Company Name<span className="required">*</span>
-                  </span>
-                </label>
-                <input
-                  type="text"
-                  id="companyName"
-                  className="form-input"
-                  placeholder="Enter your company name"
-                  {...register("companyName", {
-                    required: "Company name is required",
-                  })}
-                />
-                {errors.companyName && (
-                  <div className="form-error">{errors.companyName.message}</div>
-                )}
-              </div> */}
             </div>
 
             {/* Company Address */}
@@ -214,6 +217,27 @@ const MyProfile: React.FC = () => {
                   {errors.companyAddress.message}
                 </div>
               )}
+            </div>
+
+            {/* Company Products and Servicessssssssssss;s;s;s;s;s;s */}
+            <div className="form-group">
+              <label htmlFor="companyproductservice" className="form-label">
+                <School className="w-4 h-4 inline mr-2" />
+                <span>
+                  Company Products and Services
+                  <span className="text-red-500">*</span>
+                </span>
+              </label>
+              <textarea
+                id="companyproductservice"
+                rows={3}
+                className={`form-input ${
+                  errors.company_product_service ? "error" : ""
+                }`}
+                placeholder="Enter your company products and services"
+                {...register("company_product_service", {
+                })}
+              />
             </div>
 
             {/* <div className="font-mono text-sm">{user?.id}</div> */}
@@ -248,7 +272,6 @@ const MyProfile: React.FC = () => {
           </form>
         </div>
       </div>
-
     </div>
   );
 };

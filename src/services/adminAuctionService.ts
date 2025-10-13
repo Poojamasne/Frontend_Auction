@@ -48,6 +48,10 @@ export interface RawAuctionRecord {
   description?: string;
   details?: string;
   auctionDetails?: string;
+
+  current_price?: number;
+  // current_price?: string;
+
   companyName?: string;
   company_name?: string;
   auctioneerCompany?: string;
@@ -71,10 +75,13 @@ export interface RawAuctionRecord {
   endDate?: string;
   end_date?: string;
 
-  startTime?: string; auctionStartTime?: string; start_time?: string;
+  startTime?: string;
+  auctionStartTime?: string;
+  start_time?: string;
 
-  endTime?: string; auctionEndTime?: string; end_time?: string;
-  
+  endTime?: string;
+  auctionEndTime?: string;
+  end_time?: string;
 
   autoExtension?: boolean;
   auto_extension?: boolean;
@@ -104,6 +111,72 @@ export interface RawAuctionRecord {
   [k: string]: any;
 }
 
+// export interface RawAuctionRecord {
+//   id?: string;
+//   _id?: string;
+//   auction_id?: string;
+//   title?: string;
+//   auction_title?: string;
+//   description?: string;
+//   details?: string;
+//   auctionDetails?: string;
+//   current_price?: number; // ✅ Add this
+//   // current_price?: string; // If it comes as string from API
+//   companyName?: string;
+//   company_name?: string;
+//   auctioneerCompany?: string;
+//   auctioneerName?: string;
+//   auctioneer_name?: string;
+//   auctioneer?: string;
+//   auctioneerPhone?: string;
+//   auctioneer_phone?: string;
+//   phone?: string;
+//   category?: string;
+//   basePrice?: number;
+//   starting_price?: number;
+//   startingPrice?: number;
+//   currentBid?: number;
+//   current_bid?: number;
+//   status?: string;
+//     startDate?: string;
+//     auctionDate?: string;
+
+//     start_date?: string;
+//     endDate?: string;
+//     end_date?: string;
+
+//     startTime?: string; auctionStartTime?: string; start_time?: string;
+
+//     endTime?: string; auctionEndTime?: string; end_time?: string;
+
+//     autoExtension?: boolean;
+//     auto_extension?: boolean;
+//     extensionTime?: number;
+//     extension_time?: number;
+//     decrementalValue?: number;
+//     decremental_value?: number;
+//     location?: string;
+//     address?: string;
+//     city?: string;
+//     state?: string;
+//     pincode?: string;
+//     participants?: RawAuctionParticipant[];
+//     auction_participants?: RawAuctionParticipant[];
+//     documents?: (string | AuctionDocument)[]; // Updated type
+//     images?: string[];
+//     termsAndConditions?: string;
+//     terms?: string;
+//     createdAt?: string;
+//     created_at?: string;
+//     updatedAt?: string;
+//     updated_at?: string;
+//     lastModified?: string;
+//     adminNotes?: string;
+//     rejectionReason?: string;
+//     rejection_reason?: string;
+//     [k: string]: any;
+// }
+
 export interface NormalizedAuctionRecord {
   id: string;
   title: string;
@@ -119,6 +192,8 @@ export interface NormalizedAuctionRecord {
   startTime: string;
   endDate: string;
   endTime: string;
+
+    current_price: number; // ✅ Add this
 
   auctionDate: string;
   auctionStartTime: string;
@@ -147,79 +222,90 @@ export interface NormalizedAuctionRecord {
 
 class AdminAuctionService {
   private getAuthHeaders(token?: string): HeadersInit {
-    const headers: HeadersInit = { 'Content-Type': 'application/json' };
+    const headers: HeadersInit = { "Content-Type": "application/json" };
     let adminToken: string | null = null;
     try {
-      adminToken = sessionStorage.getItem('adminToken');
+      adminToken = sessionStorage.getItem("adminToken");
       if (!adminToken) {
         for (let i = 0; i < sessionStorage.length; i++) {
-          const k = sessionStorage.key(i) || '';
-          if (k.startsWith('admin_token')) { adminToken = sessionStorage.getItem(k); break; }
+          const k = sessionStorage.key(i) || "";
+          if (k.startsWith("admin_token")) {
+            adminToken = sessionStorage.getItem(k);
+            break;
+          }
         }
       }
-    } catch { /* ignore */ }
-    const authToken = token || adminToken || localStorage.getItem('authToken');
-    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+    } catch {
+      /* ignore */
+    }
+    const authToken = token || adminToken || localStorage.getItem("authToken");
+    if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
     return headers;
   }
 
-  private normalizeParticipant(p: RawAuctionParticipant): NormalizedAuctionParticipant {
+  private normalizeParticipant(
+    p: RawAuctionParticipant
+  ): NormalizedAuctionParticipant {
     return {
-      id: String(p.id || p._id || p.participant_id || ''),
-      name: p.name || p.person_name || 'Unknown',
-      company: p.company || p.company_name || '—',
-      phone: p.phone || p.phone_number || '—',
-      status: p.status || 'pending',
+      id: String(p.id || p._id || p.participant_id || ""),
+      name: p.name || p.person_name || "Unknown",
+      company: p.company || p.company_name || "—",
+      phone: p.phone || p.phone_number || "—",
+      status: p.status || "pending",
     };
   }
 
   private normalizeAuction(raw: RawAuctionRecord): NormalizedAuctionRecord {
-    const participantsRaw: RawAuctionParticipant[] = raw.participants || raw.auction_participants || [];
+    const participantsRaw: RawAuctionParticipant[] =
+      raw.participants || raw.auction_participants || [];
 
     // Fixed document processing
     const docsRaw: any[] = (raw.documents as any[]) || [];
-    const documents: AuctionDocument[] = docsRaw.map(d => {
-      if (typeof d === 'string') {
+    const documents: AuctionDocument[] = docsRaw.map((d) => {
+      if (typeof d === "string") {
         // Handle legacy string format
         return {
           file_name: d,
           file_path: d,
-          file_type: 'unknown'
+          file_type: "unknown",
         };
       }
-      if (d && typeof d === 'object') {
+      if (d && typeof d === "object") {
         // Handle proper document object
         return {
           id: d.id,
-          file_name: d.file_name || d.name || 'Document',
-          file_path: d.file_path || '',
-          file_type: d.file_type || 'unknown',
-          uploaded_at: d.uploaded_at
+          file_name: d.file_name || d.name || "Document",
+          file_path: d.file_path || "",
+          file_type: d.file_type || "unknown",
+          uploaded_at: d.uploaded_at,
         };
       }
       // Fallback for unexpected formats
       return {
-        file_name: 'Unknown Document',
-        file_path: '',
-        file_type: 'unknown'
+        file_name: "Unknown Document",
+        file_path: "",
+        file_type: "unknown",
       };
     });
 
     // Calculate the end date and time based on duration
-    let calculatedEndDate = 'N/A';
-    let calculatedEndTime = 'N/A';
+    let calculatedEndDate = "N/A";
+    let calculatedEndTime = "N/A";
 
     const startISOString = raw.auction_date || raw.startDate || raw.start_date;
-    const rawStartTime = raw.startTime || raw.start_time || '';
+    const rawStartTime = raw.startTime || raw.start_time || "";
 
     let startDateTime: Date | null = null;
 
     if (startISOString && rawStartTime) {
       try {
         // Extract date parts
-        const [year, month, day] = startISOString.split('T')[0].split('-').map(Number);
+        const [year, month, day] = startISOString
+          .split("T")[0]
+          .split("-")
+          .map(Number);
         // Extract time parts
-        const [hour, minute, second] = rawStartTime.split(':').map(Number);
+        const [hour, minute, second] = rawStartTime.split(":").map(Number);
 
         // Manually construct the Date object with local time
         // Note: Month is 0-indexed in JS Date object (January is 0)
@@ -231,55 +317,83 @@ class AdminAuctionService {
     }
 
     if (startDateTime && raw.duration) {
-      const endDateTime = new Date(startDateTime.getTime() + raw.duration * 1000); // Duration is in seconds
-      calculatedEndDate = endDateTime.toLocaleDateString('en-GB'); // dd/mm/yyyy format
-      calculatedEndTime = endDateTime.toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
+      const endDateTime = new Date(
+        startDateTime.getTime() + raw.duration * 1000
+      ); // Duration is in seconds
+      calculatedEndDate = endDateTime.toLocaleDateString("en-GB"); // dd/mm/yyyy format
+      calculatedEndTime = endDateTime.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
         hour12: false,
       });
     }
 
-    const startDate = startDateTime ? startDateTime.toLocaleDateString('en-GB') : 'N/A';
-    const startTime = startDateTime ? startDateTime.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    }) : 'N/A';
+      const currentPrice = Number(
+        raw.current_price ?? raw.currentBid ?? raw.current_bid ?? 0
+      );
+
+    const startDate = startDateTime
+      ? startDateTime.toLocaleDateString("en-GB")
+      : "N/A";
+    const startTime = startDateTime
+      ? startDateTime.toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        })
+      : "N/A";
 
     return {
-      id: String(raw.id || raw._id || raw.auction_id || ''),
-      title: raw.title || raw.auction_title || 'Untitled Auction',
-      description: raw.description || raw.details || raw.auctionDetails || '',
-      companyName: raw.companyName || raw.company_name || raw.auctioneerCompany || '—',
-      auctioneerName: raw.auctioneerName || raw.auctioneer_name || raw.auctioneer || '—',
-      auctioneer_phone: raw.auctioneerPhone || raw.auctioneer_phone || raw.phone || '—',
-      category: raw.category || 'general',
-      basePrice: Number(raw.basePrice ?? raw.starting_price ?? raw.startingPrice ?? 0),
-      currentBid: Number(raw.currentBid ?? raw.current_bid ?? 0),
-      status: raw.status || 'draft',
+      id: String(raw.id || raw._id || raw.auction_id || ""),
+      title: raw.title || raw.auction_title || "Untitled Auction",
+      description: raw.description || raw.details || raw.auctionDetails || "",
+      companyName:
+        raw.companyName || raw.company_name || raw.auctioneerCompany || "—",
+
+      // current_price: Number(raw.current_price ?? 0) || raw.current_price || 0,
+
+      auctioneerName:
+        raw.auctioneerName || raw.auctioneer_name || raw.auctioneer || "—",
+      auctioneer_phone:
+        raw.auctioneerPhone || raw.auctioneer_phone || raw.phone || "—",
+      category: raw.category || "general",
+      basePrice: Number(
+        raw.basePrice ?? raw.starting_price ?? raw.startingPrice ?? 0
+      ),
+      // currentBid: Number(raw.currentBid ?? raw.current_bid ?? 0),
+      current_price: currentPrice,
+      currentBid: currentPrice, // This was the main issue - it wasn't getting the value
+      status: raw.status || "draft",
       startDate,
       startTime,
 
-      auctionDate: raw.auctionDate || raw.start_date || '—',
-      auctionStartTime: raw.auctionStartTime || raw.start_time || '—',
-      auctionEndTime: raw.auctionEndTime || raw.end_time || calculatedEndTime || 'N/A',
+      auctionDate: raw.auctionDate || raw.start_date || "—",
+      auctionStartTime: raw.auctionStartTime || raw.start_time || "—",
+      auctionEndTime:
+        raw.auctionEndTime || raw.end_time || calculatedEndTime || "N/A",
 
       endDate: calculatedEndDate,
       endTime: calculatedEndTime,
       autoExtension: Boolean(raw.autoExtension ?? raw.auto_extension ?? false),
       extensionTime: Number(raw.extensionTime ?? raw.extension_time ?? 0),
-      decrementalValue: Number(raw.decrementalValue ?? raw.decremental_value ?? 0),
-      location: raw.location || raw.address || '—',
-      city: raw.city || '—',
-      state: raw.state || '—',
-      pincode: raw.pincode || '—',
-      participants: participantsRaw.map(p => this.normalizeParticipant(p)),
+      decrementalValue: Number(
+        raw.decrementalValue ?? raw.decremental_value ?? 0
+      ),
+      location: raw.location || raw.address || "—",
+      city: raw.city || "—",
+      state: raw.state || "—",
+      pincode: raw.pincode || "—",
+      participants: participantsRaw.map((p) => this.normalizeParticipant(p)),
       documents,
       images: raw.images || [],
-      termsAndConditions: raw.termsAndConditions || raw.terms || '',
+      termsAndConditions: raw.termsAndConditions || raw.terms || "",
       createdAt: raw.createdAt || raw.created_at || new Date().toISOString(),
-      lastModified: raw.updatedAt || raw.updated_at || raw.lastModified || raw.createdAt || new Date().toISOString(),
+      lastModified:
+        raw.updatedAt ||
+        raw.updated_at ||
+        raw.lastModified ||
+        raw.createdAt ||
+        new Date().toISOString(),
       adminNotes: raw.adminNotes,
       rejectionReason: raw.rejectionReason || raw.rejection_reason,
       total_participants: Number(raw.total_participants ?? 0),
@@ -289,22 +403,184 @@ class AdminAuctionService {
     };
   }
 
-  async listAuctions(params: { page?: number; limit?: number; status?: string; search?: string; token?: string } = {}) {
-    const { page = 1, limit = 10, status = '', search = '', token } = params;
+
+  // private normalizeAuction(raw: RawAuctionRecord): NormalizedAuctionRecord {
+  //   const participantsRaw: RawAuctionParticipant[] =
+  //     raw.participants || raw.auction_participants || [];
+
+  //   // Fixed document processing
+  //   const docsRaw: any[] = (raw.documents as any[]) || [];
+  //   const documents: AuctionDocument[] = docsRaw.map((d) => {
+  //     if (typeof d === "string") {
+  //       // Handle legacy string format
+  //       return {
+  //         file_name: d,
+  //         file_path: d,
+  //         file_type: "unknown",
+  //       };
+  //     }
+  //     if (d && typeof d === "object") {
+  //       // Handle proper document object
+  //       return {
+  //         id: d.id,
+  //         file_name: d.file_name || d.name || "Document",
+  //         file_path: d.file_path || "",
+  //         file_type: d.file_type || "unknown",
+  //         uploaded_at: d.uploaded_at,
+  //       };
+  //     }
+  //     // Fallback for unexpected formats
+  //     return {
+  //       file_name: "Unknown Document",
+  //       file_path: "",
+  //       file_type: "unknown",
+  //     };
+  //   });
+
+  //   // Calculate the end date and time based on duration
+  //   let calculatedEndDate = "N/A";
+  //   let calculatedEndTime = "N/A";
+
+  //   const startISOString = raw.auction_date || raw.startDate || raw.start_date;
+  //   const rawStartTime = raw.startTime || raw.start_time || "";
+
+  //   let startDateTime: Date | null = null;
+
+  //   if (startISOString && rawStartTime) {
+  //     try {
+  //       // Extract date parts
+  //       const [year, month, day] = startISOString
+  //         .split("T")[0]
+  //         .split("-")
+  //         .map(Number);
+  //       // Extract time parts
+  //       const [hour, minute, second] = rawStartTime.split(":").map(Number);
+
+  //       // Manually construct the Date object with local time
+  //       // Note: Month is 0-indexed in JS Date object (January is 0)
+  //       startDateTime = new Date(year, month - 1, day, hour, minute, second);
+  //     } catch (e) {
+  //       console.error("Failed to parse date/time components:", e);
+  //       startDateTime = null; // Set to null if parsing fails
+  //     }
+  //   }
+
+  //   if (startDateTime && raw.duration) {
+  //     const endDateTime = new Date(
+  //       startDateTime.getTime() + raw.duration * 1000
+  //     ); // Duration is in seconds
+  //     calculatedEndDate = endDateTime.toLocaleDateString("en-GB"); // dd/mm/yyyy format
+  //     calculatedEndTime = endDateTime.toLocaleTimeString("en-US", {
+  //       hour: "2-digit",
+  //       minute: "2-digit",
+  //       hour12: false,
+  //     });
+  //   }
+
+  //   const startDate = startDateTime
+  //     ? startDateTime.toLocaleDateString("en-GB")
+  //     : "N/A";
+  //   const startTime = startDateTime
+  //     ? startDateTime.toLocaleTimeString("en-US", {
+  //         hour: "2-digit",
+  //         minute: "2-digit",
+  //         hour12: false,
+  //       })
+  //     : "N/A";
+
+  //   // FIX: Properly handle current_price from API
+  //   const currentPrice = Number(
+  //     raw.current_price ?? raw.currentBid ?? raw.current_bid ?? 0
+  //   );
+
+  //   return {
+  //     id: String(raw.id || raw._id || raw.auction_id || ""),
+  //     title: raw.title || raw.auction_title || "Untitled Auction",
+  //     description: raw.description || raw.details || raw.auctionDetails || "",
+  //     companyName:
+  //       raw.companyName || raw.company_name || raw.auctioneerCompany || "—",
+
+  //     // FIX: Use currentPrice for both current_price and currentBid
+  //     current_price: currentPrice,
+  //     currentBid: currentPrice, // This was the main issue - it wasn't getting the value
+
+  //     auctioneerName:
+  //       raw.auctioneerName || raw.auctioneer_name || raw.auctioneer || "—",
+  //     auctioneer_phone:
+  //       raw.auctioneerPhone || raw.auctioneer_phone || raw.phone || "—",
+  //     category: raw.category || "general",
+  //     basePrice: Number(
+  //       raw.basePrice ?? raw.starting_price ?? raw.startingPrice ?? 0
+  //     ),
+  //     status: raw.status || "draft",
+  //     startDate,
+  //     startTime,
+
+  //     auctionDate: raw.auctionDate || raw.start_date || "—",
+  //     auctionStartTime: raw.auctionStartTime || raw.start_time || "—",
+  //     auctionEndTime:
+  //       raw.auctionEndTime || raw.end_time || calculatedEndTime || "N/A",
+
+  //     endDate: calculatedEndDate,
+  //     endTime: calculatedEndTime,
+  //     autoExtension: Boolean(raw.autoExtension ?? raw.auto_extension ?? false),
+  //     extensionTime: Number(raw.extensionTime ?? raw.extension_time ?? 0),
+  //     decrementalValue: Number(
+  //       raw.decrementalValue ?? raw.decremental_value ?? 0
+  //     ),
+  //     location: raw.location || raw.address || "—",
+  //     city: raw.city || "—",
+  //     state: raw.state || "—",
+  //     pincode: raw.pincode || "—",
+  //     participants: participantsRaw.map((p) => this.normalizeParticipant(p)),
+  //     documents,
+  //     images: raw.images || [],
+  //     termsAndConditions: raw.termsAndConditions || raw.terms || "",
+  //     createdAt: raw.createdAt || raw.created_at || new Date().toISOString(),
+  //     lastModified:
+  //       raw.updatedAt ||
+  //       raw.updated_at ||
+  //       raw.lastModified ||
+  //       raw.createdAt ||
+  //       new Date().toISOString(),
+  //     adminNotes: raw.adminNotes,
+  //     rejectionReason: raw.rejectionReason || raw.rejection_reason,
+  //     total_participants: Number(raw.total_participants ?? 0),
+  //     joined_participants: Number(raw.joined_participants ?? 0),
+  //     invited_participants: Number(raw.invited_participants ?? 0),
+  //     declined_participants: Number(raw.declined_participants ?? 0),
+  //   };
+  // }
+
+  async listAuctions(
+    params: {
+      page?: number;
+      limit?: number;
+      status?: string;
+      search?: string;
+      token?: string;
+    } = {}
+  ) {
+    const { page = 1, limit = 10, status = "", search = "", token } = params;
     const qs = new URLSearchParams();
-    qs.set('page', String(page));
-    qs.set('limit', String(limit));
-    if (status && status !== 'all') qs.set('status', status);
-    if (search) qs.set('search', search);
+    qs.set("page", String(page));
+    qs.set("limit", String(limit));
+    if (status && status !== "all") qs.set("status", status);
+    if (search) qs.set("search", search);
     const url = `${ADMIN_AUCTIONS_BASE}?${qs.toString()}`;
     const res = await fetch(url, { headers: this.getAuthHeaders(token) });
     const json: any = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(json.message || `Failed to fetch auctions (${res.status})`);
+    if (!res.ok)
+      throw new Error(
+        json.message || `Failed to fetch auctions (${res.status})`
+      );
     const dataBlock = json.data || json;
-    const rawList: RawAuctionRecord[] = dataBlock.auctions || dataBlock.data || [];
-    const total = dataBlock.total || dataBlock.totalAuctions || rawList.length || 0;
+    const rawList: RawAuctionRecord[] =
+      dataBlock.auctions || dataBlock.data || [];
+    const total =
+      dataBlock.total || dataBlock.totalAuctions || rawList.length || 0;
     return {
-      auctions: rawList.map(r => this.normalizeAuction(r)),
+      auctions: rawList.map((r) => this.normalizeAuction(r)),
       total,
       page: dataBlock.page || page,
       limit: dataBlock.limit || limit,
@@ -312,10 +588,18 @@ class AdminAuctionService {
     };
   }
 
-  async getAuctionById(id: string, token?: string): Promise<NormalizedAuctionRecord> {
-    const res = await fetch(`${ADMIN_AUCTIONS_BASE}/${id}`, { headers: this.getAuthHeaders(token) });
+  async getAuctionById(
+    id: string,
+    token?: string
+  ): Promise<NormalizedAuctionRecord> {
+    const res = await fetch(`${ADMIN_AUCTIONS_BASE}/${id}`, {
+      headers: this.getAuthHeaders(token),
+    });
     const json: any = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(json.message || `Failed to fetch auction (${res.status})`);
+    if (!res.ok)
+      throw new Error(
+        json.message || `Failed to fetch auction (${res.status})`
+      );
     const raw: RawAuctionRecord = json.data || json.auction || json;
     return this.normalizeAuction(raw);
   }
@@ -328,12 +612,22 @@ class AdminAuctionService {
    * updateAuctionStatus(id, status, token)  (heuristic if looks like JWT)
    * updateAuctionStatus(id, status, reason, token)
    */
-  async updateAuctionStatus(id: string, status: string, reasonOrToken?: string, tokenMaybe?: string): Promise<NormalizedAuctionRecord> {
-    let reason: string | undefined; let token: string | undefined;
-    if (reasonOrToken && tokenMaybe) { reason = reasonOrToken; token = tokenMaybe; }
-    else if (reasonOrToken) {
+  async updateAuctionStatus(
+    id: string,
+    status: string,
+    reasonOrToken?: string,
+    tokenMaybe?: string
+  ): Promise<NormalizedAuctionRecord> {
+    let reason: string | undefined;
+    let token: string | undefined;
+    if (reasonOrToken && tokenMaybe) {
+      reason = reasonOrToken;
+      token = tokenMaybe;
+    } else if (reasonOrToken) {
       // Heuristic: JWT tokens usually contain two dots and are long
-      if (reasonOrToken.split('.').length === 3 && reasonOrToken.length > 20) token = reasonOrToken; else reason = reasonOrToken;
+      if (reasonOrToken.split(".").length === 3 && reasonOrToken.length > 20)
+        token = reasonOrToken;
+      else reason = reasonOrToken;
     }
     if (!token) token = tokenMaybe; // final fallback
 
@@ -344,57 +638,102 @@ class AdminAuctionService {
     if (reason) basePayload.reason = reason;
 
     // Generate payload variants (status key variants + reason key variants)
-    const statusKeys = ['status', 'auction_status', 'newStatus', 'status_value'];
-    const reasonKeys = reason ? ['reason', 'rejectionReason', 'rejection_reason'] : [];
+    const statusKeys = [
+      "status",
+      "auction_status",
+      "newStatus",
+      "status_value",
+    ];
+    const reasonKeys = reason
+      ? ["reason", "rejectionReason", "rejection_reason"]
+      : [];
     const payloadVariants: any[] = [];
-    statusKeys.forEach(sk => {
+    statusKeys.forEach((sk) => {
       const variant: any = { [sk]: status };
-      reasonKeys.forEach(rk => { variant[rk] = reason; });
+      reasonKeys.forEach((rk) => {
+        variant[rk] = reason;
+      });
       payloadVariants.push(variant);
     });
     // Ensure at least the base variant present
     if (payloadVariants.length === 0) payloadVariants.push(basePayload);
 
     let lastError: any = null;
-    const attempt = async (method: string, variant: any, note: string, useBody = true) => {
+    const attempt = async (
+      method: string,
+      variant: any,
+      note: string,
+      useBody = true
+    ) => {
       try {
-        const requestUrl = url + (note.includes('query') ? `?status=${encodeURIComponent(status)}${reason ? `&reason=${encodeURIComponent(reason)}` : ''}` : '');
+        const requestUrl =
+          url +
+          (note.includes("query")
+            ? `?status=${encodeURIComponent(status)}${
+                reason ? `&reason=${encodeURIComponent(reason)}` : ""
+              }`
+            : "");
         const requestBody = useBody ? JSON.stringify(variant) : undefined;
-        console.log(`🔍 Auction status update attempt: ${method} ${requestUrl}`);
+        console.log(
+          `🔍 Auction status update attempt: ${method} ${requestUrl}`
+        );
         console.log(`📤 Headers:`, headers);
         console.log(`📦 Body:`, requestBody);
 
-        const res = await fetch(requestUrl, { method, headers, body: requestBody });
+        const res = await fetch(requestUrl, {
+          method,
+          headers,
+          body: requestBody,
+        });
         const text = await res.text();
         console.log(`📥 Response ${res.status}:`, text);
 
-        let json: any = {}; try { json = text ? JSON.parse(text) : {}; } catch { json = { raw: text }; }
+        let json: any = {};
+        try {
+          json = text ? JSON.parse(text) : {};
+        } catch {
+          json = { raw: text };
+        }
         if (res.ok) {
           const raw: RawAuctionRecord = json.data || json.auction || json;
           return this.normalizeAuction(raw);
         }
-        lastError = new Error(json.message || `${method} ${note} failed (${res.status}): ${text}`);
-      } catch (e) { lastError = e; }
+        lastError = new Error(
+          json.message || `${method} ${note} failed (${res.status}): ${text}`
+        );
+      } catch (e) {
+        lastError = e;
+      }
       return null;
     };
 
     // 1. PUT with body variants
     for (let i = 0; i < payloadVariants.length; i++) {
-      const result = await attempt('PUT', payloadVariants[i], `variant ${i + 1}`);
+      const result = await attempt(
+        "PUT",
+        payloadVariants[i],
+        `variant ${i + 1}`
+      );
       if (result) return result;
     }
     // 2. PATCH with body variants
     for (let i = 0; i < payloadVariants.length; i++) {
-      const result = await attempt('PATCH', payloadVariants[i], `patch variant ${i + 1}`);
+      const result = await attempt(
+        "PATCH",
+        payloadVariants[i],
+        `patch variant ${i + 1}`
+      );
       if (result) return result;
     }
     // 3. PUT query params only
-    const qpResultPut = await attempt('PUT', {}, 'query', false); if (qpResultPut) return qpResultPut;
+    const qpResultPut = await attempt("PUT", {}, "query", false);
+    if (qpResultPut) return qpResultPut;
     // 4. PATCH query params only
-    const qpResultPatch = await attempt('PATCH', {}, 'query', false); if (qpResultPatch) return qpResultPatch;
+    const qpResultPatch = await attempt("PATCH", {}, "query", false);
+    if (qpResultPatch) return qpResultPatch;
 
     // 5. Try alternative endpoint patterns (backend might use different path)
-    console.log('🔄 Trying alternative endpoints...');
+    console.log("🔄 Trying alternative endpoints...");
     const altUrls = [
       `${ADMIN_AUCTIONS_BASE}/${id}`, // Direct PATCH to auction
       `${ADMIN_AUCTIONS_BASE}/${id}/update-status`,
@@ -406,7 +745,7 @@ class AdminAuctionService {
       try {
         console.log(`🧪 Trying alternative endpoint: PUT ${altUrl}`);
         const res = await fetch(altUrl, {
-          method: 'PUT',
+          method: "PUT",
           headers,
           body: JSON.stringify(basePayload),
         });
@@ -414,7 +753,12 @@ class AdminAuctionService {
         console.log(`📥 Alt response ${res.status}:`, text);
 
         if (res.ok) {
-          let json: any = {}; try { json = text ? JSON.parse(text) : {}; } catch { json = { raw: text }; }
+          let json: any = {};
+          try {
+            json = text ? JSON.parse(text) : {};
+          } catch {
+            json = { raw: text };
+          }
           const raw: RawAuctionRecord = json.data || json.auction || json;
           return this.normalizeAuction(raw);
         }
@@ -423,10 +767,18 @@ class AdminAuctionService {
       }
     }
 
-    throw lastError || new Error('Failed to update auction status after all strategies');
+    throw (
+      lastError ||
+      new Error("Failed to update auction status after all strategies")
+    );
   }
 
-  async updateParticipantStatus(auctionId: string, participantId: string, status: string, token?: string): Promise<NormalizedAuctionRecord> {
+  async updateParticipantStatus(
+    auctionId: string,
+    participantId: string,
+    status: string,
+    token?: string
+  ): Promise<NormalizedAuctionRecord> {
     const url = `${ADMIN_AUCTIONS_BASE}/${auctionId}/participants/${participantId}/status`;
     const headers = this.getAuthHeaders(token);
 
@@ -442,70 +794,126 @@ class AdminAuctionService {
     // 1. Try JSON payload variants via PUT
     for (let i = 0; i < payloadVariants.length; i++) {
       try {
-        const res = await fetch(url, { method: 'PUT', headers, body: JSON.stringify(payloadVariants[i]) });
+        const res = await fetch(url, {
+          method: "PUT",
+          headers,
+          body: JSON.stringify(payloadVariants[i]),
+        });
         const text = await res.text();
-        let json: any = {}; try { json = text ? JSON.parse(text) : {}; } catch { json = { raw: text }; }
+        let json: any = {};
+        try {
+          json = text ? JSON.parse(text) : {};
+        } catch {
+          json = { raw: text };
+        }
         if (!res.ok) {
-          lastError = new Error(json.message || `PUT variant ${i + 1} failed (${res.status})`);
+          lastError = new Error(
+            json.message || `PUT variant ${i + 1} failed (${res.status})`
+          );
           if (res.status >= 500 && i < payloadVariants.length - 1) continue; // try next variant
-          if (res.status >= 400 && res.status < 500 && i < payloadVariants.length - 1) continue; // try next
+          if (
+            res.status >= 400 &&
+            res.status < 500 &&
+            i < payloadVariants.length - 1
+          )
+            continue; // try next
           // break out if last or irrecoverable
         } else {
           const raw: RawAuctionRecord = json.data || json.auction || json;
           return this.normalizeAuction(raw);
         }
-      } catch (err) { lastError = err; }
+      } catch (err) {
+        lastError = err;
+      }
     }
 
     // 2. Try PUT with query param & empty body
     try {
       const qpUrl = `${url}?status=${encodeURIComponent(status)}`;
-      const res = await fetch(qpUrl, { method: 'PUT', headers });
+      const res = await fetch(qpUrl, { method: "PUT", headers });
       const text = await res.text();
-      let json: any = {}; try { json = text ? JSON.parse(text) : {}; } catch { json = { raw: text }; }
+      let json: any = {};
+      try {
+        json = text ? JSON.parse(text) : {};
+      } catch {
+        json = { raw: text };
+      }
       if (res.ok) {
         const raw: RawAuctionRecord = json.data || json.auction || json;
         return this.normalizeAuction(raw);
       } else {
-        lastError = new Error(json.message || `PUT query param failed (${res.status})`);
+        lastError = new Error(
+          json.message || `PUT query param failed (${res.status})`
+        );
       }
-    } catch (e) { lastError = e; }
+    } catch (e) {
+      lastError = e;
+    }
 
     // 3. Try PATCH with simplest body { status }
     try {
-      const res = await fetch(url, { method: 'PATCH', headers, body: JSON.stringify({ status }) });
+      const res = await fetch(url, {
+        method: "PATCH",
+        headers,
+        body: JSON.stringify({ status }),
+      });
       const text = await res.text();
-      let json: any = {}; try { json = text ? JSON.parse(text) : {}; } catch { json = { raw: text }; }
+      let json: any = {};
+      try {
+        json = text ? JSON.parse(text) : {};
+      } catch {
+        json = { raw: text };
+      }
       if (res.ok) {
         const raw: RawAuctionRecord = json.data || json.auction || json;
         return this.normalizeAuction(raw);
       } else {
         lastError = new Error(json.message || `PATCH failed (${res.status})`);
       }
-    } catch (e) { lastError = e; }
+    } catch (e) {
+      lastError = e;
+    }
 
     // 4. Try PATCH with no body (some APIs infer from path & query)
     try {
       const qpPatch = `${url}?status=${encodeURIComponent(status)}`;
-      const res = await fetch(qpPatch, { method: 'PATCH', headers });
+      const res = await fetch(qpPatch, { method: "PATCH", headers });
       const text = await res.text();
-      let json: any = {}; try { json = text ? JSON.parse(text) : {}; } catch { json = { raw: text }; }
+      let json: any = {};
+      try {
+        json = text ? JSON.parse(text) : {};
+      } catch {
+        json = { raw: text };
+      }
       if (res.ok) {
         const raw: RawAuctionRecord = json.data || json.auction || json;
         return this.normalizeAuction(raw);
       } else {
-        lastError = new Error(json.message || `PATCH query param failed (${res.status})`);
+        lastError = new Error(
+          json.message || `PATCH query param failed (${res.status})`
+        );
       }
-    } catch (e) { lastError = e; }
+    } catch (e) {
+      lastError = e;
+    }
 
-    throw lastError || new Error('Failed to update participant status after all strategies');
+    throw (
+      lastError ||
+      new Error("Failed to update participant status after all strategies")
+    );
   }
 
   async deleteAuction(id: string, token?: string): Promise<boolean> {
-    const res = await fetch(`${ADMIN_AUCTIONS_BASE}/${id}`, { method: 'DELETE', headers: this.getAuthHeaders(token) });
+    const res = await fetch(`${ADMIN_AUCTIONS_BASE}/${id}`, {
+      method: "DELETE",
+      headers: this.getAuthHeaders(token),
+    });
     if (res.status === 204) return true;
     const json: any = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(json.message || `Failed to delete auction (${res.status})`);
+    if (!res.ok)
+      throw new Error(
+        json.message || `Failed to delete auction (${res.status})`
+      );
     return true;
   }
 }

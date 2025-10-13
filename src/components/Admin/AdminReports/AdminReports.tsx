@@ -351,7 +351,7 @@ const AdminReports: React.FC = () => {
                 </div>
               </div>
 
-              <div className="metric-card hover-lift">
+              {/* <div className="metric-card hover-lift">
                 <div className="metric-header">
                   <span className="metric-title">Total Revenue</span>
                   <IndianRupee className="metric-icon" />
@@ -363,7 +363,7 @@ const AdminReports: React.FC = () => {
                   Winning Bid:{" "}
                   {overview ? formatCurrency(overview.averageBidValue) : "—"}
                 </div>
-              </div>
+              </div> */}
 
               <div className="metric-card hover-lift">
                 <div className="metric-header">
@@ -377,11 +377,12 @@ const AdminReports: React.FC = () => {
                   Top: {overview ? overview.topCategory : "—"}
                 </div>
               </div>
+
             </div>
           </div>
 
           {/* Monthly Trend Chart */}
-          <div className="reports-section">
+          {/* <div className="reports-section">
             <div className="admin-card">
               <div className="admin-card-header">
                 <h2 className="admin-card-title">Monthly Trends</h2>
@@ -411,7 +412,7 @@ const AdminReports: React.FC = () => {
                 ))}
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
       )}
 
@@ -467,9 +468,9 @@ const AdminReports: React.FC = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-text-white uppercase tracking-wider">
                       Auctioneer
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-text-white uppercase tracking-wider">
+                    {/* <th className="px-6 py-3 text-left text-xs font-medium text-text-white uppercase tracking-wider">
                       Financial Data
-                    </th>
+                    </th> */}
                     <th className="px-6 py-3 text-left text-xs font-medium text-text-white uppercase tracking-wider">
                       Participation
                     </th>
@@ -518,7 +519,7 @@ const AdminReports: React.FC = () => {
                           </div>
                         </div>
                       </td>
-                      <td
+                      {/* <td
                         className="px-6 py-4 whitespace-nowrap"
                         data-label="Financial Data"
                       >
@@ -536,7 +537,7 @@ const AdminReports: React.FC = () => {
                             Revenue: {formatCurrency(auction.revenue)}
                           </div>
                         </div>
-                      </td>
+                      </td> */}
                       <td
                         className="px-6 py-4 whitespace-nowrap"
                         data-label="Participation"
@@ -633,7 +634,7 @@ const AdminReports: React.FC = () => {
                     <th>User Details</th>
                     <th>Role & Registration</th>
                     <th>Auction Activity</th>
-                    <th>Financial Data</th>
+                    {/* <th>Financial Data</th> */}
                     <th>Status</th>
                   </tr>
                 </thead>
@@ -698,7 +699,7 @@ const AdminReports: React.FC = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-2" data-label="Financial Data">
+                        {/* <td className="px-4 py-2" data-label="Financial Data">
                           <div>
                             <div className="text-sm font-medium text-primary">
                               {user.totalSpent > 0
@@ -714,7 +715,7 @@ const AdminReports: React.FC = () => {
                               </div>
                             )}
                           </div>
-                        </td>
+                        </td> */}
                         <td className="px-4 py-2" data-label="Status">
                           <span
                             className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${

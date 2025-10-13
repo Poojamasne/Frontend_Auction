@@ -197,6 +197,7 @@ const DashboardHome: React.FC = () => {
 
   // Calculate dynamic stats
   const getStats = () => {
+    
     if (useRemote && remoteStats) {
       const participatedCount =
         participatedOverride ?? remoteStats.participated_auctions;
@@ -231,6 +232,7 @@ const DashboardHome: React.FC = () => {
         },
       ];
     }
+
     // Local fallback
     const activeAuctions = myAuctions.filter(
       (a) => a.status === "live" || a.status === "upcoming"
@@ -409,9 +411,9 @@ const DashboardHome: React.FC = () => {
                   <div className="ap-dashboard-home-stat-text">
                     <h3>{stat.title}</h3>
                     <p className="ap-dashboard-home-stat-value">{stat.value}</p>
-                    <p className="ap-dashboard-home-stat-change">
+                    {/* <p className="ap-dashboard-home-stat-change">
                       {stat.change}
-                    </p>
+                    </p> */}
                   </div>
                   <div
                     className={`ap-dashboard-home-stat-icon ${
@@ -685,3 +687,6 @@ const DashboardHome: React.FC = () => {
 };
 
 export default DashboardHome;
+
+
+
