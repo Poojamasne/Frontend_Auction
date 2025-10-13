@@ -86,7 +86,7 @@ const ManageAuctions: React.FC = () => {
       setAuctions(list.auctions);
       setTotal(list.total);
 
-      if (          
+      if (
         filterStatus === "rejected" &&
         list.auctions.length === 0 &&
         recentlyRejected
@@ -106,12 +106,22 @@ const ManageAuctions: React.FC = () => {
   }, [fetchAuctions, refreshIndex]);
 
   // Helper functions
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      minimumFractionDigits: 0,
-    }).format(amount);
+  // Helper functions
+  const formatCurrency = (amount: number, currency: string = "INR") => {
+    if (currency === "USD") {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: 0,
+      }).format(amount);
+    } else {
+      // Default to INR
+      return new Intl.NumberFormat("en-IN", {
+        style: "currency",
+        currency: "INR",
+        minimumFractionDigits: 0,
+      }).format(amount);
+    }
   };
 
   // Document download helper
@@ -120,7 +130,6 @@ const ManageAuctions: React.FC = () => {
   //     toast.error("No file available for download");
   //     return;
   //   }
-
 
   //   // Construct the full URL for the document
   //   const downloadUrl = doc.file_path.startsWith("http")
@@ -138,7 +147,7 @@ const ManageAuctions: React.FC = () => {
   //   link.click();
   //   document.body.removeChild(link);
   // };
-  
+
   const handleDocumentDownload = async (doc: AuctionDocument) => {
     if (!doc.file_path) {
       toast.error("No file available for download");
@@ -264,7 +273,7 @@ const ManageAuctions: React.FC = () => {
       const full = await adminAuctionService.getAuctionById(auction.id);
       setSelectedAuction(full); // Update with full details
     } catch (e) {
-      console.error('Error fetching auction details:', e);
+      console.error("Error fetching auction details:", e);
       // Keep the basic auction data if fetch fails
     } finally {
       setDetailLoading(false);
@@ -302,8 +311,6 @@ const ManageAuctions: React.FC = () => {
       !window.confirm(
         "Reject this auction? Users will see it was rejected by Admin."
       )
-      
-        
     )
       return;
     try {
@@ -514,11 +521,16 @@ const ManageAuctions: React.FC = () => {
                           </div>
                         </div>
                       </td>
+
                       <td data-label="Pricing & Status">
                         <div>
-                          {auction.currentBid > 0 && (
+                          {auction.current_price > 0 && (
                             <div className="text-sm font-medium">
-                              Current: {formatCurrency(auction.currentBid)}
+                              Current:{" "}
+                              {formatCurrency(
+                                auction.current_price,
+                                auction.currency
+                              )}
                             </div>
                           )}
                           <span className={`auction-status ${auction.status}`}>
@@ -526,11 +538,15 @@ const ManageAuctions: React.FC = () => {
                               auction.status.slice(1)}
                           </span>
                           <div className="text-xs mt-1">
-                            Decrement: ₹
-                            {auction.decrementalValue.toLocaleString()}
+                            Decrement:{" "}
+                            {formatCurrency(
+                              auction.decrementalValue,
+                              auction.currency
+                            )}
                           </div>
                         </div>
                       </td>
+
                       <td data-label="Schedule">
                         <div>
                           <div className="mt-2 mr-2 items-center">
@@ -602,11 +618,16 @@ const ManageAuctions: React.FC = () => {
                           </button>
 
                           {/* View Live Auction Button for Active/Live Auctions */}
-                          {(auction.status === "live" || 
-                            auction.status === "active" || 
+                          {(auction.status === "live" ||
+                            auction.status === "active" ||
                             auction.status === "approved") && (
                             <button
-                              onClick={() => window.open(`/admin/auction-live/${auction.id}`, '_blank')}
+                              onClick={() =>
+                                window.open(
+                                  `/admin/auction-live/${auction.id}`,
+                                  "_blank"
+                                )
+                              }
                               className="auction-btn view-live-icon"
                               title="View Live Auction"
                             >
@@ -701,7 +722,7 @@ const ManageAuctions: React.FC = () => {
 
       {/* Auction Details Modal */}
       {selectedAuction && (
-        <div 
+        <div
           className="auction-modal-overlay"
           onClick={(e) => {
             // Only close if clicking the overlay itself, not its children
@@ -710,7 +731,7 @@ const ManageAuctions: React.FC = () => {
             }
           }}
         >
-          <div 
+          <div
             className="auction-modal-box"
             onClick={(e) => e.stopPropagation()}
           >
@@ -749,20 +770,29 @@ const ManageAuctions: React.FC = () => {
                       {selectedAuction.description}
                     </span>
                   </div>
+
                   <div className="modal-row">
                     <span className="modal-label">Current Bid:</span>
                     <span className="modal-value">
                       {selectedAuction.currentBid > 0
-                        ? formatCurrency(selectedAuction.current_price)
+                        ? formatCurrency(
+                            selectedAuction.current_price,
+                            selectedAuction.currency
+                          )
                         : "No bids yet"}
                     </span>
                   </div>
+
                   <div className="modal-row">
                     <span className="modal-label">Decremental:</span>
                     <span className="modal-value">
-                      ₹{selectedAuction.decrementalValue.toLocaleString()}
+                      {formatCurrency(
+                        selectedAuction.decrementalValue,
+                        selectedAuction.currency
+                      )}
                     </span>
                   </div>
+
                   <div className="modal-row">
                     <span className="modal-label">Status:</span>
                     <span className="modal-value">
@@ -1007,13 +1037,16 @@ const ManageAuctions: React.FC = () => {
             {/* Modal Actions */}
             <div className="modal-actions">
               {/* View Live Auction Button - Show for active/live auctions */}
-              {(selectedAuction.status === "live" || 
-                selectedAuction.status === "active" || 
+              {(selectedAuction.status === "live" ||
+                selectedAuction.status === "active" ||
                 selectedAuction.status === "approved") && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    window.open(`/admin/auction-live/${selectedAuction.id}`, '_blank');
+                    window.open(
+                      `/admin/auction-live/${selectedAuction.id}`,
+                      "_blank"
+                    );
                   }}
                   className="view-live"
                   title="View Live Auction as Admin"
@@ -1023,7 +1056,7 @@ const ManageAuctions: React.FC = () => {
                   View Live Auction
                 </button>
               )}
-              
+
               {selectedAuction.status === "pending" && (
                 <>
                   <button

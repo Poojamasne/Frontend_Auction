@@ -52,6 +52,8 @@ export interface RawAuctionRecord {
   current_price?: number;
   // current_price?: string;
 
+  currency?: string; // Add this
+
   companyName?: string;
   company_name?: string;
   auctioneerCompany?: string;
@@ -193,7 +195,9 @@ export interface NormalizedAuctionRecord {
   endDate: string;
   endTime: string;
 
-    current_price: number; // ✅ Add this
+  current_price: number; // ✅ Add this
+
+  currency: string; // Add this
 
   auctionDate: string;
   auctionStartTime: string;
@@ -270,6 +274,8 @@ class AdminAuctionService {
           file_type: "unknown",
         };
       }
+
+
       if (d && typeof d === "object") {
         // Handle proper document object
         return {
@@ -328,19 +334,19 @@ class AdminAuctionService {
       });
     }
 
-      const currentPrice = Number(
-        raw.current_price ?? raw.currentBid ?? raw.current_bid ?? 0
-      );
+    const currentPrice = Number(
+      raw.current_price ?? raw.currentBid ?? raw.current_bid ?? 0
+    );
 
     const startDate = startDateTime
       ? startDateTime.toLocaleDateString("en-GB")
       : "N/A";
     const startTime = startDateTime
       ? startDateTime.toLocaleTimeString("en-US", {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        })
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      })
       : "N/A";
 
     return {
@@ -349,6 +355,8 @@ class AdminAuctionService {
       description: raw.description || raw.details || raw.auctionDetails || "",
       companyName:
         raw.companyName || raw.company_name || raw.auctioneerCompany || "—",
+      
+      currency: raw.currency || "0", // Default to INR if not specified
 
       // current_price: Number(raw.current_price ?? 0) || raw.current_price || 0,
 
